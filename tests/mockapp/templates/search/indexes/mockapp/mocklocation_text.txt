@@ -1,0 +1,3 @@
+{{ object.address }} {{ object.zip_code }} {{ object.city }}
+Created: {{ object.created }}
+Last modified: {{ object.updated }}

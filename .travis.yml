@@ -1,0 +1,40 @@
+language: python
+python:
+  - "3.4"
+
+cache:
+  directories:
+    - pip_download_cache
+
+before_install:
+  - mkdir -p $PIP_DOWNLOAD_CACHE
+  - sudo apt-get update
+  - sudo apt-get install default-jdk
+
+install:
+  - pip install tox requests
+  - pip install -e .
+
+script:
+  - tox -e $TOX_ENV
+
+env:
+  global:
+    - PIP_DOWNLOAD_CACHE="pip_download_cache"
+  matrix:
+    - TOX_ENV=py26-django1.5
+    - TOX_ENV=py26-django1.6
+    - TOX_ENV=py27-django1.5
+    - TOX_ENV=py27-django1.6
+    - TOX_ENV=py27-django1.7
+    - TOX_ENV=py33-django1.5
+    - TOX_ENV=py33-django1.6
+    - TOX_ENV=py33-django1.7
+    - TOX_ENV=py34-django1.5
+    - TOX_ENV=py34-django1.6
+
+services:
+  - elasticsearch
+
+notifications:
+  email: false
