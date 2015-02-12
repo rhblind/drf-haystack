@@ -141,7 +141,7 @@ class HaystackGEOSpatialFilter(HaystackFilter):
             with latitude 59.744076 and longitude 10.152045.
         """
 
-        filters = {k: filters[k] for k in chain(D.UNITS.keys(), ["from"]) if k in filters}
+        filters = {k: filters[k] for k in chain(D.UNITS.keys(), ["from"]) if k in filters}  # Not valid py26
         distance = dict((k, v) for k, v in filters.items() if k in D.UNITS.keys())
         if "from" in filters and len(filters["from"].split(",")) == 2:
             try:
