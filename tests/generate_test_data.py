@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     random.seed()
     now = datetime.utcnow()
-    fake = Factory.create()
+    fake = Factory.create(locale="no_NO")
 
     mock_locations = []
 
