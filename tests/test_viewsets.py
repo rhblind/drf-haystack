@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Unit tests for the `drf_haystack.generics` classes.
+# Unit tests for the `drf_haystack.viewsets` classes.
 #
 
 from __future__ import absolute_import, unicode_literals
@@ -22,10 +22,10 @@ class HaystackViewSetTestCase(TestCase):
 
     def setUp(self):
 
-        class DefaultValuesViewSet(HaystackViewSet):
+        class ViewSet(HaystackViewSet):
             serializer_class = Serializer
 
-        self.view = DefaultValuesViewSet
+        self.view = ViewSet
 
     def test_get_queryset_no_queryset(self):
         request = factory.get(path="/", data="", content_type="application/json")
@@ -62,5 +62,3 @@ class HaystackViewSetTestCase(TestCase):
         request = factory.get(path="/", data="", content_type="application/json")
         response = self.view.as_view(actions={"get": "retrieve"})(request, custom_lookup=1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-
