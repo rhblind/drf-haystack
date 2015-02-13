@@ -22,7 +22,7 @@ class HaystackGenericAPIView(GenericAPIView):
 
     # Override document_uid_field with whatever field in your index
     # you use to uniquely identify a single document. This value will be
-    # used wherever the view references the `pk` kwarg.
+    # used wherever the view references the `lookup_field` kwarg.
     document_uid_field = "id"
     lookup_sep = ","
 
@@ -34,11 +34,15 @@ class HaystackGenericAPIView(GenericAPIView):
     def get_queryset(self):
         """
         Get the list of items for this view.
-        Must be an iterable and may be a `SearchQuerySet` instance.
+        Returns `self.queryset` if defined and is a `self.object_class`
+        instance.
         """
-        queryset = self.object_class()._clone()
-        if len(self.index_models):
-            queryset = queryset.models(*self.index_models)
+        if self.queryset and isinstance(self.queryset, self.object_class):
+            queryset = self.queryset.all()
+        else:
+            queryset = self.object_class()._clone()
+            if len(self.index_models):
+                queryset = queryset.models(*self.index_models)
         return queryset
 
     def get_object(self):
@@ -60,5 +64,3 @@ class HaystackGenericAPIView(GenericAPIView):
             return queryset[0]
 
         return queryset
-
-
