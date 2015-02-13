@@ -12,7 +12,7 @@ before_install:
   - sudo apt-get install default-jdk
 
 install:
-  - pip install tox requests
+  - pip install tox
   - pip install -e .
 
 script:
