@@ -15,7 +15,7 @@ def load_data(apps, schema_editor):
         model.objects.bulk_create(model(**item) for item in json.loads(f.read()))
 
     from tests.mockapp.search_indexes import MockLocationIndex
-    MockLocationIndex().update()
+    MockLocationIndex().reindex()
 
 
 class Migration(migrations.Migration):
