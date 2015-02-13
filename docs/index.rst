@@ -30,16 +30,14 @@ It's in the cheese shop! (Well not yet)
 
     $ pip install drf-haystack
 
+
 Requirements
-------------
-Requires installation of Django REST Framework, Haystack as well as a haystack supported search engine.
-
-
-Dependencies
 ------------
     - Django
     - Django REST Framework
-    - Haystack
+    - Haystack (and a supported search engine such as Solr, Elasticsearch, Whoosh, etc.)
+    - geopy
+
 
 
 Changelog
