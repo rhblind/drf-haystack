@@ -18,8 +18,14 @@ def setup():
     global test_runner
     global old_config
 
-    from django.test.runner import DiscoverRunner
-    test_runner = DiscoverRunner()
+    try:
+        from django.test.runner import DiscoverRunner
+        test_runner = DiscoverRunner()
+    except ImportError:
+        # Django 1.5 did not have the DiscoverRunner
+        from django.test.simple import DjangoTestSuiteRunner
+        test_runner = DjangoTestSuiteRunner()
+
     test_runner.setup_test_environment()
     old_config = test_runner.setup_databases()
 
