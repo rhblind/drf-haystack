@@ -10,6 +10,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
 
 from haystack.utils.geo import D, Point
+from haystack.backends.elasticsearch_backend import ElasticsearchSearchBackend
 from rest_framework.filters import BaseFilterBackend
 
 
@@ -36,7 +37,7 @@ class HaystackFilter(BaseFilterBackend):
         terms = []
 
         if filters is None:
-            filters = {}
+            filters = {}  # pragma: no cover
 
         for param, value in filters.items():
             # Skip if the parameter is not listed in the serializer's `fields`
@@ -148,7 +149,10 @@ class HaystackGEOSpatialFilter(HaystackFilter):
                 latitude, longitude = map(float, filters["from"].split(","))
                 point = Point(longitude, latitude, srid=getattr(settings, "GEO_SRID", 4326))
                 if point and distance:
-                    distance = self.unit_to_meters(D(**distance))  # FIXME: Remove when upstream haystack bug is resolved
+                    if isinstance(queryset.query.backend, ElasticsearchSearchBackend):
+                        # TODO: Make sure this is only applied if using a malfunction elasticsearch backend!
+                        # FIXME: Remove when upstream haystack bug is resolved
+                        distance = self.unit_to_meters(D(**distance))
                     queryset = queryset.dwithin("coordinates", point, distance).distance("coordinates", point)
             except ValueError:
                 raise ValueError("Cannot convert `from=latitude,longitude` query parameter to "
