@@ -1,11 +1,25 @@
 # -*- coding: utf-8 -*-
 
+import sys
+
 try:
     from setuptools import setup
 except ImportError:
     from ez_setup import use_setuptools
     use_setuptools()
     from setuptools import setup
+
+# Python major and minor version
+major, minor = sys.version_info[0], sys.version_info[1]
+
+
+def get_geopy_version():
+    if major == 2 and minor < 7:
+        # latest 2.6 supported version
+        return "geopy==0.99"
+    else:
+        # should support 2.7 and above
+        return "geopy"
 
 setup(
     name="drf-haystack",
@@ -25,7 +39,7 @@ setup(
         "Django>=1.5.0",
         "djangorestframework>=2.4.4",
         "django-haystack>=2.3.1",
-        "geopy"
+        get_geopy_version()
     ],
     tests_require=[
         "nose",

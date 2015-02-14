@@ -6,7 +6,7 @@ import os
 import json
 from django.conf import settings
 
-with open(os.path.join(settings.BASE_DIR, "mockapp", "migrations", "mock_locations.json"), "r") as f:
+with open(os.path.join(settings.BASE_DIR, "mockapp", "fixtures", "mocklocation.json"), "r") as f:
     size = len(json.loads(f.read()))
 
 DATA_SET_SIZE = size

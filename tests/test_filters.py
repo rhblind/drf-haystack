@@ -24,6 +24,8 @@ factory = APIRequestFactory()
 
 class HaystackFilterTestCase(TestCase):
 
+    fixtures = ["mocklocation.json"]
+
     def setUp(self):
 
         class Serializer1(HaystackSerializer):
@@ -131,7 +133,7 @@ class HaystackFilterTestCase(TestCase):
         self.assertEqual(len(response.data), DATA_SET_SIZE)  # Should return all results since, field is ignored
 
     def test_raise_on_both_fields_and_exclude(self):
-        # Make sure we're getting an AttributeError when trying to call a viewset
+        # Make sure we're getting an ImproperlyConfigured when trying to call a viewset
         # which has both `fields` and `exclude` set.
         request = factory.get(path="/", data="", content_type="application/json")
         self.assertRaises(
@@ -140,6 +142,8 @@ class HaystackFilterTestCase(TestCase):
         )
 
     def test_raise_on_serializer_without_meta_class(self):
+        # Make sure we're getting an ImproperlyConfigured when trying to call a viewset with
+        # a serializer with no `Meta` class.
         request = factory.get(path="", data="", content_type="application/json")
         self.assertRaises(
             ImproperlyConfigured,
@@ -148,6 +152,8 @@ class HaystackFilterTestCase(TestCase):
 
 
 class HaystackGEOSpatialFilterTestCase(TestCase):
+
+    fixtures = ["mocklocation.json"]
 
     def setUp(self):
 
