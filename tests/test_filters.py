@@ -58,7 +58,7 @@ class HaystackFilterTestCase(TestCase):
                 exclude = ["address"]
                 # This is not allowed. Can't set both `fields` and `exclude`.
 
-        class Serializer4(HaystackSerializer):
+        class Serializer4(serializers.Serializer):
             # This is not allowed. Must implement a `Meta` class.
             pass
 
@@ -144,13 +144,51 @@ class HaystackFilterTestCase(TestCase):
         )
 
     def test_raise_on_serializer_without_meta_class(self):
-        # Make sure we're getting an ImproperlyConfigured when trying to call a viewset with
-        # a serializer with no `Meta` class.
-        request = factory.get(path="", data="", content_type="application/json")
+        # Make sure we're getting an ImproperlyConfigured when trying to filter on a viewset
+        # with a serializer without `Meta` class.
+        request = factory.get(path="", data={"city": "Oslo"}, content_type="application/json")
         self.assertRaises(
             ImproperlyConfigured,
             self.view4.as_view(actions={"get": "list"}), request
         )
+
+
+class HaystackAutocompleteFilterTestCase(TestCase):
+
+    fixtures = ["mocklocation"]
+
+    def setUp(self):
+
+        MockLocationIndex().reindex()
+
+        class Serializer(HaystackSerializer):
+
+            class Meta:
+                index_classes = [MockLocationIndex]
+                fields = ["text", "address", "city", "zip_code", "autocomplete"]
+                field_aliases = {"q": "autocomplete"}
+
+        class ViewSet(HaystackViewSet):
+            index_models = [MockLocation]
+            serializer_class = Serializer
+            filter_backends = [HaystackAutocompleteFilter]
+
+        self.view = ViewSet
+
+    def test_autocomplete_single_term(self):
+        # Test querying the autocomplete field for a partial term. Should return 3 results
+        request = factory.get(path="/", data={"autocomplete": "gate"}, content_type="application/json")
+        response = self.view.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 3)
+
+    def test_autocomplete_multiple_term(self):
+        # Test querying the autocomplete field for multiple terms.
+        # Make sure the filter AND's the terms on spaces, thus reduce the results.
+        request = factory.get(path="/", data={"autocomplete": "waldemar gate"}, content_type="application/json")
+        response = self.view.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
 
 
 class HaystackGEOSpatialFilterTestCase(TestCase):
