@@ -18,7 +18,7 @@ Small library which tries to simplify integration of Haystack with Django REST F
 Contains a Generic ViewSet, a Serializer and a couple of Filters in order to make search as
 painless as possible.
 
-Fresh `documentation available<http://drf-haystack.readthedocs.org/en/latest/>`_ on Read the docs!
+Fresh `documentation available <http://drf-haystack.readthedocs.org/en/latest/>`_ on Read the docs!
 
 
 
