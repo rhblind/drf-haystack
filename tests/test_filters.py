@@ -39,7 +39,7 @@ class HaystackFilterTestCase(TestCase):
                     "autocomplete"  # Ignoring the `coordinates` field
                 ]
                 field_aliases = {
-                    "q": "autocomplete"
+                    "q": "address"
                 }
 
         class Serializer2(HaystackSerializer):
@@ -92,6 +92,12 @@ class HaystackFilterTestCase(TestCase):
         response = self.view1.as_view(actions={"get": "list"})(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 3)
+
+    def test_filter_aliased_field(self):
+        request = factory.get(path="/", data={"q": "Gundersenholtet 68"}, content_type="application/json")
+        response = self.view1.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
 
     def test_filter_single_field_OR(self):
         # Test filtering a single field for multiple values. The parameters should be OR'ed
@@ -182,7 +188,7 @@ class HaystackAutocompleteFilterTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 3)
 
-    def test_autocomplete_multiple_term(self):
+    def test_autocomplete_multiple_terms(self):
         # Test querying the autocomplete field for multiple terms.
         # Make sure the filter AND's the terms on spaces, thus reduce the results.
         request = factory.get(path="/", data={"autocomplete": "waldemar gate"}, content_type="application/json")
@@ -199,12 +205,7 @@ class HaystackGEOSpatialFilterTestCase(TestCase):
 
         MockLocationIndex().reindex()
 
-        class DistanceSerializer(serializers.Serializer):
-            m = serializers.FloatField()
-            km = serializers.FloatField()
-
         class Serializer(HaystackSerializer):
-            distance = serializers.SerializerMethodField()
 
             class Meta:
                 index_classes = [MockLocationIndex]
@@ -213,14 +214,30 @@ class HaystackGEOSpatialFilterTestCase(TestCase):
                     "coordinates",
                 ]
 
-                def get_distance(self, obj):
-                    if hasattr(obj, "distance"):
-                        return DistanceSerializer(obj.distance, many=False).data
-                    return None
-
         class ViewSet(HaystackViewSet):
             index_models = [MockLocation]
             serializer_class = Serializer
             filter_backends = [HaystackGEOSpatialFilter]
 
         self.view = ViewSet
+
+    def test_filter_dwithin(self):
+        request = factory.get(path="/", data={"from": "59.923396,10.739370", "km": 1}, content_type="application/json")
+        response = self.view.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 4)
+
+    def test_filter_dwithin_without_range_unit(self):
+        # If no range unit is supplied, no filtering will occur. Make sure we
+        # get the entire data set.
+        request = factory.get(path="/", data={"from": "59.923396,10.739370"}, content_type="application/json")
+        response = self.view.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), DATA_SET_SIZE)
+
+    def test_filter_dwithin_invalid_params(self):
+        request = factory.get(path="/", data={"from": "i am not numeric,10.739370", "km": 1}, content_type="application/json")
+        self.assertRaises(
+            ValueError,
+            self.view.as_view(actions={"get": "list"}), request
+        )

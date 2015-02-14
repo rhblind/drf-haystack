@@ -151,6 +151,7 @@ class HaystackGEOSpatialFilter(HaystackFilter):
                 if point and distance:
                     if isinstance(queryset.query.backend, ElasticsearchSearchBackend):
                         # TODO: Make sure this is only applied if using a malfunction elasticsearch backend!
+                        # NOTE: https://github.com/toastdriven/django-haystack/issues/957
                         # FIXME: Remove when upstream haystack bug is resolved
                         distance = self.unit_to_meters(D(**distance))
                     queryset = queryset.dwithin("coordinates", point, distance).distance("coordinates", point)
