@@ -24,9 +24,11 @@ factory = APIRequestFactory()
 
 class HaystackFilterTestCase(TestCase):
 
-    fixtures = ["mocklocation.json"]
+    fixtures = ["mocklocation"]
 
     def setUp(self):
+
+        MockLocationIndex().reindex()
 
         class Serializer1(HaystackSerializer):
 
@@ -153,9 +155,11 @@ class HaystackFilterTestCase(TestCase):
 
 class HaystackGEOSpatialFilterTestCase(TestCase):
 
-    fixtures = ["mocklocation.json"]
+    fixtures = ["mocklocation"]
 
     def setUp(self):
+
+        MockLocationIndex().reindex()
 
         class DistanceSerializer(serializers.Serializer):
             m = serializers.FloatField()
