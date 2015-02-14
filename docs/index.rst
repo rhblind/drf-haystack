@@ -16,15 +16,16 @@ Features
 --------
 
 Supported Python versions:
-    - Python2.6: Django v1.5 or v1.6
-    - Python2.7: Django v1.5, v1.6 and v1.7
-    - Python3.3: Django v1.5, v1.6 and v1.7
-    - Python3.4: Django v1.5, v1.6 and v1.7
+
+    - Python 2.6
+        - Django 1.5 and 1.6
+    - Python 2.7, 3.3 and 3.4
+        - Django 1.5, 1.6 and 1.7
 
 
 Installation
 ============
-It's in the cheese shop! (Well not yet)
+It's in the cheese shop!
 
 .. code-block:: none
 
@@ -45,7 +46,7 @@ Changelog
 
 v1.0
 ----
-*Release date: Not yet released*
+*Release date: 2015-02-14*
 
 Initial release.
 
