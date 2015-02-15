@@ -4,9 +4,10 @@
 #
 
 from __future__ import absolute_import, unicode_literals
-from django.core.exceptions import ImproperlyConfigured
 
+from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
+
 from rest_framework import status
 from rest_framework import serializers
 from rest_framework.test import APIRequestFactory
@@ -45,14 +46,6 @@ class HaystackFilterTestCase(TestCase):
                 index_classes = [MockLocationIndex]
                 exclude = ["city"]
 
-        class Serializer3(HaystackSerializer):
-
-            class Meta:
-                index_classes = [MockLocationIndex]
-                fields = ["text"]
-                exclude = ["address"]
-                # This is not allowed. Can't set both `fields` and `exclude`.
-
         class Serializer4(serializers.Serializer):
             # This is not allowed. Must implement a `Meta` class.
             pass
@@ -66,15 +59,11 @@ class HaystackFilterTestCase(TestCase):
             serializer_class = Serializer2
 
         class ViewSet3(ViewSet1):
-            serializer_class = Serializer3
-
-        class ViewSet4(ViewSet1):
             serializer_class = Serializer4
 
         self.view1 = ViewSet1
         self.view2 = ViewSet2
         self.view3 = ViewSet3
-        self.view4 = ViewSet4
 
     def test_no_filters(self):
         request = factory.get(path="/", data="", content_type="application/json")
@@ -135,22 +124,13 @@ class HaystackFilterTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), DATA_SET_SIZE)  # Should return all results since, field is ignored
 
-    def test_raise_on_both_fields_and_exclude(self):
-        # Make sure we're getting an ImproperlyConfigured when trying to call a viewset
-        # which has both `fields` and `exclude` set.
-        request = factory.get(path="/", data="", content_type="application/json")
-        self.assertRaises(
-            ImproperlyConfigured,
-            self.view3.as_view(actions={"get": "list"}), request
-        )
-
-    def test_raise_on_serializer_without_meta_class(self):
+    def test_filter_raise_on_serializer_without_meta_class(self):
         # Make sure we're getting an ImproperlyConfigured when trying to filter on a viewset
         # with a serializer without `Meta` class.
         request = factory.get(path="", data={"city": "Oslo"}, content_type="application/json")
         self.assertRaises(
             ImproperlyConfigured,
-            self.view4.as_view(actions={"get": "list"}), request
+            self.view3.as_view(actions={"get": "list"}), request
         )
 
 

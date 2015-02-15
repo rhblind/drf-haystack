@@ -45,9 +45,8 @@ class HaystackViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_object(self):
-        item_id = 1
         request = factory.get(path="/", data="", content_type="application/json")
-        response = self.view.as_view(actions={"get": "retrieve"})(request, pk=item_id)
+        response = self.view.as_view(actions={"get": "retrieve"})(request, pk=1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_object_invalid_lookup_field(self):
