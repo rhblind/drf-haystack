@@ -34,10 +34,7 @@ class HaystackFilterTestCase(TestCase):
 
             class Meta:
                 index_classes = [MockLocationIndex]
-                fields = [
-                    "text", "address", "zip_code",
-                    "autocomplete"  # Ignoring the `coordinates` field
-                ]
+                fields = ["text", "address", "zip_code", "autocomplete"]
                 field_aliases = {
                     "q": "address"
                 }
@@ -46,9 +43,7 @@ class HaystackFilterTestCase(TestCase):
 
             class Meta:
                 index_classes = [MockLocationIndex]
-                exclude = [
-                    "city"
-                ]
+                exclude = ["city"]
 
         class Serializer3(HaystackSerializer):
 
