@@ -18,7 +18,7 @@ HaystackFilter performs a bitwise `OR` on terms for the same parameters, the
 `HaystackAutocompleteFilter` reduce query parameters down to a single filter
 (using an `SQ` object), and performs a bitwise `AND`.
 
-.. autoclass:: drf_haystack.filters.HaystackAutocompleteFilter
+.. class:: drf_haystack.filters.HaystackAutocompleteFilter
 
 
 An example using the autocomplete filter might look something like this.
@@ -54,6 +54,6 @@ GEO Locations
 Some search backends support geo spatial searching. In order to take advantage of this we
 have the `HaystackGEOSpatialFilter`.
 
-.. autoclass:: drf_haystack.filters.HaystackGEOSpatialFilter
+.. class:: drf_haystack.filters.HaystackGEOSpatialFilter
 
 .. todo:: Write this section!
