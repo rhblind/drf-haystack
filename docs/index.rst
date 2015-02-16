@@ -1,3 +1,4 @@
+==================================
 Haystack for Django REST Framework
 ==================================
 
@@ -6,14 +7,16 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   basic_usage
+   advanced_usage
 
-
+=====
 About
 =====
 Nothing here yet
 
 Features
---------
+========
 
 Supported Python versions:
 
@@ -33,12 +36,11 @@ It's in the cheese shop!
 
 
 Requirements
-------------
+============
     - Django
     - Django REST Framework
     - Haystack (and a supported search engine such as Solr, Elasticsearch, Whoosh, etc.)
     - geopy
-
 
 
 Changelog
@@ -48,7 +50,16 @@ v1.0
 ----
 *Release date: 2015-02-14*
 
-Initial release.
+    - Initial release.
+
+
+v1.1
+----
+*Release date: 2015-02-16*
+
+    - Full coverage (almost) test suite
+    - Documentation
+    - Beta release Development classifier
 
 
 Indices and tables

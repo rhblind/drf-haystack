@@ -30,7 +30,12 @@ except ImportError:
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(1, os.path.abspath(os.path.pardir))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tests.settings')
+
+import django
+if hasattr(django, "setup"):
+    django.setup()
 
 # -- General configuration ------------------------------------------------
 
