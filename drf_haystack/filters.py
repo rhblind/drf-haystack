@@ -154,6 +154,8 @@ class HaystackGEOSpatialFilter(HaystackFilter):
                         # NOTE: https://github.com/toastdriven/django-haystack/issues/957
                         # FIXME: Remove when upstream haystack bug is resolved
                         distance = self.unit_to_meters(D(**distance))
+                    else:
+                        distance = D(**distance)
                     queryset = queryset.dwithin("coordinates", point, distance).distance("coordinates", point)
             except ValueError:
                 raise ValueError("Cannot convert `from=latitude,longitude` query parameter to "
