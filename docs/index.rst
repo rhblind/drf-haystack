@@ -13,7 +13,7 @@ Contents:
 =====
 About
 =====
-Nothing here yet
+Small library aiming to simplify using Haystack with Django REST Framework
 
 Features
 ========
@@ -60,6 +60,14 @@ v1.1
     - Full coverage (almost) test suite
     - Documentation
     - Beta release Development classifier
+
+v1.2
+----
+*Release date: 2015-03-23*
+
+    - Fixed `MissingDependency` error when using another search backend than Elasticsearch.
+    - Fixed converting distance to D object before filtering in HaystackGEOSpatialFilter.
+    - Added Python 3 classifier.
 
 
 Indices and tables
