@@ -10,7 +10,6 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
 
 from haystack.utils.geo import D, Point
-from haystack.backends.elasticsearch_backend import ElasticsearchSearchBackend
 from rest_framework.filters import BaseFilterBackend
 
 
@@ -149,7 +148,7 @@ class HaystackGEOSpatialFilter(HaystackFilter):
                 latitude, longitude = map(float, filters["from"].split(","))
                 point = Point(longitude, latitude, srid=getattr(settings, "GEO_SRID", 4326))
                 if point and distance:
-                    if isinstance(queryset.query.backend, ElasticsearchSearchBackend):
+                    if queryset.query.backend.__class__.__name__ == "ElasticsearchSearchBackend":
                         # TODO: Make sure this is only applied if using a malfunction elasticsearch backend!
                         # NOTE: https://github.com/toastdriven/django-haystack/issues/957
                         # FIXME: Remove when upstream haystack bug is resolved
