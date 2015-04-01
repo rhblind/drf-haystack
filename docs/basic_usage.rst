@@ -131,7 +131,8 @@ For a generic Django REST Framework view, you could do something like this.
             # a way to filter out those of no interest for this particular view.
             # (Translates to `SearchQuerySet().models(*index_models)` behind the scenes.
             index_models = [Location]
-            serializer_class = LocationSerializer
+            
+        serializer_class = LocationSerializer
 
 
 urls.py
