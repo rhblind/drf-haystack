@@ -98,8 +98,9 @@ Assuming the above code works as it should, we would be able to do queries like 
 
     /api/v1/search/?zip_code=0351&km=10&from=59.744076,10.152045
 
-    The above query would return all entries with zip_code 0351 within 10 kilometers
-    from the location with latitude 59.744076 and longitude 10.152045.
 
-    Pretty neat =)
+The above query would return all entries with zip_code 0351 within 10 kilometers
+from the location with latitude 59.744076 and longitude 10.152045.
+
+Pretty neat =)
 
