@@ -10,6 +10,9 @@ Build status
 .. image:: https://readthedocs.org/projects/drf-haystack/badge/?version=latest
     :target: https://readthedocs.org/projects/drf-haystack/?badge=latest
     :alt: Documentation Status
+    
+.. image:: https://pypip.in/d/drf-haystack/badge.png
+    :target: href="https://pypi.python.org/pypi/drf-haystack
 
 About
 -----
