@@ -49,6 +49,11 @@ class HaystackViewSetTestCase(TestCase):
         response = self.view.as_view(actions={"get": "retrieve"})(request, pk=1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_get_obj_raise_404(self):
+        request = factory.get(path="/", data="", content_type="application/json")
+        response = self.view.as_view(actions={"get": "retrieve"})(request, pk=82361)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_get_object_invalid_lookup_field(self):
         request = factory.get(path="/", data="", content_type="application/json")
         self.assertRaises(
@@ -61,3 +66,4 @@ class HaystackViewSetTestCase(TestCase):
         request = factory.get(path="/", data="", content_type="application/json")
         response = self.view.as_view(actions={"get": "retrieve"})(request, custom_lookup=1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
