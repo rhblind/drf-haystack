@@ -12,7 +12,7 @@ Build status
     :alt: Documentation Status
     
 .. image:: https://pypip.in/d/drf-haystack/badge.png
-    :target: href="https://pypi.python.org/pypi/drf-haystack
+    :target: https://pypi.python.org/pypi/drf-haystack
 
 About
 -----
