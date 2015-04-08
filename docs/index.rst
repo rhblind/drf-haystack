@@ -23,7 +23,7 @@ Supported Python versions:
     - Python 2.6
         - Django 1.5 and 1.6
     - Python 2.7, 3.3 and 3.4
-        - Django 1.5, 1.6 and 1.7
+        - Django 1.5, 1.6, 1.7 and 1.8
 
 
 Installation
