@@ -2,6 +2,8 @@
 
 from __future__ import absolute_import, unicode_literals
 
+from django.http import Http404
+
 from haystack.backends import SQ
 from haystack.query import SearchQuerySet
 from rest_framework.generics import GenericAPIView
@@ -63,4 +65,4 @@ class HaystackGenericAPIView(GenericAPIView):
         if queryset:
             return queryset[0]
 
-        return queryset
+        raise Http404("No result matches the given query.")

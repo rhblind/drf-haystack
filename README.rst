@@ -10,6 +10,9 @@ Build status
 .. image:: https://readthedocs.org/projects/drf-haystack/badge/?version=latest
     :target: https://readthedocs.org/projects/drf-haystack/?badge=latest
     :alt: Documentation Status
+    
+.. image:: https://pypip.in/d/drf-haystack/badge.png
+    :target: https://pypi.python.org/pypi/drf-haystack
 
 About
 -----
@@ -30,7 +33,7 @@ Tested with the following configurations:
     - Python 2.6
         - Django 1.5 and 1.6
     - Python 2.7, 3.3 and 3.4
-        - Django 1.5, 1.6 and 1.7
+        - Django 1.5, 1.6, 1.7 and 1.8
 
 Installation
 ------------

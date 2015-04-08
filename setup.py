@@ -23,7 +23,7 @@ def get_geopy_version():
 
 setup(
     name="drf-haystack",
-    version="1.1",
+    version="1.2",
     description="Makes Haystack play nice with Django REST Framework",
     long_description="Implements a ViewSet, some filters and serializers in order to play nice with Haystack.",
     author="Rolf Håvard Blindheim, Eirik Krogstad",
@@ -57,6 +57,7 @@ setup(
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ]
 )

@@ -48,6 +48,7 @@ Let's say we have an app which contains a model `Location`. It could look someth
             return Point(self.longitude, self.latitude)
 
 
+.. _search-index-example-label:
 
 search_indexes.py
 -----------------
@@ -82,7 +83,7 @@ We would have to make a `search_indexes.py` file for haystack to pick it up.
             ))
 
         def get_model(self):
-            return MockLocation
+            return Location
 
         def index_queryset(self, using=None):
             return self.get_model().objects.filter(
@@ -125,13 +126,13 @@ For a generic Django REST Framework view, you could do something like this.
 
     class LocationSearchView(HaystackViewSet):
 
-        class Meta:
-            # `index_models` is an optional list of which models you would like to include
-            # in the search result. You might have several models indexed, and this provides
-            # a way to filter out those of no interest for this particular view.
-            # (Translates to `SearchQuerySet().models(*index_models)` behind the scenes.
-            index_models = [Location]
-            serializer_class = LocationSerializer
+        # `index_models` is an optional list of which models you would like to include
+        # in the search result. You might have several models indexed, and this provides
+        # a way to filter out those of no interest for this particular view.
+        # (Translates to `SearchQuerySet().models(*index_models)` behind the scenes.
+        index_models = [Location]
+            
+        serializer_class = LocationSerializer
 
 
 urls.py
