@@ -55,6 +55,17 @@ have the `HaystackGEOSpatialFilter`.
 
 .. class:: drf_haystack.filters.HaystackGEOSpatialFilter
 
+.. warning::
+
+    The `HaystackGEOSpatialFilter` depends on `geopy` and `libgeos`. Make sure to install these
+    libraries in order to use this filter.
+
+    .. code-block:: none
+
+        $ pip install geopy
+        $ apt-get install libgeos (for debian based linux distros)
+          or
+        $ brew install geos (for homebrew on OS X)
 
 The geospatial filter is somewhat special, and for the time being, relies on a few assumptions.
 
@@ -101,6 +112,3 @@ Assuming the above code works as it should, we would be able to do queries like 
 
 The above query would return all entries with zip_code 0351 within 10 kilometers
 from the location with latitude 59.744076 and longitude 10.152045.
-
-Pretty neat =)
-
