@@ -12,18 +12,9 @@ except ImportError:
 # Python major and minor version
 major, minor = sys.version_info[0], sys.version_info[1]
 
-
-def get_geopy_version():
-    if major == 2 and minor < 7:
-        # latest 2.6 supported version
-        return "geopy==0.99"
-    else:
-        # should support 2.7 and above
-        return "geopy"
-
 setup(
     name="drf-haystack",
-    version="1.2",
+    version="1.3",
     description="Makes Haystack play nice with Django REST Framework",
     long_description="Implements a ViewSet, some filters and serializers in order to play nice with Haystack.",
     author="Rolf Håvard Blindheim, Eirik Krogstad",
@@ -38,8 +29,7 @@ setup(
     install_requires=[
         "Django>=1.5.0",
         "djangorestframework>=2.4.4",
-        "django-haystack>=2.3.1",
-        get_geopy_version()
+        "django-haystack>=2.3.1"
     ],
     tests_require=[
         "nose",
