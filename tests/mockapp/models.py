@@ -26,3 +26,16 @@ class MockLocation(models.Model):
     @property
     def coordinates(self):
         return Point(self.longitude, self.latitude, srid=4326)
+
+
+@python_2_unicode_compatible
+class MockPerson(models.Model):
+
+    firstname = models.CharField(max_length=20)
+    lastname = models.CharField(max_length=20)
+
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "%s %s" % (self.firstname, self.lastname)
