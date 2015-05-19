@@ -3,13 +3,13 @@
 from __future__ import absolute_import, unicode_literals
 
 import operator
+import warnings
 from itertools import chain
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
 
-from haystack.utils.geo import D, Point
 from rest_framework.filters import BaseFilterBackend
 
 
@@ -114,6 +114,16 @@ class HaystackGEOSpatialFilter(HaystackFilter):
     (radius) filter.
     """
 
+    def __init__(self, *args, **kwargs):
+        try:
+            from haystack.utils.geo import D, Point
+            self.D = D
+            self.Point = Point
+        except ImportError as e:
+            warnings.warn("Make sure you've installed the `libgeos` library.\n "
+                          "(`apt-get install libgeos` on linux, or `brew install geos` on OS X.)")
+            raise e
+
     def unit_to_meters(self, distance_obj):
         """
         Emergency fix for https://github.com/toastdriven/django-haystack/issues/957
@@ -122,7 +132,7 @@ class HaystackGEOSpatialFilter(HaystackFilter):
         so everything ends up in the query without any unit values, thus the value is calculated
         in meters.
         """
-        return D(m=distance_obj.m * 1000)
+        return self.D(m=distance_obj.m * 1000)
 
     def geo_filter(self, queryset, filters=None):
         """
@@ -141,20 +151,20 @@ class HaystackGEOSpatialFilter(HaystackFilter):
             with latitude 59.744076 and longitude 10.152045.
         """
 
-        filters = dict((k, filters[k]) for k in chain(D.UNITS.keys(), ["from"]) if k in filters)
-        distance = dict((k, v) for k, v in filters.items() if k in D.UNITS.keys())
+        filters = dict((k, filters[k]) for k in chain(self.D.UNITS.keys(), ["from"]) if k in filters)
+        distance = dict((k, v) for k, v in filters.items() if k in self.D.UNITS.keys())
         if "from" in filters and len(filters["from"].split(",")) == 2:
             try:
                 latitude, longitude = map(float, filters["from"].split(","))
-                point = Point(longitude, latitude, srid=getattr(settings, "GEO_SRID", 4326))
+                point = self.Point(longitude, latitude, srid=getattr(settings, "GEO_SRID", 4326))
                 if point and distance:
                     if queryset.query.backend.__class__.__name__ == "ElasticsearchSearchBackend":
                         # TODO: Make sure this is only applied if using a malfunction elasticsearch backend!
                         # NOTE: https://github.com/toastdriven/django-haystack/issues/957
                         # FIXME: Remove when upstream haystack bug is resolved
-                        distance = self.unit_to_meters(D(**distance))
+                        distance = self.unit_to_meters(self.D(**distance))
                     else:
-                        distance = D(**distance)
+                        distance = self.D(**distance)
                     queryset = queryset.dwithin("coordinates", point, distance).distance("coordinates", point)
             except ValueError:
                 raise ValueError("Cannot convert `from=latitude,longitude` query parameter to "
