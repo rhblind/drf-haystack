@@ -5,7 +5,7 @@
 
 from __future__ import absolute_import, unicode_literals
 
-from unittest import skipIf
+from unittest2 import skipIf
 
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase

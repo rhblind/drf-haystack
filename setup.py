@@ -35,6 +35,7 @@ setup(
         "nose",
         "mock",
         "coverage",
+        "unittest2",
         "elasticsearch>=1.4.0",
     ],
     zip_safe=False,

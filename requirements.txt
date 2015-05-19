@@ -10,3 +10,4 @@ sphinx-rtd-theme==0.1.6
 urllib3==1.10.1
 geopy==1.9.0
 tox==1.9.2
+unittest2==1.0.1
