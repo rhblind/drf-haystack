@@ -65,7 +65,7 @@ class HaystackFilterTestCase(TestCase):
         self.view2 = ViewSet2
         self.view3 = ViewSet3
 
-    def test_no_filters(self):
+    def test_filter_no_filters(self):
         request = factory.get(path="/", data="", content_type="application/json")
         response = self.view1.as_view(actions={"get": "list"})(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -156,14 +156,14 @@ class HaystackAutocompleteFilterTestCase(TestCase):
 
         self.view = ViewSet
 
-    def test_autocomplete_single_term(self):
+    def test_autocomplete_filter_single_term(self):
         # Test querying the autocomplete field for a partial term. Should return 3 results
         request = factory.get(path="/", data={"autocomplete": "gate"}, content_type="application/json")
         response = self.view.as_view(actions={"get": "list"})(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 3)
 
-    def test_autocomplete_multiple_terms(self):
+    def test_autocomplete_filter_multiple_terms(self):
         # Test querying the autocomplete field for multiple terms.
         # Make sure the filter AND's the terms on spaces, thus reduce the results.
         request = factory.get(path="/", data={"autocomplete": "waldemar gate"}, content_type="application/json")
@@ -196,13 +196,13 @@ class HaystackGEOSpatialFilterTestCase(TestCase):
 
         self.view = ViewSet
 
-    def test_filter_dwithin(self):
+    def test_geo_filter_dwithin(self):
         request = factory.get(path="/", data={"from": "59.923396,10.739370", "km": 1}, content_type="application/json")
         response = self.view.as_view(actions={"get": "list"})(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 4)
 
-    def test_filter_dwithin_without_range_unit(self):
+    def test_geo_filter_dwithin_without_range_unit(self):
         # If no range unit is supplied, no filtering will occur. Make sure we
         # get the entire data set.
         request = factory.get(path="/", data={"from": "59.923396,10.739370"}, content_type="application/json")
@@ -210,7 +210,7 @@ class HaystackGEOSpatialFilterTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), DATA_SET_SIZE)
 
-    def test_filter_dwithin_invalid_params(self):
+    def test_geo_filter_dwithin_invalid_params(self):
         request = factory.get(path="/", data={"from": "i am not numeric,10.739370", "km": 1}, content_type="application/json")
         self.assertRaises(
             ValueError,
