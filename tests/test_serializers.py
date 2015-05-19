@@ -11,14 +11,13 @@ from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
 from haystack.query import SearchQuerySet
 from rest_framework import serializers
-from rest_framework import status
 from rest_framework.test import APIRequestFactory
 
 from drf_haystack.serializers import HaystackSerializer
 from drf_haystack.viewsets import HaystackViewSet
 
-from .mockapp.models import MockLocation
-from .mockapp.search_indexes import MockLocationIndex
+from .mockapp.models import MockPerson
+from .mockapp.search_indexes import MockPersonIndex
 
 factory = APIRequestFactory()
 
@@ -37,11 +36,10 @@ class WarningTestCaseMixin(object):
 
 class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
 
-    fixtures = ["mocklocation"]
+    fixtures = ["mockperson"]
 
     def setUp(self):
-
-        MockLocationIndex().reindex()
+        MockPersonIndex().reindex()
 
         class Serializer1(HaystackSerializer):
             # This is not allowed. Serializer must implement a
@@ -58,7 +56,7 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         class Serializer3(HaystackSerializer):
 
             class Meta:
-                index_classes = [MockLocationIndex]
+                index_classes = [MockPersonIndex]
                 fields = ["some_field"]
                 exclude = ["another_field"]
                 # This is not allowed. Can't set both `fields` and `exclude`
@@ -69,11 +67,8 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
             city = serializers.CharField()
 
             class Meta:
-                index_classes = [MockLocationIndex]
-                fields = [
-                    "text", "address", "city", "zip_code",
-                    "autocomplete", "coordinates"
-                ]
+                index_classes = [MockPersonIndex]
+                fields = ["text", "firstname", "lastname", "autocomplete"]
 
             def get_integer_field(self, obj):
                 return 1
@@ -88,7 +83,7 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
             serializer_class = Serializer4
 
             class Meta:
-                index_models = [MockLocation]
+                index_models = [MockPerson]
 
         self.serializer1 = Serializer1
         self.serializer2 = Serializer2
@@ -97,6 +92,9 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
 
         self.view1 = ViewSet1
         self.view2 = ViewSet2
+
+    def tearDown(self):
+        MockPersonIndex().clear()
 
     def test_serializer_raise_without_meta_class(self):
         try:
@@ -131,13 +129,12 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
     def test_serializer_get_fields(self):
         from rest_framework.fields import CharField, IntegerField
 
-        obj = SearchQuerySet().filter(address="Andersenhagen 8")[0]
+        obj = SearchQuerySet().filter(lastname="Foreman")[0]
         serializer = self.serializer4(instance=obj)
         fields = serializer.get_fields()
         assert isinstance(fields, dict), self.fail("serializer.data is not a dict")
         assert isinstance(fields["integer_field"], IntegerField), self.fail("serializer 'integer_field' field is not a IntegerField instance")
         assert isinstance(fields["text"], CharField), self.fail("serializer 'text' field is not a CharField instance")
-        assert isinstance(fields["address"], CharField), self.fail("serializer 'address' field is not a CharField instance")
-        assert isinstance(fields["city"], CharField), self.fail("serializer 'city' field is not a CharField instance")
-        assert isinstance(fields["zip_code"], CharField), self.fail("serializer 'zip_code' field is not a CharField instance")
+        assert isinstance(fields["firstname"], CharField), self.fail("serializer 'firstname' field is not a CharField instance")
+        assert isinstance(fields["lastname"], CharField), self.fail("serializer 'lastname' field is not a CharField instance")
         assert isinstance(fields["autocomplete"], CharField), self.fail("serializer 'autocomplete' field is not a CharField instance")

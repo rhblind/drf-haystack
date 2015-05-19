@@ -48,6 +48,7 @@ sys.path.insert(0, os.path.abspath('.'))
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.extlinks',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode',
 ]
@@ -287,4 +288,9 @@ texinfo_documents = [
 intersphinx_mapping = {
     'http://docs.python.org/': None,
     'django': ('http://django.readthedocs.org/en/latest/', None),
+}
+
+# Configurations for extlinks
+extlinks = {
+    'issue': ('https://github.com/inonit/drf-haystack/issues/%s', 'issue ')
 }
