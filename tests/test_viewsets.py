@@ -13,19 +13,27 @@ from rest_framework.test import APIRequestFactory
 
 from drf_haystack.viewsets import HaystackViewSet
 
-from .mockapp.models import MockLocation
+from .mockapp.models import MockPerson
+from .mockapp.search_indexes import MockPersonIndex
+
 
 factory = APIRequestFactory()
 
 
 class HaystackViewSetTestCase(TestCase):
 
+    fixtures = ["mockperson"]
+
     def setUp(self):
+        MockPersonIndex().reindex()
 
         class ViewSet(HaystackViewSet):
             serializer_class = Serializer
 
         self.view = ViewSet
+
+    def tearDown(self):
+        MockPersonIndex().clear()
 
     def test_get_queryset_no_queryset(self):
         request = factory.get(path="/", data="", content_type="application/json")
@@ -39,7 +47,7 @@ class HaystackViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_queryset_with_index_models(self):
-        setattr(self.view, "index_models", [MockLocation])
+        setattr(self.view, "index_models", [MockPerson])
         request = factory.get(path="/", data="", content_type="application/json")
         response = self.view.as_view(actions={"get": "list"})(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -51,7 +59,7 @@ class HaystackViewSetTestCase(TestCase):
 
     def test_get_obj_raise_404(self):
         request = factory.get(path="/", data="", content_type="application/json")
-        response = self.view.as_view(actions={"get": "retrieve"})(request, pk=82361)
+        response = self.view.as_view(actions={"get": "retrieve"})(request, pk=100000)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_get_object_invalid_lookup_field(self):

@@ -37,9 +37,6 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'tests.urls'
 
-WSGI_APPLICATION = 'tests.wsgi.application'
-
-
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
 

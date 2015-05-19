@@ -38,8 +38,13 @@ class MockPersonIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
     firstname = indexes.CharField(model_attr="firstname")
     lastname = indexes.CharField(model_attr="lastname")
+    full_name = indexes.CharField()
 
     autocomplete = indexes.EdgeNgramField()
+
+    @staticmethod
+    def prepare_full_name(obj):
+        return " ".join((obj.firstname, obj.lastname))
 
     @staticmethod
     def prepare_autocomplete(obj):

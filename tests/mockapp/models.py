@@ -5,8 +5,6 @@ from __future__ import absolute_import, unicode_literals
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
 
-from haystack.utils.geo import Point
-
 
 @python_2_unicode_compatible
 class MockLocation(models.Model):
@@ -25,7 +23,12 @@ class MockLocation(models.Model):
 
     @property
     def coordinates(self):
-        return Point(self.longitude, self.latitude, srid=4326)
+        try:
+            from haystack.utils.geo import Point
+        except ImportError:
+            return None
+        else:
+            return Point(self.longitude, self.latitude, srid=4326)
 
 
 @python_2_unicode_compatible

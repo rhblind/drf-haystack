@@ -93,9 +93,9 @@
   "pk": 10,
   "model": "mockapp.mockperson",
   "fields": {
-    "lastname": "Cantrell",
+    "lastname": "McClane",
     "created": "2015-05-19T10:48:08.697Z",
-    "firstname": "Linus",
+    "firstname": "John",
     "updated": "2015-05-19T10:48:08.697Z"
   }
 },
@@ -103,9 +103,9 @@
   "pk": 11,
   "model": "mockapp.mockperson",
   "fields": {
-    "lastname": "Munoz",
+    "lastname": "McLaughlin",
     "created": "2015-05-19T10:48:08.698Z",
-    "firstname": "Phelan",
+    "firstname": "John",
     "updated": "2015-05-19T10:48:08.698Z"
   }
 },

@@ -39,7 +39,6 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
     fixtures = ["mockperson"]
 
     def setUp(self):
-
         MockPersonIndex().reindex()
 
         class Serializer1(HaystackSerializer):
@@ -93,6 +92,9 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
 
         self.view1 = ViewSet1
         self.view2 = ViewSet2
+
+    def tearDown(self):
+        MockPersonIndex().clear()
 
     def test_serializer_raise_without_meta_class(self):
         try:
