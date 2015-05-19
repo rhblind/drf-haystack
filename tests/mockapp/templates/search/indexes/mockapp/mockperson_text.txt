@@ -1,0 +1,3 @@
+{{ object.firstname }} {{ object.lastname }}
+Created: {{ object.created }}
+Last modified: {{ object.updated }}
