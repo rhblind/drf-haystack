@@ -68,8 +68,9 @@ class HaystackSerializer(serializers.Serializer):
 
             # Remove stuff we don't care about!
             delete_attrs = [
+                "allow_blank",
+                "choices",
                 "model_field",
-                "choices"
             ]
             for attr in delete_attrs:
                 if attr in kwargs:
