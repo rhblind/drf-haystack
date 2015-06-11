@@ -182,4 +182,40 @@ basic search by querying any of the field included in the `fields` attribute on 
 
 Would perform a query looking up all documents where the `city field` equals "Oslo".
 
+
+Regular Search View
+===================
+
+Sometimes you might not need all the bells and whistles of a `ViewSet`,
+but can do with a regular view. In such scenario you could do something like this.
+
+.. code-block:: python
+
+    #
+    # views.py
+    #
+
+    from rest_framework.mixins import ListModelMixin
+    from drf_haystack.generics import HaystackGenericAPIView
+
+
+    class SearchView(ListModelMixin, HaystackGenericAPIView):
+
+        serializer_class = LocationSerializer
+
+        def get(self, request, *args, **kwargs):
+            return self.list(request, *args, **kwargs)
+
+
+    #
+    # urls.py
+    #
+
+    urlpatterns = (
+       ...
+        url(r'^search/', SearchView.as_view()),
+       ...
+    )
+
+
 Next, check out the :ref:`advanced-usage-label`.
