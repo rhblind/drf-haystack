@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import sys
-
 try:
     from setuptools import setup
 except ImportError:
     from ez_setup import use_setuptools
     use_setuptools()
     from setuptools import setup
-
-# Python major and minor version
-major, minor = sys.version_info[0], sys.version_info[1]
 
 setup(
     name="drf-haystack",
