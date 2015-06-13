@@ -68,8 +68,9 @@ class HaystackSerializer(serializers.Serializer):
 
             # Remove stuff we don't care about!
             delete_attrs = [
+                "allow_blank",
+                "choices",
                 "model_field",
-                "choices"
             ]
             for attr in delete_attrs:
                 if attr in kwargs:
@@ -128,7 +129,7 @@ class HaystackSerializer(serializers.Serializer):
     def to_representation(self, instance):
         """
         Since we might be dealing with multiple indexes, some fields might
-        not be valid for all results. Do no render the fields which don't belong
+        not be valid for all results. Do not render the fields which don't belong
         to the search result.
         """
         ret = super(HaystackSerializer, self).to_representation(instance)

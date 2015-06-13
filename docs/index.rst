@@ -40,18 +40,29 @@ Requirements
     - Django
     - Django REST Framework
     - Haystack (and a supported search engine such as Solr, Elasticsearch, Whoosh, etc.)
-    - geopy
+    - (geopy and libgeos if you want to use geo spatial filtering)
 
 
 Changelog
 =========
 
-v1.0
+v1.3
 ----
-*Release date: 2015-02-14*
+*Release date: 2015-05-19*
 
-    - Initial release.
+    - `HaystackGenericAPIView().get_object()` now returns Http404 instead of an empty `SearchQueryset`
+      if no object is found. This mimics the behaviour from `GenericAPIView().get_object()`.
+    - Removed hard dependencies for `geopy` and `libgeos` (See Github :issue:`5`). This means
+      that if you want to use the `HaystackGEOSpatialFilter`, you have to install these libraries
+      manually.
 
+v1.2
+----
+*Release date: 2015-03-23*
+
+    - Fixed `MissingDependency` error when using another search backend than Elasticsearch.
+    - Fixed converting distance to D object before filtering in HaystackGEOSpatialFilter.
+    - Added Python 3 classifier.
 
 v1.1
 ----
@@ -61,13 +72,11 @@ v1.1
     - Documentation
     - Beta release Development classifier
 
-v1.2
+v1.0
 ----
-*Release date: 2015-03-23*
+*Release date: 2015-02-14*
 
-    - Fixed `MissingDependency` error when using another search backend than Elasticsearch.
-    - Fixed converting distance to D object before filtering in HaystackGEOSpatialFilter.
-    - Added Python 3 classifier.
+    - Initial release.
 
 
 Indices and tables
