@@ -8,9 +8,9 @@ from .mockapp.views import SearchViewSet
 
 
 router = routers.DefaultRouter()
-router.register("person", viewset=SearchViewSet, base_name="search-person")
+router.register("search", viewset=SearchViewSet, base_name="search")
 
 urlpatterns = patterns(
     "",
-    url(r"^search/", include(router.urls))
+    url(r"^", include(router.urls))
 )
