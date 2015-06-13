@@ -1,10 +1,16 @@
+# -*- coding: utf-8 -*-
+
 from django.conf.urls import patterns, include, url
-from django.contrib import admin
 
-urlpatterns = patterns('',
-    # Examples:
-    # url(r'^$', 'tests.views.home', name='home'),
-    # url(r'^blog/', include('blog.urls')),
+from rest_framework import routers
 
-    url(r'^admin/', include(admin.site.urls)),
+from .mockapp.views import SearchViewSet
+
+
+router = routers.DefaultRouter()
+router.register("person", viewset=SearchViewSet, base_name="search-person")
+
+urlpatterns = patterns(
+    "",
+    url(r"^search/", include(router.urls))
 )
