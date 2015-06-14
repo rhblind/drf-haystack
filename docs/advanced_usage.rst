@@ -12,11 +12,11 @@ Autocomplete
 
 Some kind of data such as ie. cities and zip codes could be useful to autocomplete.
 We have a Django REST Framework filter for performing autocomplete queries. It works
-quite like the regular `HaystackFilter` but *must* be run against an `NgramField` or
-`EdgeNgramField` in order to work properly. The main difference is that while the
-HaystackFilter performs a bitwise `OR` on terms for the same parameters, the
-`HaystackAutocompleteFilter` reduce query parameters down to a single filter
-(using an `SQ` object), and performs a bitwise `AND`.
+quite like the regular ``HaystackFilter`` but *must* be run against an ``NgramField`` or
+``EdgeNgramField`` in order to work properly. The main difference is that while the
+HaystackFilter performs a bitwise ``OR`` on terms for the same parameters, the
+``HaystackAutocompleteFilter`` reduce query parameters down to a single filter
+(using an ``SQ`` object), and performs a bitwise ``AND``.
 
 .. class:: drf_haystack.filters.HaystackAutocompleteFilter
 
@@ -56,13 +56,13 @@ GEO Locations
 =============
 
 Some search backends support geo spatial searching. In order to take advantage of this we
-have the `HaystackGEOSpatialFilter`.
+have the ``HaystackGEOSpatialFilter``.
 
 .. class:: drf_haystack.filters.HaystackGEOSpatialFilter
 
 .. warning::
 
-    The `HaystackGEOSpatialFilter` depends on `geopy` and `libgeos`. Make sure to install these
+    The ``HaystackGEOSpatialFilter`` depends on ``geopy`` and ``libgeos``. Make sure to install these
     libraries in order to use this filter.
 
     .. code-block:: none
@@ -74,12 +74,12 @@ have the `HaystackGEOSpatialFilter`.
 
 The geospatial filter is somewhat special, and for the time being, relies on a few assumptions.
 
-#. The index model **must** to have a `LocationField` named `coordinates` (See :ref:`search-index-example-label` for example).
-#. The query **must** contain a "unit" parameter where the unit is a valid `UNIT` in the `django.contrib.gis.measure.Distance` class.
-#. The query **must** contain a "from" parameter which is a comma separated longitude and latitude value.
+#. The index model **must** to have a ``LocationField`` named ``coordinates`` (See :ref:`search-index-example-label` for example).
+#. The query **must** contain a ``unit`` parameter where the unit is a valid ``UNIT`` in the ``django.contrib.gis.measure.Distance`` class.
+#. The query **must** contain a ``from`` parameter which is a comma separated longitude and latitude value.
 
 
-Example Geospatial view
+**Example Geospatial view**
 
 .. code-block:: python
 
@@ -131,18 +131,27 @@ and we support them both.
    even if your search backend does not support it.
 
 
+.. note::
+
+    The highlighter will always use the ``document=True`` field on your index to hightlight on.
+    See examples below.
+
 SearchQuerySet Highlighting
 ---------------------------
 
-In order to add support for `SearchQuerySet().highlight()`, all you have to do is to add a `Mixin class` to
-your view. The `HaystackSerializer` will check if your queryset has highlighting enabled, and render an additional
-`highlighted` field to your result. The highlighted words will be encapsulated in an `<em>words go here</em>`
+In order to add support for ``SearchQuerySet().highlight()``, all you have to do is to add a mixin class to
+your view. The ``HaystackSerializer`` will check if your queryset has highlighting enabled, and render an additional
+``highlighted`` field to your result. The highlighted words will be encapsulated in an ``<em>words go here</em>``
 html tag.
+
+.. warning::
+
+    The ``SQHighlighterMixin`` requires a search backend with highlighting support.
 
 .. class:: drf_haystack.generics.SQHighlighterMixin
 
 
-Example view with highlighting enabled
+**Example view with highlighting enabled**
 
 .. code-block:: python
 
@@ -189,6 +198,57 @@ We would get a result like this
 Pure Python Highlighting
 ------------------------
 
-.. todo::
+This implementation make use of the haystack ``Highlighter()`` class.
+It is also implemented as a mixin class, but must be applied on the `Serializer``. This is somewhat slower, but
+more configurable than the ``SQHighlighterMixin()``.
 
-    Write me!
+.. class:: drf_haystack.serializers.HighlighterMixin
+
+The Highlighter class will be initialized with the following default options, but can be overridden by
+changing any of the following class attributes.
+
+    .. code-block:: python
+
+        highlighter_class = Highlighter
+        highlighter_css_class = "highlighted"
+        highlighter_html_tag = "span"
+        highlighter_max_length = 200
+
+You can of course also use your own ``Highlighter`` class by overriding the ``highlighter_class = MyFancyHighLighter``
+class attribute.
+
+
+**Example serializer with highlighter support**
+
+.. code-block:: python
+
+    from drf_haystack.serializers import HighlighterMixin, HaystackSerializer
+
+    class PersonSerializer(HighlighterMixin, HaystackSerializer):
+
+        highlighter_css_class = "my-highlighter-class"
+        highlighter_html_tag = "em"
+
+        class Meta:
+            index_classes = [PersonIndex]
+            fields = ["firstname", "lastname", "full_name"]
+
+
+Response
+
+.. code-block:: json
+
+    [
+        {
+            "full_name": "Jeremy Rowland",
+            "lastname": "Rowland",
+            "firstname": "Jeremy",
+            "highlighted": "<em class=\"my-highlighter-class\">Jeremy</em> Rowland\nCreated: May 19, 2015, 10:48 a.m.\nLast modified: May 19, 2015, 10:48 a.m.\n"
+        },
+        {
+            "full_name": "Jeremy Fowler",
+            "lastname": "Fowler",
+            "firstname": "Jeremy",
+            "highlighted": "<em class=\"my-highlighter-class\">Jeremy</em> Fowler\nCreated: May 19, 2015, 10:48 a.m.\nLast modified: May 19, 2015, 10:48 a.m.\n"
+        }
+    ]
