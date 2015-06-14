@@ -20,6 +20,10 @@ HaystackFilter performs a bitwise `OR` on terms for the same parameters, the
 
 .. class:: drf_haystack.filters.HaystackAutocompleteFilter
 
+By adding a list or tuple of ``ignore_fields`` to the serializer's Meta class,
+we can tell the REST framework to ignore these fields. This is handy in cases,
+where you do not want to serialize and transfer the content of a text, or n-gram
+index down to the client.
 
 An example using the autocomplete filter might look something like this.
 
@@ -31,6 +35,7 @@ An example using the autocomplete filter might look something like this.
         class Meta:
             index_classes = [LocationIndex]
             fields = ["address", "city", "zip_code", "autocomplete"]
+            ignore_fields = ["autocomplete"]
 
             # The `field_aliases` attribute can be used in order to alias a
             # query parameter to a field attribute. In this case a query like

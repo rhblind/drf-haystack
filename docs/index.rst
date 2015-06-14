@@ -46,6 +46,11 @@ Requirements
 Changelog
 =========
 
+1.4
+---
+
+    - A serializer class now accepts a list or tuple of ``ignore_field`` to bypass serialization.
+
 v1.3
 ----
 *Release date: 2015-05-19*
