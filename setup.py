@@ -9,7 +9,7 @@ except ImportError:
 
 setup(
     name="drf-haystack",
-    version="1.3",
+    version="1.4",
     description="Makes Haystack play nice with Django REST Framework",
     long_description="Implements a ViewSet, some filters and serializers in order to play nice with Haystack.",
     author="Rolf Håvard Blindheim, Eirik Krogstad",
