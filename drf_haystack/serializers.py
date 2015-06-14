@@ -5,7 +5,6 @@ from __future__ import absolute_import, unicode_literals
 import copy
 import warnings
 from itertools import chain
-from collections import OrderedDict
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
@@ -15,6 +14,7 @@ from haystack.query import EmptySearchQuerySet
 from haystack.utils import Highlighter
 
 from rest_framework import serializers
+from rest_framework.compat import OrderedDict
 from rest_framework.fields import (
     BooleanField, CharField, DateField, DateTimeField,
     DecimalField, FloatField, IntegerField, empty
