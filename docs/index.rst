@@ -50,6 +50,7 @@ v1.4
 ----
 *Release date: 2015-06-15*
 
+    - Fixed issues for Geo spatial filtering on django-haystack v1.4.x with Elasticsearch.
     - A serializer class now accepts a list or tuple of ``ignore_field`` to bypass serialization.
     - Added support for Highlighting.
 
