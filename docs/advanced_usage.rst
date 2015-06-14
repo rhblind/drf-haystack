@@ -112,3 +112,78 @@ Assuming the above code works as it should, we would be able to do queries like 
 
 The above query would return all entries with zip_code 0351 within 10 kilometers
 from the location with latitude 59.744076 and longitude 10.152045.
+
+
+Highlighting
+============
+
+Haystack supports two kind of `Highlighting <https://django-haystack.readthedocs.org/en/latest/highlighting.html>`_,
+and we support them both.
+
+#. SearchQuerySet highlighting. This kind of highlighting requires a search backend which has support for
+   highlighting, such as Elasticsearch or Solr.
+#. Pure python highlighting. This implementation is somewhat slower, but enables highlighting support
+   even if your search backend does not support it.
+
+
+SearchQuerySet Highlighting
+---------------------------
+
+In order to add support for `SearchQuerySet().highlight()`, all you have to do is to add a `Mixin class` to
+your view. The `HaystackSerializer` will check if your queryset has highlighting enabled, and render an additional
+`highlighted` field to your result. The highlighted words will be encapsulated in an `<em>words go here</em>`
+html tag.
+
+.. class:: drf_haystack.generics.SQHighlighterMixin
+
+
+Example view with highlighting enabled
+
+.. code-block:: python
+
+    from drf_haystack.viewsets import HaystackViewSet
+    from drf_haystack.generics import SQHighlighterMixin
+
+    from .models import Person
+    from .serializers import PersonSerializer
+
+
+    class SearchViewSet(SQHighlighterMixin, HaystackViewSet):
+        index_models = [Person]
+        serializer_class = PersonSerializer
+
+
+Given a query like below
+
+.. code-block:: none
+
+    /api/v1/search/?firstname=jeremy
+
+
+We would get a result like this
+
+.. code-block:: json
+
+    [
+        {
+            "lastname": "Rowland",
+            "full_name": "Jeremy Rowland",
+            "firstname": "Jeremy",
+            "highlighted": "<em>Jeremy</em> Rowland\nCreated: May 19, 2015, 10:48 a.m.\nLast modified: May 19, 2015, 10:48 a.m.\n"
+        },
+        {
+            "lastname": "Fowler",
+            "full_name": "Jeremy Fowler",
+            "firstname": "Jeremy",
+            "highlighted": "<em>Jeremy</em> Fowler\nCreated: May 19, 2015, 10:48 a.m.\nLast modified: May 19, 2015, 10:48 a.m.\n"
+        }
+    ]
+
+
+
+Pure Python Highlighting
+------------------------
+
+.. todo::
+
+    Write me!
