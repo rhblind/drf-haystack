@@ -94,6 +94,7 @@ class HaystackSerializer(serializers.Serializer):
 
         fields = getattr(self.Meta, "fields", [])
         exclude = getattr(self.Meta, "exclude", [])
+        ignore_fields = getattr(self.Meta, "ignore_fields", [])
 
         declared_fields = copy.deepcopy(self._declared_fields)
 
@@ -113,7 +114,7 @@ class HaystackSerializer(serializers.Serializer):
                                   (field_name, field_type.field_type))
                     continue
 
-                if field_name not in fields or field_name in exclude:
+                if field_name not in fields or field_name in exclude or field_name in ignore_fields:
                     continue
 
                 # Look up the field attributes on the current index model,
