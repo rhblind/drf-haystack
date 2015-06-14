@@ -150,28 +150,46 @@ class HaystackSerializer(serializers.Serializer):
         return ret
 
 
-# class HighlighterMixin(HaystackSerializer):
-#     """
-#     This mixin adds support for highlighting (the pure python, portable
-#     version, not SearchQuerySet().highlight()). See Haystack docs
-#     for more info).
-#     """
-#
-#     highlighter_class = Highlighter
-#
-#     def get_highlighter(self):
-#         if not self.highlighter_class:
-#             raise ImproperlyConfigured(
-#                 "%(cls)s is missing a highlighter_class. Define %(cls)s.highlighter_class, "
-#                 "or override %(cls)s.get_highlighter()." %
-#                 {"cls": self.__class__.__name__}
-#             )
-#         return self.highlighter_class
-#
-#     def get_serializer_context(self):
-#         context = super(HighlighterMixin, self).get_serializer_context()
-#         words = " ".join(six.itervalues(self.request.GET))
-#         highlighter = self.get_highlighter()(words)
-#         if highlighter:
-#             context["highlighter"] = highlighter
-#         return context
+class HighlighterMixin(HaystackSerializer):
+    """
+    This mixin adds support for highlighting (the pure python, portable
+    version, not SearchQuerySet().highlight()). See Haystack docs
+    for more info).
+    """
+
+    highlighter_class = Highlighter
+    highlighter_css_class = "highlighted"
+    highlighter_html_tag = "span"
+    highlighter_max_length = 200
+
+    def get_highlighter(self):
+        if not self.highlighter_class:
+            raise ImproperlyConfigured(
+                "%(cls)s is missing a highlighter_class. Define %(cls)s.highlighter_class, "
+                "or override %(cls)s.get_highlighter()." %
+                {"cls": self.__class__.__name__}
+            )
+        return self.highlighter_class
+
+    @staticmethod
+    def get_document_field(instance):
+        """
+        Returns which field the search index has marked as it's
+        `document=True` field.
+        """
+        for name, field in instance.searchindex.fields.items():
+            if field.document is True:
+                return name
+
+    def to_representation(self, instance):
+        ret = super(HighlighterMixin, self).to_representation(instance)
+        words = " ".join(six.itervalues(self.context["request"].GET))
+        highlighter = self.get_highlighter()(words, **{
+            "html_tag": self.highlighter_html_tag,
+            "css_class": self.highlighter_css_class,
+            "max_length": self.highlighter_max_length
+        })
+        document_field = self.get_document_field(instance)
+        if highlighter and document_field:
+            ret["highlighted"] = highlighter.highlight(getattr(instance, document_field))
+        return ret
