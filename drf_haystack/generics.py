@@ -66,3 +66,21 @@ class HaystackGenericAPIView(GenericAPIView):
             return queryset[0]
 
         raise Http404("No result matches the given query.")
+
+
+class SQHighlighterMixin(object):
+    """
+    This mixin adds support for highlighting on the SearchQuerySet
+    level (the fast one).
+    Note that you need to use a backend which supports hightlighting in order
+    to use this.
+
+    This will add a `hightlighted` list to your response, encapsulating the
+    highlighted words in an `<em>highlighted results</em>` block.
+    """
+
+    def get_queryset(self):
+        queryset = super(SQHighlighterMixin, self).get_queryset()
+        if isinstance(queryset, SearchQuerySet):
+            queryset = queryset.highlight()
+        return queryset

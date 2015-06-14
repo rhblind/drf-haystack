@@ -46,26 +46,28 @@ Requirements
 Changelog
 =========
 
-1.4
----
+v1.4
+----
+*Release date: 2015-06-15*
 
     - A serializer class now accepts a list or tuple of ``ignore_field`` to bypass serialization.
+    - Added support for Highlighting.
 
 v1.3
 ----
 *Release date: 2015-05-19*
 
-    - `HaystackGenericAPIView().get_object()` now returns Http404 instead of an empty `SearchQueryset`
-      if no object is found. This mimics the behaviour from `GenericAPIView().get_object()`.
-    - Removed hard dependencies for `geopy` and `libgeos` (See Github :issue:`5`). This means
-      that if you want to use the `HaystackGEOSpatialFilter`, you have to install these libraries
+    - ``HaystackGenericAPIView().get_object()`` now returns Http404 instead of an empty ``SearchQueryset``
+      if no object is found. This mimics the behaviour from ``GenericAPIView().get_object()``.
+    - Removed hard dependencies for ``geopy`` and ``libgeos`` (See Github :issue:`5`). This means
+      that if you want to use the ``HaystackGEOSpatialFilter``, you have to install these libraries
       manually.
 
 v1.2
 ----
 *Release date: 2015-03-23*
 
-    - Fixed `MissingDependency` error when using another search backend than Elasticsearch.
+    - Fixed ``MissingDependency`` error when using another search backend than Elasticsearch.
     - Fixed converting distance to D object before filtering in HaystackGEOSpatialFilter.
     - Added Python 3 classifier.
 

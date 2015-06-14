@@ -15,13 +15,11 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = (
-    # 'django.contrib.admin',
-    # 'django.contrib.auth',
-    # 'django.contrib.contenttypes',
-    # 'django.contrib.sessions',
-    # 'django.contrib.messages',
-    # 'django.contrib.staticfiles',
+    'django.contrib.sessions',
+    'django.contrib.staticfiles',
 
+    'haystack',
+    'rest_framework',
     'tests.mockapp',
 )
 
@@ -36,6 +34,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 ROOT_URLCONF = 'tests.urls'
+WSGI_APPLICATION = 'tests.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import sys
-
 try:
     from setuptools import setup
 except ImportError:
@@ -9,12 +7,9 @@ except ImportError:
     use_setuptools()
     from setuptools import setup
 
-# Python major and minor version
-major, minor = sys.version_info[0], sys.version_info[1]
-
 setup(
     name="drf-haystack",
-    version="1.3",
+    version="1.4",
     description="Makes Haystack play nice with Django REST Framework",
     long_description="Implements a ViewSet, some filters and serializers in order to play nice with Haystack.",
     author="Rolf Håvard Blindheim, Eirik Krogstad",

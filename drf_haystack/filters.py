@@ -10,6 +10,8 @@ from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
 
+import haystack
+
 from rest_framework.filters import BaseFilterBackend
 
 
@@ -158,8 +160,6 @@ class HaystackGEOSpatialFilter(HaystackFilter):
                 latitude, longitude = map(float, filters["from"].split(","))
                 point = self.Point(longitude, latitude, srid=getattr(settings, "GEO_SRID", 4326))
                 if point and distance:
-
-                    import haystack
                     major, minor, _ = haystack.__version__
                     if queryset.query.backend.__class__.__name__ == "ElasticsearchSearchBackend" \
                             and (major == 2 and minor < 4):
