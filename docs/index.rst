@@ -46,9 +46,9 @@ Requirements
 Changelog
 =========
 
-v1.5
-----
-*Release date: Git master branch*
+v1.5.0
+------
+*Release date: 2015-06-29*
 
     - Added support for field lookups in queries, such as ``field__contains=foobar``.
       Check out `Haystack docs <http://django-haystack.readthedocs.org/en/latest/searchqueryset_api.html?highlight=field%20lookup#field-lookups>`_
