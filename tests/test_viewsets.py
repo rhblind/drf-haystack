@@ -153,10 +153,14 @@ class HaystackViewSetPermissionsTestCase(TestCase):
         request = factory.get(path="/", data="", content_type="application/json")
         try:
             self.view.as_view(actions={"get": "list"})(request)
-            self.fail("Did not fail with AssertionError when calling HaystackView with DjangoModelPermissions")
-        except AssertionError as e:
-            self.assertEqual(str(e), "Cannot apply DjangoModelPermissions on a view that does "
-                                     "not have `.model` or `.queryset` property.")
+            self.fail("Did not fail with AssertionError or AttributeError "
+                      "when calling HaystackView with DjangoModelPermissions")
+        except (AttributeError, AssertionError) as e:
+            if isinstance(e, AttributeError):
+                self.assertEqual(str(e), "'SearchQuerySet' object has no attribute 'model'")
+            else:
+                self.assertEqual(str(e), "Cannot apply DjangoModelPermissions on a view that does "
+                                         "not have `.model` or `.queryset` property.")
 
     def test_get_queryset_with_DjangoModelPermissionsOrAnonReadOnly_permission(self):
         from rest_framework.permissions import DjangoModelPermissionsOrAnonReadOnly
@@ -169,9 +173,12 @@ class HaystackViewSetPermissionsTestCase(TestCase):
             self.view.as_view(actions={"get": "list"})(request)
             self.fail("Did not fail with AssertionError when calling HaystackView "
                       "with DjangoModelPermissionsOrAnonReadOnly")
-        except AssertionError as e:
-            self.assertEqual(str(e), "Cannot apply DjangoModelPermissions on a view that does "
-                                     "not have `.model` or `.queryset` property.")
+        except (AttributeError, AssertionError) as e:
+            if isinstance(e, AttributeError):
+                self.assertEqual(str(e), "'SearchQuerySet' object has no attribute 'model'")
+            else:
+                self.assertEqual(str(e), "Cannot apply DjangoModelPermissions on a view that does "
+                                         "not have `.model` or `.queryset` property.")
 
     def test_get_queryset_with_DjangoObjectPermissions_permission(self):
         from rest_framework.permissions import DjangoObjectPermissions
@@ -183,6 +190,9 @@ class HaystackViewSetPermissionsTestCase(TestCase):
         try:
             self.view.as_view(actions={"get": "list"})(request)
             self.fail("Did not fail with AssertionError when calling HaystackView with DjangoModelPermissions")
-        except AssertionError as e:
-            self.assertEqual(str(e), "Cannot apply DjangoModelPermissions on a view that does "
-                                     "not have `.model` or `.queryset` property.")
+        except (AttributeError, AssertionError) as e:
+            if isinstance(e, AttributeError):
+                self.assertEqual(str(e), "'SearchQuerySet' object has no attribute 'model'")
+            else:
+                self.assertEqual(str(e), "Cannot apply DjangoModelPermissions on a view that does "
+                                         "not have `.model` or `.queryset` property.")
