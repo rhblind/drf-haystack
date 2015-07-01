@@ -77,8 +77,6 @@ class HaystackViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-
-
 class HaystackViewSetPermissionsTestCase(TestCase):
 
     fixtures = ["mockperson"]
@@ -92,6 +90,9 @@ class HaystackViewSetPermissionsTestCase(TestCase):
         self.view = ViewSet
         self.user = User.objects.create_user(username="user", email="user@example.com", password="user")
         self.admin_user = User.objects.create_superuser(username="admin", email="admin@example.com", password="admin")
+
+    def tearDown(self):
+        MockPersonIndex().clear()
 
     def test_get_queryset_with_AllowAny_permission(self):
         from rest_framework.permissions import AllowAny
