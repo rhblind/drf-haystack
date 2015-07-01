@@ -124,7 +124,7 @@ class HaystackGEOSpatialFilter(HaystackFilter):
             from haystack.utils.geo import D, Point
             self.D = D
             self.Point = Point
-        except ImportError as e:
+        except ImportError as e:  # pragma: no cover
             warnings.warn("Make sure you've installed the `libgeos` library.\n "
                           "(`apt-get install libgeos` on linux, or `brew install geos` on OS X.)")
             raise e
