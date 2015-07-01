@@ -81,8 +81,8 @@ class SQHighlighterMixin(object):
     highlighted words in an `<em>highlighted results</em>` block.
     """
 
-    def get_queryset(self):
-        queryset = super(SQHighlighterMixin, self).get_queryset()
+    def filter_queryset(self, queryset):
+        queryset = super(SQHighlighterMixin, self).filter_queryset(queryset)
         if isinstance(queryset, SearchQuerySet):
             queryset = queryset.highlight()
         return queryset
