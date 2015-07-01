@@ -213,6 +213,10 @@ changing any of the following class attributes.
         highlighter_css_class = "highlighted"
         highlighter_html_tag = "span"
         highlighter_max_length = 200
+        highlighter_field = None
+
+The Highlighter class will usually highlight the ``document_field`` (the field marked ``document=True`` on your
+search index class), but this may be overridden by changing the ``highlighter_field``.
 
 You can of course also use your own ``Highlighter`` class by overriding the ``highlighter_class = MyFancyHighLighter``
 class attribute.
