@@ -150,7 +150,7 @@ class HaystackSerializer(serializers.Serializer):
         return ret
 
 
-class HighlighterMixin(HaystackSerializer):
+class HighlighterMixin(object):
     """
     This mixin adds support for highlighting (the pure python, portable
     version, not SearchQuerySet().highlight()). See Haystack docs
