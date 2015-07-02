@@ -161,6 +161,7 @@ class HighlighterMixin(HaystackSerializer):
     highlighter_css_class = "highlighted"
     highlighter_html_tag = "span"
     highlighter_max_length = 200
+    highlighter_field = None
 
     def get_highlighter(self):
         if not self.highlighter_class:
@@ -183,13 +184,14 @@ class HighlighterMixin(HaystackSerializer):
 
     def to_representation(self, instance):
         ret = super(HighlighterMixin, self).to_representation(instance)
-        words = " ".join(six.itervalues(self.context["request"].GET))
-        highlighter = self.get_highlighter()(words, **{
-            "html_tag": self.highlighter_html_tag,
-            "css_class": self.highlighter_css_class,
-            "max_length": self.highlighter_max_length
-        })
-        document_field = self.get_document_field(instance)
-        if highlighter and document_field:
-            ret["highlighted"] = highlighter.highlight(getattr(instance, document_field))
+        terms = " ".join(six.itervalues(self.context["request"].GET))
+        if terms:
+            highlighter = self.get_highlighter()(terms, **{
+                "html_tag": self.highlighter_html_tag,
+                "css_class": self.highlighter_css_class,
+                "max_length": self.highlighter_max_length
+            })
+            document_field = self.get_document_field(instance)
+            if highlighter and document_field:
+                ret["highlighted"] = highlighter.highlight(getattr(instance, self.highlighter_field or document_field))
         return ret

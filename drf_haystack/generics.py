@@ -77,12 +77,12 @@ class SQHighlighterMixin(object):
     Note that you need to use a backend which supports hightlighting in order
     to use this.
 
-    This will add a `hightlighted` list to your response, encapsulating the
+    This will add a `hightlighted` entry to your response, encapsulating the
     highlighted words in an `<em>highlighted results</em>` block.
     """
 
     def filter_queryset(self, queryset):
         queryset = super(SQHighlighterMixin, self).filter_queryset(queryset)
-        if isinstance(queryset, SearchQuerySet):
+        if self.request.GET and isinstance(queryset, SearchQuerySet):
             queryset = queryset.highlight()
         return queryset

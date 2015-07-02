@@ -157,10 +157,11 @@ class HaystackViewSetHighlighterTestCase(TestCase):
         class Serializer2(HighlighterMixin, HaystackSerializer):
             highlighter_html_tag = "div"
             highlighter_css_class = "my-fancy-highlighter"
+            highlighter_field = "description"
 
             class Meta:
                 index_classes = [MockPersonIndex]
-                fields = ["firstname", "lastname", "full_name"]
+                fields = ["firstname", "lastname", "description"]
 
         class Serializer3(Serializer2):
             highlighter_class = None
@@ -203,7 +204,7 @@ class HaystackViewSetHighlighterTestCase(TestCase):
                 " ".join(('<%(tag)s class="%(css_class)s">Jeremy</%(tag)s>' % {
                     "tag": self.viewset2.serializer_class.highlighter_html_tag,
                     "css_class": self.viewset2.serializer_class.highlighter_css_class
-                }, "%s\n" % result["lastname"]))
+                }, "%s" % "is a nice chap!"))
             )
 
     def test_serializer_highlighter_raise_no_highlighter_class(self):
@@ -217,3 +218,4 @@ class HaystackViewSetHighlighterTestCase(TestCase):
                 "%(cls)s is missing a highlighter_class. Define %(cls)s.highlighter_class, "
                 "or override %(cls)s.get_highlighter()." % {"cls": self.viewset3.serializer_class.__name__}
             )
+
