@@ -114,7 +114,7 @@ class HaystackSerializer(serializers.Serializer):
                                   (field_name, field_type.field_type))
                     continue
 
-                if field_name not in fields or field_name in exclude or field_name in ignore_fields:
+                if (not exclude and field_name not in fields) or field_name in exclude or field_name in ignore_fields:
                     continue
 
                 # Look up the field attributes on the current index model,
