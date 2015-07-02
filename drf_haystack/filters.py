@@ -11,6 +11,7 @@ from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
 
 import haystack
+from haystack.query import SearchQuerySet
 
 from rest_framework.filters import BaseFilterBackend
 
@@ -179,3 +180,21 @@ class HaystackGEOSpatialFilter(HaystackFilter):
     def filter_queryset(self, request, queryset, view):
         queryset = self.geo_filter(queryset, filters=request.GET.copy())
         return super(HaystackGEOSpatialFilter, self).filter_queryset(request, queryset, view)
+
+
+class HaystackHighlightFilter(HaystackFilter):
+    """
+    A filter backend which adds support for ``highlighting`` on the
+    SearchQuerySet level (the fast one).
+    Note that you need to use a search backend which supports highlighting
+    in order to use this.
+
+    This will add a ``hightlighted`` entry to your response, encapsulating the
+    highlighted words in an `<em>highlighted results</em>` block.
+    """
+
+    def filter_queryset(self, request, queryset, view):
+        queryset = super(HaystackHighlightFilter, self).filter_queryset(request, queryset, view)
+        if request.GET and isinstance(queryset, SearchQuerySet):
+            queryset = queryset.highlight()
+        return queryset

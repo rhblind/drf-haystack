@@ -33,7 +33,7 @@ class WarningTestCaseMixin(object):
         with warnings.catch_warnings(record=True) as warning_list:
             warnings.simplefilter(action="always")
             callable(*args, **kwargs)
-            self.assertTrue(any(item.category == "warning" for item in warning_list))
+            self.assertTrue(any(item.category == warning for item in warning_list))
 
 
 class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
@@ -192,6 +192,14 @@ class HaystackViewSetHighlighterTestCase(TestCase):
                 result["highlighted"],
                 " ".join(("<em>Jeremy</em>", "%s\n" % result["lastname"]))
             )
+
+    def test_serializer_qs_highlighter_gives_deprecation_warning(self):
+        request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")
+        with warnings.catch_warnings(record=True) as warning_list:
+            warnings.simplefilter(action="always")
+            self.viewset1.as_view(actions={"get": "list"})(request)
+            print([item.category for item in warning_list])
+            self.assertTrue(any(item.category == DeprecationWarning for item in warning_list))
 
     def test_serializer_highlighting(self):
         request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")

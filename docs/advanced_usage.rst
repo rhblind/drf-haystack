@@ -105,7 +105,7 @@ The geospatial filter is somewhat special, and for the time being, relies on a f
 
         index_models = [Location]
         serializer_class = LocationSerializer
-        filter_backends = [HaystackFilter, HaystackGEOSpatialFilter]
+        filter_backends = [HaystackGEOSpatialFilter]
 
 
 Assuming the above code works as it should, we would be able to do queries like this:
@@ -146,9 +146,9 @@ html tag.
 
 .. warning::
 
-    The ``SQHighlighterMixin`` requires a search backend with highlighting support.
+    The ``SQHighlighterMixin()`` is deprecated in favor of the  ``HaystackHighlightFilter()`` filter backend.
 
-.. class:: drf_haystack.generics.SQHighlighterMixin
+.. class:: drf_haystack.filters.HaystackHighlightFilter
 
 
 **Example view with highlighting enabled**
@@ -156,15 +156,16 @@ html tag.
 .. code-block:: python
 
     from drf_haystack.viewsets import HaystackViewSet
-    from drf_haystack.generics import SQHighlighterMixin
+    from drf_haystack.filters import HaystackHighlightFilter
 
     from .models import Person
     from .serializers import PersonSerializer
 
 
-    class SearchViewSet(SQHighlighterMixin, HaystackViewSet):
+    class SearchViewSet(HaystackViewSet):
         index_models = [Person]
         serializer_class = PersonSerializer
+        filter_backends = [HaystackHighlightFilter]
 
 
 Given a query like below
