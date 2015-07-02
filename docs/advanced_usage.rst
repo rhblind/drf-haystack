@@ -139,10 +139,10 @@ and we support them both.
 SearchQuerySet Highlighting
 ---------------------------
 
-In order to add support for ``SearchQuerySet().highlight()``, all you have to do is to add a mixin class to
-your view. The ``HaystackSerializer`` will check if your queryset has highlighting enabled, and render an additional
-``highlighted`` field to your result. The highlighted words will be encapsulated in an ``<em>words go here</em>``
-html tag.
+In order to add support for ``SearchQuerySet().highlight()``, all you have to do is to add the
+``HaystackHighlightFilter`` to the ``filter_backends`` in your view. The ``HaystackSerializer`` will
+check if your queryset has highlighting enabled, and render an additional ``highlighted`` field to
+your result. The highlighted words will be encapsulated in an ``<em>words go here</em>`` html tag.
 
 .. warning::
 
