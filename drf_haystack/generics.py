@@ -2,6 +2,8 @@
 
 from __future__ import absolute_import, unicode_literals
 
+import warnings
+
 from django.http import Http404
 
 from haystack.backends import SQ
@@ -72,6 +74,9 @@ class HaystackGenericAPIView(GenericAPIView):
 
 class SQHighlighterMixin(object):
     """
+    DEPRECATED!
+    Please use the HaystackHighlightFilter instead.
+
     This mixin adds support for highlighting on the SearchQuerySet
     level (the fast one).
     Note that you need to use a backend which supports hightlighting in order
@@ -82,7 +87,30 @@ class SQHighlighterMixin(object):
     """
 
     def filter_queryset(self, queryset):
+        warnings.warn(
+            "The SQHighlighterMixin is marked for deprecation. Unfortunately, "
+            "this was implemented a bit prematurely, and has been re-written as a filter backend. "
+            "Please remove SQHighlighterMixin from the %(cls)s, and add HaystackHighlightFilter "
+            "to %(cls)s.filter_backends." % {"cls": self.__class__.__name__},
+            DeprecationWarning
+        )
+
         queryset = super(SQHighlighterMixin, self).filter_queryset(queryset)
         if self.request.GET and isinstance(queryset, SearchQuerySet):
             queryset = queryset.highlight()
         return queryset
+
+    # def filter_queryset(self, queryset):
+    #     with warnings.catch_warnings(record=True):
+    #         warnings.simplefilter("always", DeprecationWarning)
+    #         return self._filter_queryset(queryset)
+
+class SQMoreLikeThisMixin(object):
+    """
+    This mixin adds support for ``more-like-this`` on the SearchQuerySet results.
+    Note that you need to use a backend which supports this kind of features in
+    order to use this.
+
+    This will add a url which points to ``more-like-this`` on each result.
+    """
+    pass

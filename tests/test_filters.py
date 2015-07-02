@@ -5,6 +5,7 @@
 
 from __future__ import absolute_import, unicode_literals
 
+import json
 from unittest2 import skipIf
 
 from django.core.exceptions import ImproperlyConfigured
@@ -16,7 +17,7 @@ from rest_framework.test import APIRequestFactory
 
 from drf_haystack.viewsets import HaystackViewSet
 from drf_haystack.serializers import HaystackSerializer
-from drf_haystack.filters import HaystackAutocompleteFilter, HaystackGEOSpatialFilter
+from drf_haystack.filters import HaystackAutocompleteFilter, HaystackGEOSpatialFilter, HaystackHighlightFilter
 
 from . import geospatial_support
 from .constants import MOCKLOCATION_DATA_SET_SIZE, MOCKPERSON_DATA_SET_SIZE
@@ -71,7 +72,7 @@ class HaystackFilterTestCase(TestCase):
     def tearDown(self):
         MockPersonIndex().clear()
 
-    def test_no_filters(self):
+    def test_filters_no_filters(self):
         request = factory.get(path="/", data="", content_type="application/json")
         response = self.view1.as_view(actions={"get": "list"})(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -176,14 +177,14 @@ class HaystackAutocompleteFilterTestCase(TestCase):
     def tearDown(self):
         MockPersonIndex().clear()
 
-    def test_autocomplete_single_term(self):
+    def test_filter_autocomplete_single_term(self):
         # Test querying the autocomplete field for a partial term. Should return 4 results
         request = factory.get(path="/", data={"autocomplete": "jer"}, content_type="application/json")
         response = self.view.as_view(actions={"get": "list"})(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 4)
 
-    def test_autocomplete_multiple_terms(self):
+    def test_filter_autocomplete_multiple_terms(self):
         # Test querying the autocomplete field for multiple terms.
         # Make sure the filter AND's the terms on spaces, thus reduce the results.
         request = factory.get(path="/", data={"autocomplete": "joh mc"}, content_type="application/json")
@@ -239,3 +240,38 @@ class HaystackGEOSpatialFilterTestCase(TestCase):
             ValueError,
             self.view.as_view(actions={"get": "list"}), request
         )
+
+
+class HaystackHighlightFilterTestCase(TestCase):
+
+    fixtures = ["mockperson"]
+
+    def setUp(self):
+        MockPersonIndex().reindex()
+
+        class Serializer(HaystackSerializer):
+
+            class Meta:
+                index_classes = [MockPersonIndex]
+                fields = ["firstname", "lastname"]
+
+        class ViewSet(HaystackViewSet):
+            index_models = [MockPerson]
+            serializer_class = Serializer
+            filter_backends = [HaystackHighlightFilter]
+
+        self.view = ViewSet
+
+    def tearDown(self):
+        MockPersonIndex().clear()
+
+    def test_filter_sq_highlighter_filter(self):
+        request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")
+        response = self.view.as_view(actions={"get": "list"})(request)
+        response.render()
+        for result in json.loads(response.content.decode()):
+            self.assertTrue("highlighted" in result)
+            self.assertEqual(
+                result["highlighted"],
+                " ".join(("<em>Jeremy</em>", "%s\n" % result["lastname"]))
+            )

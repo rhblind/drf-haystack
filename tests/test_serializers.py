@@ -33,7 +33,7 @@ class WarningTestCaseMixin(object):
         with warnings.catch_warnings(record=True) as warning_list:
             warnings.simplefilter(action="always")
             callable(*args, **kwargs)
-            self.assertTrue(any(item.category == "warning" for item in warning_list))
+            self.assertTrue(any(item.category == warning for item in warning_list))
 
 
 class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
@@ -78,6 +78,12 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
             def get_city(self, obj):
                 return "Declared overriding field"
 
+        class Serializer5(HaystackSerializer):
+
+            class Meta:
+                index_classes = [MockPersonIndex]
+                exclude = ["firstname"]
+
         class ViewSet1(HaystackViewSet):
             serializer_class = Serializer3
 
@@ -91,6 +97,7 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         self.serializer2 = Serializer2
         self.serializer3 = Serializer3
         self.serializer4 = Serializer4
+        self.serializer5 = Serializer5
 
         self.view1 = ViewSet1
         self.view2 = ViewSet2
@@ -141,6 +148,17 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         assert isinstance(fields["lastname"], CharField), self.fail("serializer 'lastname' field is not a CharField instance")
         assert isinstance(fields["autocomplete"], CharField), self.fail("serializer 'autocomplete' field is not a CharField instance")
 
+    def test_serializer_get_fields_with_exclude(self):
+        from rest_framework.fields import CharField
+
+        obj = SearchQuerySet().filter(lastname="Foreman")[0]
+        serializer = self.serializer5(instance=obj)
+        fields = serializer.get_fields()
+        assert isinstance(fields, dict), self.fail("serializer.data is not a dict")
+        assert isinstance(fields["text"], CharField), self.fail("serializer 'text' field is not a CharField instance")
+        assert "firstname" not in fields, self.fail("serializer 'firstname' should no be present")
+        assert isinstance(fields["lastname"], CharField), self.fail("serializer 'lastname' field is not a CharField instance")
+        assert isinstance(fields["autocomplete"], CharField), self.fail("serializer 'autocomplete' field is not a CharField instance")
 
 class HaystackViewSetHighlighterTestCase(TestCase):
 
@@ -193,6 +211,14 @@ class HaystackViewSetHighlighterTestCase(TestCase):
                 " ".join(("<em>Jeremy</em>", "%s\n" % result["lastname"]))
             )
 
+    def test_serializer_qs_highlighter_gives_deprecation_warning(self):
+        request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")
+        with warnings.catch_warnings(record=True) as warning_list:
+            warnings.simplefilter(action="always")
+            self.viewset1.as_view(actions={"get": "list"})(request)
+            print([item.category for item in warning_list])
+            self.assertTrue(any(item.category == DeprecationWarning for item in warning_list))
+
     def test_serializer_highlighting(self):
         request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")
         response = self.viewset2.as_view(actions={"get": "list"})(request)
@@ -218,4 +244,3 @@ class HaystackViewSetHighlighterTestCase(TestCase):
                 "%(cls)s is missing a highlighter_class. Define %(cls)s.highlighter_class, "
                 "or override %(cls)s.get_highlighter()." % {"cls": self.viewset3.serializer_class.__name__}
             )
-
