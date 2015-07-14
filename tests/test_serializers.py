@@ -5,6 +5,7 @@
 
 from __future__ import absolute_import, unicode_literals
 
+import json
 import warnings
 
 from django.core.exceptions import ImproperlyConfigured
@@ -13,7 +14,8 @@ from haystack.query import SearchQuerySet
 from rest_framework import serializers
 from rest_framework.test import APIRequestFactory
 
-from drf_haystack.serializers import HaystackSerializer
+from drf_haystack.generics import SQHighlighterMixin
+from drf_haystack.serializers import HighlighterMixin, HaystackSerializer
 from drf_haystack.viewsets import HaystackViewSet
 
 from .mockapp.models import MockPerson
@@ -76,6 +78,12 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
             def get_city(self, obj):
                 return "Declared overriding field"
 
+        class Serializer5(HaystackSerializer):
+
+            class Meta:
+                index_classes = [MockPersonIndex]
+                exclude = ["firstname"]
+
         class ViewSet1(HaystackViewSet):
             serializer_class = Serializer3
 
@@ -89,6 +97,7 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         self.serializer2 = Serializer2
         self.serializer3 = Serializer3
         self.serializer4 = Serializer4
+        self.serializer5 = Serializer5
 
         self.view1 = ViewSet1
         self.view2 = ViewSet2
@@ -138,3 +147,92 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         assert isinstance(fields["firstname"], CharField), self.fail("serializer 'firstname' field is not a CharField instance")
         assert isinstance(fields["lastname"], CharField), self.fail("serializer 'lastname' field is not a CharField instance")
         assert isinstance(fields["autocomplete"], CharField), self.fail("serializer 'autocomplete' field is not a CharField instance")
+
+    def test_serializer_get_fields_with_exclude(self):
+        from rest_framework.fields import CharField
+
+        obj = SearchQuerySet().filter(lastname="Foreman")[0]
+        serializer = self.serializer5(instance=obj)
+        fields = serializer.get_fields()
+        assert isinstance(fields, dict), self.fail("serializer.data is not a dict")
+        assert isinstance(fields["text"], CharField), self.fail("serializer 'text' field is not a CharField instance")
+        assert "firstname" not in fields, self.fail("serializer 'firstname' should no be present")
+        assert isinstance(fields["lastname"], CharField), self.fail("serializer 'lastname' field is not a CharField instance")
+        assert isinstance(fields["autocomplete"], CharField), self.fail("serializer 'autocomplete' field is not a CharField instance")
+
+class HaystackViewSetHighlighterTestCase(TestCase):
+
+    fixtures = ["mockperson"]
+
+    def setUp(self):
+        MockPersonIndex().reindex()
+
+        class Serializer1(HaystackSerializer):
+            class Meta:
+                index_classes = [MockPersonIndex]
+                fields = ["firstname", "lastname", "full_name"]
+
+        class Serializer2(HighlighterMixin, HaystackSerializer):
+            highlighter_html_tag = "div"
+            highlighter_css_class = "my-fancy-highlighter"
+            highlighter_field = "description"
+
+            class Meta:
+                index_classes = [MockPersonIndex]
+                fields = ["firstname", "lastname", "description"]
+
+        class Serializer3(Serializer2):
+            highlighter_class = None
+
+        class ViewSet1(SQHighlighterMixin, HaystackViewSet):
+            serializer_class = Serializer1
+
+        class ViewSet2(HaystackViewSet):
+            serializer_class = Serializer2
+
+        class ViewSet3(HaystackViewSet):
+            serializer_class = Serializer3
+
+        self.viewset1 = ViewSet1
+        self.viewset2 = ViewSet2
+        self.viewset3 = ViewSet3
+
+    def tearDown(self):
+        MockPersonIndex().clear()
+
+    def test_serializer_qs_highlighting(self):
+        request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")
+        response = self.viewset1.as_view(actions={"get": "list"})(request)
+        response.render()
+        for result in json.loads(response.content.decode()):
+            self.assertTrue("highlighted" in result)
+            self.assertEqual(
+                result["highlighted"],
+                " ".join(("<em>Jeremy</em>", "%s\n" % result["lastname"]))
+            )
+
+    def test_serializer_highlighting(self):
+        request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")
+        response = self.viewset2.as_view(actions={"get": "list"})(request)
+        response.render()
+        for result in json.loads(response.content.decode()):
+            self.assertTrue("highlighted" in result)
+            self.assertEqual(
+                result["highlighted"],
+                " ".join(('<%(tag)s class="%(css_class)s">Jeremy</%(tag)s>' % {
+                    "tag": self.viewset2.serializer_class.highlighter_html_tag,
+                    "css_class": self.viewset2.serializer_class.highlighter_css_class
+                }, "%s" % "is a nice chap!"))
+            )
+
+    def test_serializer_highlighter_raise_no_highlighter_class(self):
+        request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")
+        try:
+            self.viewset3.as_view(actions={"get": "list"})(request)
+            self.fail("Did not raise ImproperlyConfigured error when called without as serializer_class")
+        except ImproperlyConfigured as e:
+            self.assertEqual(
+                str(e),
+                "%(cls)s is missing a highlighter_class. Define %(cls)s.highlighter_class, "
+                "or override %(cls)s.get_highlighter()." % {"cls": self.viewset3.serializer_class.__name__}
+            )

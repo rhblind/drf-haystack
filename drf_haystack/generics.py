@@ -7,6 +7,7 @@ from django.http import Http404
 from haystack.backends import SQ
 from haystack.query import SearchQuerySet
 from rest_framework.generics import GenericAPIView
+from rest_framework.permissions import AllowAny
 
 from .filters import HaystackFilter
 
@@ -32,6 +33,7 @@ class HaystackGenericAPIView(GenericAPIView):
     # REST Framework overrides
     #
     filter_backends = [HaystackFilter]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         """
@@ -79,8 +81,8 @@ class SQHighlighterMixin(object):
     highlighted words in an `<em>highlighted results</em>` block.
     """
 
-    def get_queryset(self):
-        queryset = super(SQHighlighterMixin, self).get_queryset()
+    def filter_queryset(self, queryset):
+        queryset = super(SQHighlighterMixin, self).filter_queryset(queryset)
         if isinstance(queryset, SearchQuerySet):
             queryset = queryset.highlight()
         return queryset

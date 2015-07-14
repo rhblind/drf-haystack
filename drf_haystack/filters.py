@@ -43,15 +43,18 @@ class HaystackFilter(BaseFilterBackend):
         for param, value in filters.items():
             # Skip if the parameter is not listed in the serializer's `fields`
             # or if it's in the `exclude` list.
+            base_param = param.split("__")[0]  # only test against field without lookup
             if view.serializer_class:
                 try:
                     if hasattr(view.serializer_class.Meta, "field_aliases"):
-                        param = view.serializer_class.Meta.field_aliases.get(param, param)
+                        old_base = base_param
+                        base_param = view.serializer_class.Meta.field_aliases.get(base_param, base_param)
+                        param = param.replace(old_base, base_param)  # need to replace the alias
 
                     fields = getattr(view.serializer_class.Meta, "fields", [])
                     exclude = getattr(view.serializer_class.Meta, "exclude", [])
 
-                    if param not in fields or param in exclude or not value:
+                    if base_param not in fields or param in exclude or not value:
                         continue
 
                 except AttributeError:
@@ -121,7 +124,7 @@ class HaystackGEOSpatialFilter(HaystackFilter):
             from haystack.utils.geo import D, Point
             self.D = D
             self.Point = Point
-        except ImportError as e:
+        except ImportError as e:  # pragma: no cover
             warnings.warn("Make sure you've installed the `libgeos` library.\n "
                           "(`apt-get install libgeos` on linux, or `brew install geos` on OS X.)")
             raise e

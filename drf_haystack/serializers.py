@@ -119,7 +119,7 @@ class HaystackSerializer(serializers.Serializer):
                                   (field_name, field_type.field_type))
                     continue
 
-                if field_name not in fields or field_name in exclude or field_name in ignore_fields:
+                if (not exclude and field_name not in fields) or field_name in exclude or field_name in ignore_fields:
                     continue
 
                 # Look up the field attributes on the current index model,
@@ -166,6 +166,7 @@ class HighlighterMixin(HaystackSerializer):
     highlighter_css_class = "highlighted"
     highlighter_html_tag = "span"
     highlighter_max_length = 200
+    highlighter_field = None
 
     def get_highlighter(self):
         if not self.highlighter_class:
@@ -196,5 +197,5 @@ class HighlighterMixin(HaystackSerializer):
         })
         document_field = self.get_document_field(instance)
         if highlighter and document_field:
-            ret["highlighted"] = highlighter.highlight(getattr(instance, document_field))
+            ret["highlighted"] = highlighter.highlight(getattr(instance, self.highlighter_field or document_field))
         return ret

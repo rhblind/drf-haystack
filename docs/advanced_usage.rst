@@ -213,6 +213,10 @@ changing any of the following class attributes.
         highlighter_css_class = "highlighted"
         highlighter_html_tag = "span"
         highlighter_max_length = 200
+        highlighter_field = None
+
+The Highlighter class will usually highlight the ``document_field`` (the field marked ``document=True`` on your
+search index class), but this may be overridden by changing the ``highlighter_field``.
 
 You can of course also use your own ``Highlighter`` class by overriding the ``highlighter_class = MyFancyHighLighter``
 class attribute.
@@ -252,3 +256,41 @@ Response
             "highlighted": "<em class=\"my-highlighter-class\">Jeremy</em> Fowler\nCreated: May 19, 2015, 10:48 a.m.\nLast modified: May 19, 2015, 10:48 a.m.\n"
         }
     ]
+
+
+.. _permission-classes-label:
+
+Permission Classes
+==================
+
+Django REST Framework allows setting certain ``permission_classes`` in order to control access to views.
+The generic ``HaystackGenericAPIView`` defaults to ``rest_framework.permissions.AllowAny`` which enforce no
+restrictions on the views. This can be overridden on a per-view basis as you would normally do in a regular
+`REST Framework APIView <http://www.django-rest-framework.org/api-guide/permissions/#setting-the-permission-policy>`_.
+
+
+.. note::
+
+    Since we have no Django model or queryset, the following permission classes are *not* supported:
+
+        - ``rest_framework.permissions.DjangoModelPermissions``
+        - ``rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly``
+        - ``rest_framework.permissions.DjangoObjectPermissions``
+
+    ``POST``, ``PUT``, ``PATCH`` and ``DELETE`` are not supported since Haystack Views
+    are read-only. So if you are using the ``rest_framework.permissions.IsAuthenticatedOrReadOnly``
+    , this will act just as the ``AllowAny`` permission.
+
+
+**Example overriding permission classes**
+
+.. code-block:: python
+
+    ...
+    from rest_framework.permissions import IsAuthenticated
+
+    class SearchViewSet(HaystackViewSet):
+        ...
+        permission_classes = [IsAuthenticated]
+
+

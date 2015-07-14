@@ -83,8 +83,20 @@ class HaystackFilterTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 3)
 
+    def test_filter_single_field_with_lookup(self):
+        request = factory.get(path="/", data={"firstname__startswith": "John"})  # Should return 3 results
+        response = self.view1.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 3)
+
     def test_filter_aliased_field(self):
         request = factory.get(path="/", data={"name": "John McClane"}, content_type="application/json")
+        response = self.view1.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+
+    def test_filter_aliased_field_with_lookup(self):
+        request = factory.get(path="/", data={"name__contains": "John McClane"}, content_type="application/json")
         response = self.view1.as_view(actions={"get": "list"})(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)

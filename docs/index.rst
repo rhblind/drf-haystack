@@ -46,11 +46,21 @@ Requirements
 Changelog
 =========
 
+v1.5.0
+------
+*Release date: 2015-06-29*
+
+    - Added support for field lookups in queries, such as ``field__contains=foobar``.
+      Check out `Haystack docs <http://django-haystack.readthedocs.org/en/latest/searchqueryset_api.html?highlight=field%20lookup#field-lookups>`_
+      for details.
+    - Added default ``permission_classes`` on ``HaystackGenericAPIView`` in order to avoid crash when
+      using global permission classes on REST Framework. See :ref:`permission-classes-label` for details.
+
 v1.4
 ----
 *Release date: 2015-06-15*
 
-    - Fixed issues for Geo spatial filtering on django-haystack v1.4.x with Elasticsearch.
+    - Fixed issues for Geo spatial filtering on django-haystack v2.4.x with Elasticsearch.
     - A serializer class now accepts a list or tuple of ``ignore_field`` to bypass serialization.
     - Added support for Highlighting.
 
