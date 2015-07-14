@@ -14,7 +14,12 @@ from haystack.query import EmptySearchQuerySet
 from haystack.utils import Highlighter
 
 from rest_framework import serializers
-from rest_framework.compat import OrderedDict
+
+try:
+    from collections import OrderedDict
+except ImportError:
+    from django.utils.datastructures import SortedDict as OrderedDict
+
 from rest_framework.fields import (
     BooleanField, CharField, DateField, DateTimeField,
     DecimalField, FloatField, IntegerField, empty
