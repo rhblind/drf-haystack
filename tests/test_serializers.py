@@ -160,7 +160,8 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         assert isinstance(fields["lastname"], CharField), self.fail("serializer 'lastname' field is not a CharField instance")
         assert isinstance(fields["autocomplete"], CharField), self.fail("serializer 'autocomplete' field is not a CharField instance")
 
-class HaystackViewSetHighlighterTestCase(TestCase):
+
+class HaystackViewSetHighlighterTestCase(WarningTestCaseMixin, TestCase):
 
     fixtures = ["mockperson"]
 
@@ -213,11 +214,7 @@ class HaystackViewSetHighlighterTestCase(TestCase):
 
     def test_serializer_qs_highlighter_gives_deprecation_warning(self):
         request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")
-        with warnings.catch_warnings(record=True) as warning_list:
-            warnings.simplefilter(action="always")
-            self.viewset1.as_view(actions={"get": "list"})(request)
-            print([item.category for item in warning_list])
-            self.assertTrue(any(item.category == DeprecationWarning for item in warning_list))
+        self.assertWarning(DeprecationWarning, self.viewset1.as_view(actions={"get": "list"}), request)
 
     def test_serializer_highlighting(self):
         request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")

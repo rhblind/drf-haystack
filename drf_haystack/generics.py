@@ -88,15 +88,13 @@ class SQHighlighterMixin(object):
     highlighted words in an `<em>highlighted results</em>` block.
     """
     def filter_queryset(self, queryset):
-        with warnings.catch_warnings(record=True):
-            warnings.simplefilter("always", DeprecationWarning)
-            warnings.warn(
-                "The SQHighlighterMixin is marked for deprecation, and has been re-written "
-                "as a filter backend. Please remove SQHighlighterMixin from the "
-                "%(cls)s, and add HaystackHighlightFilter to %(cls)s.filter_backends." %
-                {"cls": self.__class__.__name__},
-                DeprecationWarning
-            )
+        warnings.warn(
+            "The SQHighlighterMixin is marked for deprecation, and has been re-written "
+            "as a filter backend. Please remove SQHighlighterMixin from the "
+            "%(cls)s, and add HaystackHighlightFilter to %(cls)s.filter_backends." %
+            {"cls": self.__class__.__name__},
+            DeprecationWarning
+        )
 
         queryset = super(SQHighlighterMixin, self).filter_queryset(queryset)
         if self.request.GET and isinstance(queryset, SearchQuerySet):
