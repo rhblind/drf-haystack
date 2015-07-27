@@ -74,7 +74,7 @@ class HaystackGenericAPIView(GenericAPIView):
 
 class SQHighlighterMixin(object):
     """
-    DEPRECATED!
+    DEPRECATED! Remove in v1.6.0.
     Please use the HaystackHighlightFilter instead.
 
     This mixin adds support for highlighting on the SearchQuerySet
@@ -87,23 +87,21 @@ class SQHighlighterMixin(object):
     """
 
     def filter_queryset(self, queryset):
-        warnings.warn(
-            "The SQHighlighterMixin is marked for deprecation. Unfortunately, "
-            "this was implemented a bit prematurely, and has been re-written as a filter backend. "
-            "Please remove SQHighlighterMixin from the %(cls)s, and add HaystackHighlightFilter "
-            "to %(cls)s.filter_backends." % {"cls": self.__class__.__name__},
-            DeprecationWarning
-        )
+        with warnings.catch_warnings(record=True):
+            warnings.simplefilter("always", DeprecationWarning)
+            warnings.warn(
+                "The SQHighlighterMixin is marked for deprecation, and has been re-written "
+                "as a filter backend. Please remove SQHighlighterMixin from the "
+                "%(cls)s, and add HaystackHighlightFilter to %(cls)s.filter_backends." %
+                {"cls": self.__class__.__name__},
+                DeprecationWarning
+            )
 
         queryset = super(SQHighlighterMixin, self).filter_queryset(queryset)
         if self.request.GET and isinstance(queryset, SearchQuerySet):
             queryset = queryset.highlight()
         return queryset
 
-    # def filter_queryset(self, queryset):
-    #     with warnings.catch_warnings(record=True):
-    #         warnings.simplefilter("always", DeprecationWarning)
-    #         return self._filter_queryset(queryset)
 
 class SQMoreLikeThisMixin(object):
     """
