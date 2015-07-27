@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import, unicode_literals
 
-from drf_haystack.serializers import HaystackSerializer, HighlighterMixin
+from drf_haystack.serializers import HaystackSerializer, HighlighterMixin, MoreLikeThisMixin
 from .search_indexes import MockPersonIndex, MockLocationIndex
 
 
@@ -27,3 +27,9 @@ class HighlighterSerializer(HighlighterMixin, HaystackSerializer):
             "firstname", "lastname", "full_name",
             "address", "city", "zip_code",
         ]
+
+
+class MoreLikeThisSerializer(MoreLikeThisMixin, HaystackSerializer):
+
+    class Meta:
+        index_classes = [MockPersonIndex]
