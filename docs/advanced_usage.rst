@@ -60,7 +60,7 @@ have the ``HaystackGEOSpatialFilter``.
 
 .. class:: drf_haystack.filters.HaystackGEOSpatialFilter
 
-.. warning::
+.. note::
 
     The ``HaystackGEOSpatialFilter`` depends on ``geopy`` and ``libgeos``. Make sure to install these
     libraries in order to use this filter.
