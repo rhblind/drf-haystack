@@ -195,20 +195,3 @@ class HighlighterMixin(object):
             if highlighter and document_field:
                 ret["highlighted"] = highlighter.highlight(getattr(instance, self.highlighter_field or document_field))
         return ret
-
-
-class MoreLikeThisMixin(object):
-    """
-    Adds support for ``more-like-this``.
-    By using this mixin, each result will have an additional
-    ``more_like_this`` attribute on the result, containing an url
-    or a rendered list of related results.
-    """
-
-    def to_representation(self, instance):
-
-        ret = super(MoreLikeThisMixin, self).to_representation(instance)
-        mlt = self.instance.more_like_this(instance.object)
-        if mlt:
-            brk = ""
-        return ret

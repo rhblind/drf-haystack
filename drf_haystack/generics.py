@@ -8,7 +8,6 @@ from django.http import Http404
 
 from haystack.backends import SQ
 from haystack.query import SearchQuerySet
-from rest_framework.decorators import detail_route
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny
 
