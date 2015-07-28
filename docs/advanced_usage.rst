@@ -60,7 +60,7 @@ have the ``HaystackGEOSpatialFilter``.
 
 .. class:: drf_haystack.filters.HaystackGEOSpatialFilter
 
-.. warning::
+.. note::
 
     The ``HaystackGEOSpatialFilter`` depends on ``geopy`` and ``libgeos``. Make sure to install these
     libraries in order to use this filter.
@@ -200,8 +200,8 @@ Pure Python Highlighting
 ------------------------
 
 This implementation make use of the haystack ``Highlighter()`` class.
-It is also implemented as a mixin class, but must be applied on the `Serializer``. This is somewhat slower, but
-more configurable than the ``SQHighlighterMixin()``.
+It is implemented as a mixin class, and must be applied on the ``Serializer``.
+This is somewhat slower, but more configurable than the ``SQHighlighterMixin()``.
 
 .. class:: drf_haystack.serializers.HighlighterMixin
 
@@ -255,6 +255,65 @@ Response
             "lastname": "Fowler",
             "firstname": "Jeremy",
             "highlighted": "<em class=\"my-highlighter-class\">Jeremy</em> Fowler\nCreated: May 19, 2015, 10:48 a.m.\nLast modified: May 19, 2015, 10:48 a.m.\n"
+        }
+    ]
+
+
+More Like This
+==============
+
+Some search backends supports ``More Like This`` features. In order to take advantage of this,
+the ``HaystackViewSet`` includes a ``more-like-this`` detail route which is appended to the base name of the
+ViewSet. Lets say you have a router which looks like this:
+
+.. code-block:: python
+
+    router = routers.DefaultRouter()
+    router.register("search", viewset=SearchViewSet, base_name="search")  # MLT name will be 'search-more-like-this'.
+
+    urlpatterns = patterns(
+        "",
+        url(r"^", include(router.urls))
+    )
+
+The important thing here is that the ``SearchViewSet`` class inherits from the ``HaystackViewSet`` class
+in order to get the ``more-like-this`` route automatically added. The view name will be
+``{base_name}-more-like-this``, which in this case would be for example ``search-more-like-this``.
+
+
+Serializing the More Like This URL
+----------------------------------
+
+In order to include the ``more-like-this`` url in your result you only have to add a ``HyperlinkedIdentityField``
+to your serializer.
+Something like this should work okay.
+
+**Example serializer with More Like This**
+
+.. code-block:: python
+
+    class SearchSerializer(HaystackSerializer):
+
+        more_like_this = serializers.HyperlinkedIdentityField(view_name="search-more-like-this", read_only=True)
+
+        class Meta:
+            index_classes = [PersonIndex]
+            fields = ["firstname", "lastname", "full_name"]
+
+
+Now, every result you render with this serializer will include a ``more_like_this`` field containing the url
+for similar results.
+
+Example response
+
+.. code-block:: json
+
+    [
+        {
+            "full_name": "Jeremy Rowland",
+            "lastname": "Rowland",
+            "firstname": "Jeremy",
+            "more_like_this": "http://example.com/search/5/more-like-this/"
         }
     ]
 

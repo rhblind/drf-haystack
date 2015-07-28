@@ -110,7 +110,7 @@ class HaystackSerializer(serializers.Serializer):
             for field_name, field_type in six.iteritems(index_cls.fields):
                 if field_name in field_mapping:
                     warnings.warn("Field '%s' is already in the field list with field type "
-                                  "'%s'. Will _not_ add the field another time." %
+                                  "'%s'. Will *not* add the field another time." %
                                   (field_name, field_type.field_type))
                     continue
 
@@ -150,9 +150,9 @@ class HaystackSerializer(serializers.Serializer):
         return ret
 
 
-class HighlighterMixin(HaystackSerializer):
+class HighlighterMixin(object):
     """
-    This mixin adds support for highlighting (the pure python, portable
+    This mixin adds support for ``highlighting`` (the pure python, portable
     version, not SearchQuerySet().highlight()). See Haystack docs
     for more info).
     """

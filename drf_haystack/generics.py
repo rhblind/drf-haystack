@@ -40,7 +40,7 @@ class HaystackGenericAPIView(GenericAPIView):
     def get_queryset(self):
         """
         Get the list of items for this view.
-        Returns `self.queryset` if defined and is a `self.object_class`
+        Returns ``self.queryset`` if defined and is a ``self.object_class``
         instance.
         """
         if self.queryset and isinstance(self.queryset, self.object_class):
@@ -66,15 +66,17 @@ class HaystackGenericAPIView(GenericAPIView):
                 "attribute on the view correctly." % (self.__class__.__name__, lookup_url_kwarg)
             )
         queryset = queryset.filter(self.query_object((self.document_uid_field, self.kwargs[lookup_url_kwarg])))
-        if queryset:
+        if queryset and len(queryset) == 1:
             return queryset[0]
+        elif queryset and len(queryset) > 1:
+            raise Http404("Multiple results matches the given query. Expected a single result.")
 
         raise Http404("No result matches the given query.")
 
 
 class SQHighlighterMixin(object):
     """
-    DEPRECATED!
+    DEPRECATED! Remove in v1.6.0.
     Please use the HaystackHighlightFilter instead.
 
     This mixin adds support for highlighting on the SearchQuerySet
@@ -85,14 +87,11 @@ class SQHighlighterMixin(object):
     This will add a `hightlighted` entry to your response, encapsulating the
     highlighted words in an `<em>highlighted results</em>` block.
     """
-
-    # TODO: Remove in v1.6
-
     def filter_queryset(self, queryset):
         warnings.warn(
-            "The SQHighlighterMixin is marked for deprecation in favor of the "
-            "HaystackHighlightFilter filter backend. Please remove SQHighlighterMixin "
-            "from the %(cls)s, and add HaystackHighlightFilter to %(cls)s.filter_backends." %
+            "The SQHighlighterMixin is marked for deprecation, and has been re-written "
+            "as a filter backend. Please remove SQHighlighterMixin from the "
+            "%(cls)s, and add HaystackHighlightFilter to %(cls)s.filter_backends." %
             {"cls": self.__class__.__name__},
             DeprecationWarning
         )
@@ -101,18 +100,3 @@ class SQHighlighterMixin(object):
         if self.request.GET and isinstance(queryset, SearchQuerySet):
             queryset = queryset.highlight()
         return queryset
-
-    # def filter_queryset(self, queryset):
-    #     with warnings.catch_warnings(record=True):
-    #         warnings.simplefilter("always", DeprecationWarning)
-    #         return self._filter_queryset(queryset)
-
-class SQMoreLikeThisMixin(object):
-    """
-    This mixin adds support for ``more-like-this`` on the SearchQuerySet results.
-    Note that you need to use a backend which supports this kind of features in
-    order to use this.
-
-    This will add a url which points to ``more-like-this`` on each result.
-    """
-    pass

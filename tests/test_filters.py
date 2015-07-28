@@ -72,7 +72,7 @@ class HaystackFilterTestCase(TestCase):
     def tearDown(self):
         MockPersonIndex().clear()
 
-    def test_filters_no_filters(self):
+    def test_filter_no_query_parameters(self):
         request = factory.get(path="/", data="", content_type="application/json")
         response = self.view1.as_view(actions={"get": "list"})(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -151,6 +151,12 @@ class HaystackFilterTestCase(TestCase):
             ImproperlyConfigured,
             self.view3.as_view(actions={"get": "list"}), request
         )
+
+    def test_filter_unicode_characters(self):
+        request = factory.get(path="/", data={"firstname": "åsmund", "lastname": "sørensen"},
+                              content_type="application/json")
+        response = self.view1.as_view(actions={"get": "list"})(request)
+        self.assertEqual(len(response.data), 1)
 
 
 class HaystackAutocompleteFilterTestCase(TestCase):

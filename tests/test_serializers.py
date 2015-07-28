@@ -8,11 +8,13 @@ from __future__ import absolute_import, unicode_literals
 import json
 import warnings
 
+from django.conf.urls import url, include
 from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
 from haystack.query import SearchQuerySet
 from rest_framework import serializers
-from rest_framework.test import APIRequestFactory
+from rest_framework.routers import DefaultRouter
+from rest_framework.test import APIRequestFactory, APITestCase
 
 from drf_haystack.generics import SQHighlighterMixin
 from drf_haystack.serializers import HighlighterMixin, HaystackSerializer
@@ -34,6 +36,28 @@ class WarningTestCaseMixin(object):
             warnings.simplefilter(action="always")
             callable(*args, **kwargs)
             self.assertTrue(any(item.category == warning for item in warning_list))
+
+
+class SearchPersonSerializer(HaystackSerializer):
+    more_like_this = serializers.HyperlinkedIdentityField(view_name="search-person-more-like-this", read_only=True)
+
+    class Meta:
+        index_classes = [MockPersonIndex]
+        fields = ["firstname", "lastname", "full_name"]
+
+
+class SearchPersonViewSet(HaystackViewSet):
+    serializer_class = SearchPersonSerializer
+
+    class Meta:
+        index_models = [MockPerson]
+
+router = DefaultRouter()
+router.register("search-person", viewset=SearchPersonViewSet, base_name="search-person")
+
+urlpatterns = [
+    url(r"^", include(router.urls))
+]
 
 
 class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
@@ -160,7 +184,8 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         assert isinstance(fields["lastname"], CharField), self.fail("serializer 'lastname' field is not a CharField instance")
         assert isinstance(fields["autocomplete"], CharField), self.fail("serializer 'autocomplete' field is not a CharField instance")
 
-class HaystackViewSetHighlighterTestCase(TestCase):
+
+class HaystackSerializerHighlighterMixinTestCase(WarningTestCaseMixin, TestCase):
 
     fixtures = ["mockperson"]
 
@@ -213,11 +238,7 @@ class HaystackViewSetHighlighterTestCase(TestCase):
 
     def test_serializer_qs_highlighter_gives_deprecation_warning(self):
         request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")
-        with warnings.catch_warnings(record=True) as warning_list:
-            warnings.simplefilter(action="always")
-            self.viewset1.as_view(actions={"get": "list"})(request)
-            print([item.category for item in warning_list])
-            self.assertTrue(any(item.category == DeprecationWarning for item in warning_list))
+        self.assertWarning(DeprecationWarning, self.viewset1.as_view(actions={"get": "list"}), request)
 
     def test_serializer_highlighting(self):
         request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")
@@ -244,3 +265,31 @@ class HaystackViewSetHighlighterTestCase(TestCase):
                 "%(cls)s is missing a highlighter_class. Define %(cls)s.highlighter_class, "
                 "or override %(cls)s.get_highlighter()." % {"cls": self.viewset3.serializer_class.__name__}
             )
+
+
+class HaystackSerializerMoreLikeThisTestCase(APITestCase):
+
+    fixtures = ["mockperson"]
+    urls = "tests.test_serializers"
+
+    def setUp(self):
+        MockPersonIndex().reindex()
+
+    def tearDown(self):
+        MockPersonIndex().clear()
+
+    def test_serializer_more_like_this_link(self):
+        response = self.client.get(
+            path="/search-person/",
+            data={"firstname": "odysseus", "lastname": "cooley"},
+            format="json"
+        )
+        self.assertEqual(
+            response.data,
+            [{
+                "lastname": "Cooley",
+                "full_name": "Odysseus Cooley",
+                "firstname": "Odysseus",
+                "more_like_this": "http://testserver/search-person/18/more-like-this/"
+            }]
+        )

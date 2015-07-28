@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import, unicode_literals
+from rest_framework.serializers import HyperlinkedIdentityField
 
 from drf_haystack.serializers import HaystackSerializer, HighlighterMixin
 from .search_indexes import MockPersonIndex, MockLocationIndex
@@ -26,4 +27,15 @@ class HighlighterSerializer(HighlighterMixin, HaystackSerializer):
         fields = [
             "firstname", "lastname", "full_name",
             "address", "city", "zip_code",
+        ]
+
+
+class MoreLikeThisSerializer(HaystackSerializer):
+
+    more_like_this = HyperlinkedIdentityField(view_name="search3-more-like-this", read_only=True)
+
+    class Meta:
+        index_classes = [MockPersonIndex]
+        fields = [
+            "firstname", "lastname", "full_name",
         ]
