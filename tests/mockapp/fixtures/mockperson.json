@@ -993,9 +993,9 @@
   "pk": 100,
   "model": "mockapp.mockperson",
   "fields": {
-    "lastname": "Murray",
+    "lastname": "Sørensen",
     "created": "2015-05-19T10:48:08.767Z",
-    "firstname": "Oliver",
+    "firstname": "Åsmund",
     "updated": "2015-05-19T10:48:08.767Z"
   }
 }
