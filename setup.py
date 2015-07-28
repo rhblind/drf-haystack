@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import re
+import os
+
 try:
     from setuptools import setup
 except ImportError:
@@ -7,9 +10,17 @@ except ImportError:
     use_setuptools()
     from setuptools import setup
 
+
+def get_version(package):
+    """
+    Return package version as listed in `__version__` in `init.py`.
+    """
+    init_py = open(os.path.join(package, "__init__.py")).read()
+    return re.search("__version__ = ['\"]([^'\"]+)['\"]", init_py).group(1)
+
 setup(
     name="drf-haystack",
-    version="1.5.0",
+    version=get_version("drf_haystack"),
     description="Makes Haystack play nice with Django REST Framework",
     long_description="Implements a ViewSet, some filters and serializers in order to play nice with Haystack.",
     author="Rolf Håvard Blindheim, Eirik Krogstad",

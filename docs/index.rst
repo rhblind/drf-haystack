@@ -46,6 +46,14 @@ Requirements
 Changelog
 =========
 
+v1.5.1
+------
+*Release date: 2015-07-28*
+
+    - Support for More Like This results (Github :issue:`10`).
+    - Deprecated ``SQHighlighterMixin`` in favor of ``HaystackHighlightFilter``.
+    - ``HaystackGenericAPIView`` now returns 404 for detail views if more than one entry is found (Github :issue:`19`).
+
 v1.5.0
 ------
 *Release date: 2015-06-29*
