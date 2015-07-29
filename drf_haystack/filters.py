@@ -62,7 +62,7 @@ class HaystackFilter(BaseFilterBackend):
                     raise ImproperlyConfigured("%s must implement a Meta class." %
                                                view.serializer_class.__class__.__name__)
 
-            tokens = value.split(view.lookup_sep)
+            tokens = [token.strip() for token in value.split(view.lookup_sep)]
             field_queries = []
 
             for token in tokens:
