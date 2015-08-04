@@ -318,7 +318,7 @@ Example response
     ]
 
 
-Term boost
+Term Boost
 ==========
 
 Term boost is achieved on the SearchQuerySet level by calling ``SearchQuerySet().boost()``. It is
@@ -338,7 +338,7 @@ implemented as a filter backend, and applies boost **after** regular filtering h
 The filter expects the query string to contain a ``boost`` parameter, which is a comma separated string
 of the term to boost and the boost value. The boost value must be either an integer or float value.
 
-**Exampl query**
+**Example query**
 
 .. code-block:: none
 
@@ -346,6 +346,11 @@ of the term to boost and the boost value. The boost value must be either an inte
 
 The query above will first filter on ``firstname=robin`` and next apply a slight boost on any document containing
 the word ``hood``.
+
+.. note::
+
+    Term boost are only applied on terms existing in the ``document field``.
+
 
 .. _permission-classes-label:
 
