@@ -38,4 +38,5 @@ class MoreLikeThisSerializer(HaystackSerializer):
         index_classes = [MockPersonIndex]
         fields = [
             "firstname", "lastname", "full_name",
+            "autocomplete"
         ]

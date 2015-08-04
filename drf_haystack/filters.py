@@ -198,3 +198,10 @@ class HaystackHighlightFilter(HaystackFilter):
         if request.GET and isinstance(queryset, SearchQuerySet):
             queryset = queryset.highlight()
         return queryset
+
+
+class HaystackFacetFilter(HaystackFilter):
+    """
+
+    """
+

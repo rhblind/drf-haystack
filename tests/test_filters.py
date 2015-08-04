@@ -171,7 +171,6 @@ class HaystackAutocompleteFilterTestCase(TestCase):
             class Meta:
                 index_classes = [MockPersonIndex]
                 fields = ["text", "firstname", "lastname", "autocomplete"]
-                field_aliases = {"q": "autocomplete"}
 
         class ViewSet(HaystackViewSet):
             index_models = [MockPerson]
@@ -197,6 +196,17 @@ class HaystackAutocompleteFilterTestCase(TestCase):
         response = self.view.as_view(actions={"get": "list"})(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
+
+    def test_filter_autocomplete_multiple_parameters(self):
+        request = factory.get(path="/", data={"autocomplete": "jer fowler", "firstname": "jeremy"},
+                              content_type="application/json")
+        response = self.view.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_filter_autocomplete_single_field_OR(self):
+        request = factory.get(path="/", data={"autocomplete": "jer,fowl"}, content_type="application/json")
+        response = self.view.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 @skipIf(not geospatial_support, "Skipped due to lack of GEO spatial features")
