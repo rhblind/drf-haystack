@@ -40,8 +40,12 @@ Installation
 
     $ pip install drf-haystack
 
-Note
-----
-Beginning with `geopy` v1.0, Python 2.6 support was dropped. If you are using Python 2.6 you must
-install `geopy` v0.99.
-(If you are installing from `pip`, this should happen automatically.)
+Supported features
+------------------
+We aim to support most features Haystack does (or at least those which can be used in a REST API).
+Currently we support:
+
+    * Autocomplete
+    * GEO Spatial searching
+    * Highlighting
+    * More Like This
