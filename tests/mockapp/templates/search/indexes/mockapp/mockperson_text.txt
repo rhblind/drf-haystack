@@ -1,1 +1,1 @@
-{{ object.firstname }} {{ object.lastname }} {{ object.full_name }}
+{{ object.full_name }}
