@@ -17,11 +17,11 @@ from rest_framework.routers import DefaultRouter
 from rest_framework.test import APIRequestFactory, APITestCase
 
 from drf_haystack.generics import SQHighlighterMixin
-from drf_haystack.serializers import HighlighterMixin, HaystackSerializer
+from drf_haystack.serializers import HighlighterMixin, HaystackSerializer, HaystackSerializerMixin
 from drf_haystack.viewsets import HaystackViewSet
 
-from .mockapp.models import MockPerson
-from .mockapp.search_indexes import MockPersonIndex
+from .mockapp.models import MockPerson, MockPet
+from .mockapp.search_indexes import MockPersonIndex, MockPetIndex
 
 factory = APIRequestFactory()
 
@@ -51,6 +51,7 @@ class SearchPersonViewSet(HaystackViewSet):
 
     class Meta:
         index_models = [MockPerson]
+
 
 router = DefaultRouter()
 router.register("search-person", viewset=SearchPersonViewSet, base_name="search-person")
@@ -141,8 +142,8 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
             self.serializer2()
             self.fail("Did not fail when initialized serializer with no 'index_classes' attribute")
         except ImproperlyConfigured as e:
-            self.assertEqual(str(e), "You must set the 'index_classes' attribute "
-                                     "on the serializer Meta class.")
+            self.assertEqual(str(e), "You must set either the 'index_classes' or 'serializers' "
+                                     "attribute on the serializer Meta class.")
 
     def test_serializer_raise_on_both_fields_and_exclude(self):
         # Make sure we're getting an ImproperlyConfigured when trying to call a viewset
@@ -180,10 +181,96 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         fields = serializer.get_fields()
         assert isinstance(fields, dict), self.fail("serializer.data is not a dict")
         assert isinstance(fields["text"], CharField), self.fail("serializer 'text' field is not a CharField instance")
-        assert "firstname" not in fields, self.fail("serializer 'firstname' should no be present")
+        assert "firstname" not in fields, self.fail("serializer 'firstname' should not be present")
         assert isinstance(fields["lastname"], CharField), self.fail("serializer 'lastname' field is not a CharField instance")
         assert isinstance(fields["autocomplete"], CharField), self.fail("serializer 'autocomplete' field is not a CharField instance")
 
+
+class HaystackSerializerMultipleIndexTestCase(WarningTestCaseMixin, TestCase):
+
+    fixtures = ["mockperson", "mockpet"]
+
+    def setUp(self):
+        MockPersonIndex().reindex()
+        MockPetIndex().reindex()
+
+        class Serializer1(HaystackSerializer):
+            """
+            Regular multiple index serializer
+            """
+
+            class Meta:
+                index_classes = [MockPersonIndex, MockPetIndex]
+                fields = ["text", "firstname", "lastname", "name", "species", "autocomplete"]
+
+        class Serializer2(HaystackSerializer):
+            """
+            Multiple index serializer with declared fields
+            """
+            _MockPersonIndex__hair_color = serializers.CharField()
+            extra = serializers.IntegerField()
+
+            class Meta:
+                index_classes = [MockPersonIndex, MockPetIndex]
+                exclude = ["firstname"]
+
+            def get__MockPersonIndex__hair_color(self):
+                return "black"
+
+            def get_extra(self):
+                return 1
+
+        class Serializer3(HaystackSerializer):
+            """
+            Multiple index serializer with index aliases
+            """
+
+            class Meta:
+                index_classes = [MockPersonIndex, MockPetIndex]
+                exclude = ["firstname"]
+                index_aliases = {
+                    'mockapp.MockPersonIndex': 'People'
+                }
+
+        class ViewSet1(HaystackViewSet):
+            serializer_class = Serializer1
+
+        class ViewSet2(HaystackViewSet):
+            serializer_class = Serializer2
+
+        class ViewSet3(HaystackViewSet):
+            serializer_class = Serializer3
+
+        self.serializer1 = Serializer1
+        self.serializer2 = Serializer2
+        self.serializer3 = Serializer3
+
+        self.view1 = ViewSet1
+        self.view2 = ViewSet2
+        self.view3 = ViewSet3
+
+    def tearDown(self):
+        MockPersonIndex().clear()
+        MockPetIndex().clear()
+
+    def test_serializer_multiple_index_data(self):
+        objs = SearchQuerySet().filter(text="John")
+        serializer = self.serializer1(instance=objs, many=True)
+        data = serializer.data
+        assert len(data) == 4, self.fail("all objects are not present")
+        assert "name" in data[0], self.fail("'name' should be present in Pet results")
+        assert "species" in data[0], self.fail("'species' should be present in Pet results")
+        assert "firstname" in data[1], self.fail("'firstname' should be present in Person results")
+        assert "lastname" in data[1], self.fail("'lastname' should be present in Person results")
+
+    def test_serializer_multiple_index_declared_fields(self):
+        objs = SearchQuerySet().filter(text="John")
+        serializer = self.serializer2(instance=objs, many=True)
+        data = serializer.data
+        assert "extra" in data[0], self.fail("'extra' should be present in Pet results")
+        assert "hair_color" not in data[0], self.fail("'hair_color' should not be present in Pet results")
+        assert "extra" in data[1], self.fail("'extra' should be present in Person results")
+        assert "hair_color" in data[1], self.fail("'hair_color' should be present in Person results")
 
 class HaystackSerializerHighlighterMixinTestCase(WarningTestCaseMixin, TestCase):
 
@@ -291,5 +378,97 @@ class HaystackSerializerMoreLikeThisTestCase(APITestCase):
                 "full_name": "Odysseus Cooley",
                 "firstname": "Odysseus",
                 "more_like_this": "http://testserver/search-person/18/more-like-this/"
+            }]
+        )
+
+
+class HaystackSerializerMixinTestCase(WarningTestCaseMixin, TestCase):
+
+    fixtures = ["mockperson"]
+
+    def setUp(self):
+        MockPersonIndex().reindex()
+
+        class MockPersonSerializer(serializers.ModelSerializer):
+            class Meta:
+                model = MockPerson
+                fields = ('id', 'firstname', 'lastname', 'created', 'updated')
+                read_only_fields = ('created', 'updated')
+
+        class Serializer1(HaystackSerializerMixin, MockPersonSerializer):
+            class Meta(MockPersonSerializer.Meta):
+                search_fields = ['text', ]
+
+        class Viewset1(HaystackViewSet):
+            serializer_class = Serializer1
+
+        self.serializer1 = Serializer1
+        self.viewset1 = Viewset1
+
+    def tearDown(self):
+        MockPersonIndex().clear()
+
+    def test_serializer_mixin(self):
+        objs = SearchQuerySet().filter(text="Foreman")
+        serializer = self.serializer1(instance=objs, many=True)
+        self.assertEqual(
+            json.loads(json.dumps(serializer.data)),
+            [{
+                "id": 1,
+                "firstname": "Abel",
+                "lastname": "Foreman",
+                "created": "2015-05-19T10:48:08.686000Z",
+                "updated": "2015-05-19T10:48:08.686000Z"
+            }]
+        )
+
+
+class HaystackMultiSerializerTestCase(WarningTestCaseMixin, TestCase):
+
+    fixtures = ["mockperson", "mockpet"]
+
+    def setUp(self):
+        MockPersonIndex().reindex()
+        MockPetIndex().reindex()
+
+        class MockPersonSerializer(HaystackSerializer):
+            class Meta:
+                index_classes = [MockPersonIndex]
+                fields = ('text', 'firstname', 'lastname', 'description')
+
+        class MockPetSerializer(HaystackSerializer):
+            class Meta:
+                index_classes = [MockPetIndex]
+                exclude = ('description', 'autocomplete')
+
+        class Serializer1(HaystackSerializer):
+            class Meta:
+                serializers = {
+                    MockPersonIndex: MockPersonSerializer,
+                    MockPetIndex: MockPetSerializer
+                }
+
+        self.serializer1 = Serializer1
+
+    def tearDown(self):
+        MockPersonIndex().clear()
+        MockPetIndex().clear()
+
+    def test_multi_serializer(self):
+        objs = SearchQuerySet().filter(text="Zane")
+        serializer = self.serializer1(instance=objs, many=True)
+        print(serializer.data)
+        self.assertEqual(
+            json.loads(json.dumps(serializer.data)),
+            [{
+                "text": "Zane",
+                "name": "Zane",
+                "species": "Dog"
+            },
+            {
+                "text": "Zane Griffith\n",
+                "firstname": "Zane",
+                "lastname": "Griffith",
+                "description": "Zane is a nice chap!"
             }]
         )

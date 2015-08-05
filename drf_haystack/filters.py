@@ -54,8 +54,9 @@ class HaystackFilter(BaseFilterBackend):
 
                     fields = getattr(view.serializer_class.Meta, "fields", [])
                     exclude = getattr(view.serializer_class.Meta, "exclude", [])
+                    search_fields = getattr(view.serializer_class.Meta, "search_fields", [])
 
-                    if base_param not in fields or param in exclude or not value:
+                    if ((fields or search_fields) and base_param not in chain(fields, search_fields)) or base_param in exclude or not value:
                         continue
 
                 except AttributeError:

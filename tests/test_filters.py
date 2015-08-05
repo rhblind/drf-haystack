@@ -143,6 +143,12 @@ class HaystackFilterTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), MOCKPERSON_DATA_SET_SIZE)  # Should return all results since, field is ignored
 
+    def test_filter_with_non_searched_excluded_field(self):
+        request = factory.get(path="/", data={"text": "John"}, content_type="application/json")
+        response = self.view2.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 3)
+
     def test_filter_raise_on_serializer_without_meta_class(self):
         # Make sure we're getting an ImproperlyConfigured when trying to filter on a viewset
         # with a serializer without `Meta` class.
