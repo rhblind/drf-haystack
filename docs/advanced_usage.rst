@@ -318,6 +318,40 @@ Example response
     ]
 
 
+Term Boost
+==========
+
+Term boost is achieved on the SearchQuerySet level by calling ``SearchQuerySet().boost()``. It is
+implemented as a filter backend, and applies boost **after** regular filtering has occurred.
+
+.. class:: drf_haystack.filters.HaystackHighlightFilter
+
+.. code-block:: python
+
+    from drf_haystack.filters import HaystackBoostFilter
+
+    class SearchViewSet(HaystackViewSet):
+        ...
+        filter_backends = [HaystackBoostFilter]
+
+
+The filter expects the query string to contain a ``boost`` parameter, which is a comma separated string
+of the term to boost and the boost value. The boost value must be either an integer or float value.
+
+**Example query**
+
+.. code-block:: none
+
+    /api/v1/search/?firstname=robin&boost=hood,1.1
+
+The query above will first filter on ``firstname=robin`` and next apply a slight boost on any document containing
+the word ``hood``.
+
+.. note::
+
+    Term boost are only applied on terms existing in the ``document field``.
+
+
 .. _permission-classes-label:
 
 Permission Classes

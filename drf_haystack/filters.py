@@ -138,7 +138,7 @@ class HaystackGEOSpatialFilter(HaystackFilter):
         so everything ends up in the query without any unit values, thus the value is calculated
         in meters.
         """
-        return self.D(m=distance_obj.m * 1000)
+        return self.D(m=distance_obj.m * 1000)  # pragma: no cover
 
     def geo_filter(self, queryset, filters=None):
         """
@@ -167,7 +167,7 @@ class HaystackGEOSpatialFilter(HaystackFilter):
                     major, minor, _ = haystack.__version__
                     if queryset.query.backend.__class__.__name__ == "ElasticsearchSearchBackend" \
                             and (major == 2 and minor < 4):
-                        distance = self.unit_to_meters(self.D(**distance))
+                        distance = self.unit_to_meters(self.D(**distance))  # pragma: no cover
                     else:
                         distance = self.D(**distance)
                     queryset = queryset.dwithin("coordinates", point, distance).distance("coordinates", point)
@@ -198,3 +198,39 @@ class HaystackHighlightFilter(HaystackFilter):
         if request.GET and isinstance(queryset, SearchQuerySet):
             queryset = queryset.highlight()
         return queryset
+
+
+class HaystackFacetFilter(HaystackFilter):
+    """
+
+    """
+
+
+class HaystackBoostFilter(HaystackFilter):
+    """
+    Filter backend for applying term boost on query time.
+
+    Apply by adding a comma separated ``boost`` query parameter containing
+    a the term you want to boost and a floating point or integer for
+    the boost value. The boost value is based around ``1.0`` as 100% - no boost.
+
+    Gives a slight increase in relevance for documents that include "banana":
+        /api/v1/search/?boost=banana,1.1
+
+    The boost is applied *after* regular filtering has occurred.
+    """
+
+    @staticmethod
+    def apply_boost(queryset, filters):
+        if "boost" in filters and len(filters["boost"].split(",")) == 2:
+            term, boost = iter(filters["boost"].split(","))
+            try:
+                queryset = queryset.boost(term, float(boost))
+            except ValueError:
+                raise ValueError("Cannot convert boost to float value. Make sure to provide a "
+                                 "numerical boost value.")
+        return queryset
+
+    def filter_queryset(self, request, queryset, view):
+        queryset = super(HaystackBoostFilter, self).filter_queryset(request, queryset, view)
+        return self.apply_boost(queryset, filters=request.GET.copy())

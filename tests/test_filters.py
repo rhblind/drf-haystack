@@ -17,7 +17,10 @@ from rest_framework.test import APIRequestFactory
 
 from drf_haystack.viewsets import HaystackViewSet
 from drf_haystack.serializers import HaystackSerializer
-from drf_haystack.filters import HaystackAutocompleteFilter, HaystackGEOSpatialFilter, HaystackHighlightFilter
+from drf_haystack.filters import (
+    HaystackAutocompleteFilter, HaystackBoostFilter,
+    HaystackGEOSpatialFilter, HaystackHighlightFilter
+)
 
 from . import geospatial_support
 from .constants import MOCKLOCATION_DATA_SET_SIZE, MOCKPERSON_DATA_SET_SIZE
@@ -171,7 +174,6 @@ class HaystackAutocompleteFilterTestCase(TestCase):
             class Meta:
                 index_classes = [MockPersonIndex]
                 fields = ["text", "firstname", "lastname", "autocomplete"]
-                field_aliases = {"q": "autocomplete"}
 
         class ViewSet(HaystackViewSet):
             index_models = [MockPerson]
@@ -197,6 +199,17 @@ class HaystackAutocompleteFilterTestCase(TestCase):
         response = self.view.as_view(actions={"get": "list"})(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
+
+    def test_filter_autocomplete_multiple_parameters(self):
+        request = factory.get(path="/", data={"autocomplete": "jer fowler", "firstname": "jeremy"},
+                              content_type="application/json")
+        response = self.view.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_filter_autocomplete_single_field_OR(self):
+        request = factory.get(path="/", data={"autocomplete": "jer,fowl"}, content_type="application/json")
+        response = self.view.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 @skipIf(not geospatial_support, "Skipped due to lack of GEO spatial features")
@@ -281,3 +294,57 @@ class HaystackHighlightFilterTestCase(TestCase):
                 result["highlighted"],
                 " ".join(("<em>Jeremy</em>", "%s\n" % result["lastname"]))
             )
+
+
+class HaystackBoostFilterTestCase(TestCase):
+
+    fixtures = ["mockperson"]
+
+    def setUp(self):
+        MockPersonIndex().reindex()
+
+        class Serializer(HaystackSerializer):
+
+            class Meta:
+                index_classes = [MockPersonIndex]
+                fields = ["firstname", "lastname"]
+
+        class ViewSet(HaystackViewSet):
+            index_models = [MockPerson]
+            serializer_class = Serializer
+            filter_backends = [HaystackBoostFilter]
+
+        self.view = ViewSet
+
+    def tearDown(self):
+        MockPersonIndex().clear()
+
+    def test_filter_boost(self):
+
+        # This test will fail
+        # See https://github.com/django-haystack/django-haystack/issues/1235
+
+        request = factory.get(path="/", data={"lastname": "hood"}, content_type="application/json")
+        response = self.view.as_view(actions={"get": "list"})(request)
+        response.render()
+        data = json.loads(response.content.decode())
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(data[0]["firstname"], "Bruno")
+        self.assertEqual(data[1]["firstname"], "Walker")
+
+        # We're boosting walter slightly which should put him first in the results
+        request = factory.get(path="/", data={"lastname": "hood", "boost": "walker,1.1"},
+                              content_type="application/json")
+        response = self.view.as_view(actions={"get": "list"})(request)
+        response.render()
+        data = json.loads(response.content.decode())
+        self.assertEqual(len(response.data), 2)
+        self.assertEqual(data[0]["firstname"], "Walker")
+        self.assertEqual(data[1]["firstname"], "Bruno")
+
+    def test_filter_boost_invalid_params(self):
+        request = factory.get(path="/", data={"boost": "bruno,i am not numeric!"}, content_type="application/json")
+        self.assertRaises(
+            ValueError,
+            self.view.as_view(actions={"get": "list"}), request
+        )
