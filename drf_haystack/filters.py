@@ -138,7 +138,7 @@ class HaystackGEOSpatialFilter(HaystackFilter):
         so everything ends up in the query without any unit values, thus the value is calculated
         in meters.
         """
-        return self.D(m=distance_obj.m * 1000)
+        return self.D(m=distance_obj.m * 1000)  # pragma: no cover
 
     def geo_filter(self, queryset, filters=None):
         """
@@ -167,7 +167,7 @@ class HaystackGEOSpatialFilter(HaystackFilter):
                     major, minor, _ = haystack.__version__
                     if queryset.query.backend.__class__.__name__ == "ElasticsearchSearchBackend" \
                             and (major == 2 and minor < 4):
-                        distance = self.unit_to_meters(self.D(**distance))
+                        distance = self.unit_to_meters(self.D(**distance))  # pragma: no cover
                     else:
                         distance = self.D(**distance)
                     queryset = queryset.dwithin("coordinates", point, distance).distance("coordinates", point)
