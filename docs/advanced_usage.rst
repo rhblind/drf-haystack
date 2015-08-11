@@ -324,7 +324,7 @@ Term Boost
 Term boost is achieved on the SearchQuerySet level by calling ``SearchQuerySet().boost()``. It is
 implemented as a filter backend, and applies boost **after** regular filtering has occurred.
 
-.. class:: drf_haystack.filters.HaystackHighlightFilter
+.. class:: drf_haystack.filters.HaystackBoostFilter
 
 .. code-block:: python
 
