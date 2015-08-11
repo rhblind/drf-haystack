@@ -35,7 +35,8 @@ setup(
     install_requires=[
         "Django>=1.5.0",
         "djangorestframework>=2.4.4",
-        "django-haystack>=2.3.1"
+        "django-haystack>=2.3.1",
+        "python-dateutil>=2.0"
     ],
     tests_require=[
         "nose",
