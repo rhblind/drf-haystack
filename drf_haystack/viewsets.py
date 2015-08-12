@@ -3,7 +3,7 @@
 from __future__ import absolute_import, unicode_literals
 
 from itertools import chain
-from dateutil.parser import parse
+from django.utils import six
 
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
@@ -11,6 +11,7 @@ from rest_framework.viewsets import ViewSetMixin
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 
 from .generics import HaystackGenericAPIView
+from .serializers import _FacetSerializer
 
 
 class HaystackViewSet(RetrieveModelMixin, ListModelMixin, ViewSetMixin, HaystackGenericAPIView):
@@ -26,46 +27,37 @@ class HaystackViewSet(RetrieveModelMixin, ListModelMixin, ViewSetMixin, Haystack
         This will add ie. ^search/facets/$ to your existing ^search pattern.
 
         """
-        filters = request.GET.copy()
         queryset = self.filter_queryset(self.get_queryset())
 
-        for field in chain(filters, self.facet_fields):
+        for f in chain(self.facet_fields, self.date_facet_fields):
             serializer_klass = self.get_serializer_class()
 
-            if any(filter(lambda obj: hasattr(obj, field), serializer_klass.Meta.index_classes)):
-                if field in self.date_facet_fields:
-                    # Date faceting requires the following query
-                    # parameters in order to construct the filter.
-                    # term=<start_date>,<end_date>,<gap_by> and optionally <gap_amount>
-                    terms = filters[field].split(",")
-                    if not len(terms) in (3, 4):
-                        continue
+            for field, options in six.iteritems(f):
+                if any(filter(lambda obj: hasattr(obj, field), serializer_klass.Meta.index_classes)):
+                    if any(field in d for d in self.date_facet_fields):
+                        if not all(("start_date", "end_date", "gap_by" in options)):
+                            raise AttributeError("Date faceting requires 'start_date', 'end_date' "
+                                                 "and 'gap_by' to be set.")
 
-                    start_date, end_date, gap_by = iter(terms[0:3])
-                    valid_gap = ("year", "month", "day", "hour", "minute", "second")
-                    if gap_by not in valid_gap:
-                        raise ValueError("The 'gap_by' parameter must be one of %s." % ", ".join(valid_gap))
-                    try:
-                        kwargs = {
-                            "start_date": parse(start_date),
-                            "end_date": parse(end_date),
-                            "gap_by": gap_by,
-                            "gap_amount": terms[-1:] if len(terms) == 4 else 1
-                        }
-                        queryset = queryset.date_facet(field, **kwargs)
-                    except ValueError:
-                        raise ValueError("Could not parse date string. Make sure to provide a string "
-                                         "format readable for the `python-dateutil` library.")
+                        valid_gap = ("year", "month", "day", "hour", "minute", "second")
+                        if options["gap_by"] not in valid_gap:
+                            raise ValueError("The 'gap_by' parameter must be one of %s." % ", ".join(valid_gap))
 
-                elif field in self.facet_fields:
-                    queryset = queryset.facet(field)
+                        options.setdefault("gap_amount", 1)
+                        queryset = queryset.date_facet(field, **options)
 
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+                    elif any(field in d for d in self.facet_fields):
+                        if isinstance(options, six.string_types):
+                            queryset = queryset.query_facet(field, options)
+                        else:
+                            queryset = queryset.facet(field, **options)
 
-        serializer = self.get_serializer(queryset, many=True)
+        # page = self.paginate_queryset(queryset.facet_counts())
+        # if page is not None:
+        #     serializer = _FacetSerializer(page, many=False)
+        #     return self.get_paginated_response(serializer.data)
+
+        serializer = _FacetSerializer(queryset.facet_counts(), many=False)
         return Response(serializer.data)
 
     @detail_route(methods=["get"], url_path="more-like-this")
