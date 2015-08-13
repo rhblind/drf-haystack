@@ -19,6 +19,7 @@ from rest_framework.fields import (
     BooleanField, CharField, DateField, DateTimeField,
     DecimalField, FloatField, IntegerField, empty
 )
+from rest_framework.reverse import reverse_lazy, reverse
 from rest_framework.utils.field_mapping import ClassLookupDict, get_field_kwargs
 
 
@@ -148,6 +149,36 @@ class HaystackSerializer(serializers.Serializer):
         if hasattr(instance, "highlighted") and instance.highlighted:
             ret["highlighted"] = instance.highlighted[0]
         return ret
+
+
+class _FacetSerializer(serializers.Serializer):
+    """
+    This specially tailored serializer is used by the ``facets``
+    action route. Don't use this in your views.
+    """
+
+    dates = serializers.SerializerMethodField(method_name="_get_dates")
+    fields = serializers.SerializerMethodField(method_name="_get_fields")
+    queries = serializers.SerializerMethodField(method_name="_get_queries")
+
+    @staticmethod
+    def field_response(fname, facets):
+        ret = OrderedDict()
+        if fname in facets:
+            for field, result in six.iteritems(facets[fname]):
+                ret[field] = []
+                for text, count in result:
+                    ret[field].append({"text": text, "count": count})
+        return ret
+
+    def _get_dates(self, facets):
+        return self.field_response("dates", facets)
+
+    def _get_fields(self, facets):
+        return self.field_response("fields", facets)
+
+    def _get_queries(self, facets):
+        return self.field_response("queries", facets)
 
 
 class HighlighterMixin(object):

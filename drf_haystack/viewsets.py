@@ -47,17 +47,14 @@ class HaystackViewSet(RetrieveModelMixin, ListModelMixin, ViewSetMixin, Haystack
                         queryset = queryset.date_facet(field, **options)
 
                     elif any(field in d for d in self.facet_fields):
-                        if isinstance(options, six.string_types):
-                            queryset = queryset.query_facet(field, options)
-                        else:
-                            queryset = queryset.facet(field, **options)
+                        queryset = queryset.facet(field, **options)
 
         # page = self.paginate_queryset(queryset.facet_counts())
         # if page is not None:
         #     serializer = _FacetSerializer(page, many=False)
         #     return self.get_paginated_response(serializer.data)
 
-        serializer = _FacetSerializer(queryset.facet_counts(), many=False)
+        serializer = _FacetSerializer(queryset.facet_counts(), many=False, context={"request": request})
         return Response(serializer.data)
 
     @detail_route(methods=["get"], url_path="more-like-this")

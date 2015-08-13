@@ -259,6 +259,8 @@ Response
     ]
 
 
+.. _more-like-this-label:
+
 More Like This
 ==============
 
@@ -350,6 +352,43 @@ the word ``hood``.
 .. note::
 
     Term boost are only applied on terms existing in the ``document field``.
+
+
+Faceting
+========
+
+Faceting is a way of grouping and narrowing search results by a common factor, for example we can group
+all results which are registered on a certain date. Similar to the :ref:`more-like-this-label`, the faceting
+functionality is implemented by setting up a special ``^search/facets/$`` route on any view which inherits from the
+``HaystackViewSet`` class.
+
+
+.. note::
+
+    Options used for faceting is **not** portable across search backends. Make sure to provide
+    options suitable for the backend you're using.
+
+
+First, read the `Haystack faceting docs <http://django-haystack.readthedocs.org/en/latest/faceting.html>`_ and set up
+your search index for faceting.
+
+Faceting on fields
+------------------
+
+Add a ``facet_field`` attribute on your search viewset. This must be a ``list of dictionaries`` where each
+dictionary holds the field name and **options which should be used to facet on that particular field.
+
+.. code-block:: python
+
+    class SearchViewSet(HaystackViewSet):
+        ...
+        index_models = [Persons]
+        facet_fields = [
+            {"firstname": {"sort": "index", "limit": -1}},  # "sort" and "limit" are Solr specific options!
+            {"lastname": {}}
+        ]
+
+
 
 
 .. _permission-classes-label:

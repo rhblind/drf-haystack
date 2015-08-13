@@ -36,12 +36,13 @@ class MockLocationIndex(indexes.SearchIndex, indexes.Indexable):
 class MockPersonIndex(indexes.SearchIndex, indexes.Indexable):
 
     text = indexes.CharField(document=True, use_template=True)
-    firstname = indexes.CharField(model_attr="firstname")
-    lastname = indexes.CharField(model_attr="lastname")
+    firstname = indexes.CharField(model_attr="firstname", faceted=True)
+    lastname = indexes.CharField(model_attr="lastname", faceted=True)
     full_name = indexes.CharField()
     description = indexes.CharField()
 
     autocomplete = indexes.EdgeNgramField()
+    created = indexes.FacetDateTimeField(model_attr="created")
 
     @staticmethod
     def prepare_full_name(obj):
