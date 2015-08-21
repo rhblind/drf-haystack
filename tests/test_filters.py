@@ -164,6 +164,23 @@ class HaystackFilterTestCase(TestCase):
         response = self.view1.as_view(actions={"get": "list"})(request)
         self.assertEqual(len(response.data), 1)
 
+    def test_filter_negated_field(self):
+        request = factory.get(path="/", data={"text__not": "John"}, content_type="application/json")
+        response = self.view1.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 97)
+
+    def test_filter_negated_field_with_lookup(self):
+        request = factory.get(path="/", data={"name__not__contains": "John McClane"}, content_type="application/json")
+        response = self.view1.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 99)
+
+    def test_filter_negated_field_with_other_field(self):
+        request = factory.get(path="/", data={"firstname": "John", "lastname__not": "McClane"}, content_type="application/json")
+        response = self.view1.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 2)
 
 class HaystackAutocompleteFilterTestCase(TestCase):
 

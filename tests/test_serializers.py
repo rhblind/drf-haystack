@@ -258,19 +258,33 @@ class HaystackSerializerMultipleIndexTestCase(WarningTestCaseMixin, TestCase):
         serializer = self.serializer1(instance=objs, many=True)
         data = serializer.data
         assert len(data) == 4, self.fail("all objects are not present")
-        assert "name" in data[0], self.fail("'name' should be present in Pet results")
-        assert "species" in data[0], self.fail("'species' should be present in Pet results")
-        assert "firstname" in data[1], self.fail("'firstname' should be present in Person results")
-        assert "lastname" in data[1], self.fail("'lastname' should be present in Person results")
+        for result in data:
+            if "name" in result:
+                assert "species" in result, self.fail("Pet results should have 'species' and 'name' fields")
+                assert "firstname" not in result, self.fail("Pet results should have 'species' and 'name' fields")
+                assert "lastname" not in result, self.fail("Pet results should have 'species' and 'name' fields")
+            elif "firstname" in result:
+                assert "lastname" in result, self.fail("Person results should have 'firstname' and 'lastname' fields")
+                assert "name" not in result, self.fail("Person results should have 'firstname' and 'lastname' fields")
+                assert "species" not in result, self.fail("Person results should have 'firstname' and 'lastname' fields")
+            else:
+                self.fail("Result should contain either Pet or Person fields")
 
     def test_serializer_multiple_index_declared_fields(self):
         objs = SearchQuerySet().filter(text="John")
         serializer = self.serializer2(instance=objs, many=True)
         data = serializer.data
-        assert "extra" in data[0], self.fail("'extra' should be present in Pet results")
-        assert "hair_color" not in data[0], self.fail("'hair_color' should not be present in Pet results")
-        assert "extra" in data[1], self.fail("'extra' should be present in Person results")
-        assert "hair_color" in data[1], self.fail("'hair_color' should be present in Person results")
+        assert len(data) == 4, self.fail("all objects are not present")
+        for result in data:
+            if "name" in result:
+                assert "extra" in result, self.fail("'extra' should be present in Pet results")
+                assert "hair_color" not in result, self.fail("'hair_color' should not be present in Pet results")
+            elif "firstname" in result:
+                assert "extra" in result, self.fail("'extra' should be present in Person results")
+                assert "hair_color" in result, self.fail("'hair_color' should be present in Person results")
+            else:
+                self.fail("Result should contain either Pet or Person fields")
+
 
 class HaystackSerializerHighlighterMixinTestCase(WarningTestCaseMixin, TestCase):
 

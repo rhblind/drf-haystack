@@ -7,6 +7,32 @@ Advanced Usage
 Make sure you've read through the :ref:`basic-usage-label`.
 
 
+Query Field Lookups
+===================
+
+You can also use field lookups in your field queries. See the
+Haystack `field lookups <https://django-haystack.readthedocs.org/en/latest/searchqueryset_api.html?highlight=lookups#id1>`_
+documentation for info on what lookups are available.  A query using a lookup might look like the
+following:
+
+.. code-block:: none
+
+    http://example.com/api/v1/location/search/?city__startswith=Os
+
+This would perform a query looking up all documents where the `city field` started with "Os".
+You might get "Oslo", "Osaka", an "Ostrava".
+
+Query Term Negation
+-------------------
+You can also specify terms to exclude from the search results using the negation keyword.
+The default keyword is "not", but is configurable via settings using ``DRF_HAYSTACK_NEGATION_KEYWORD``.
+
+.. code-block:: none
+
+    http://example.com/api/v1/location/search/?city__not=Oslo
+    http://example.com/api/v1/location/search/?city__not__contains=Los
+    http://example.com/api/v1/location/search/?city__contains=Los&city__not__contains=Angeles
+
 Autocomplete
 ============
 
@@ -122,7 +148,7 @@ from the location with latitude 59.744076 and longitude 10.152045.
 Highlighting
 ============
 
-Haystack supports two kind of `Highlighting <https://django-haystack.readthedocs.org/en/latest/highlighting.html>`_,
+Haystack supports two kinds of `Highlighting <https://django-haystack.readthedocs.org/en/latest/highlighting.html>`_,
 and we support them both.
 
 #. SearchQuerySet highlighting. This kind of highlighting requires a search backend which has support for
@@ -441,7 +467,7 @@ list
 
 .. note::
 
-    The ``AggregateSearchViewSet class above omits the optional ``index_models`` attribute.  This way results from all the
+    The ``AggregateSearchViewSet`` class above omits the optional ``index_models`` attribute.  This way results from all the
     models are returned.
 
 The result from searches using multiple indexes is a list of objects, each of which contains only the fields appropriate to

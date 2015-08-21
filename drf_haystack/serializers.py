@@ -143,49 +143,48 @@ class HaystackSerializer(serializers.Serializer):
     def to_representation(self, instance):
         """
         If we have a serializer mapping, use that.  Otherwise, use standard serializer behavior
+        Since we might be dealing with multiple indexes, some fields might
+        not be valid for all results. Do not render the fields which don't belong
+        to the search result.
         """
-        serializers = getattr(self.Meta, "serializers", None)
-        if not serializers:
-            return self.default_to_representation(instance)
+        if getattr(self.Meta, "serializers", None):
+            ret = self.multi_serializer_representation(instance)
+        else:
+            ret = super(HaystackSerializer, self).to_representation(instance)
+            prefix_field_names = len(getattr(self.Meta, "index_classes")) > 1
+            current_index = self._get_index_class_name(type(instance.searchindex))
+            for field in self.fields.keys():
+                orig_field = field
+                if prefix_field_names:
+                    parts = field.split("__")
+                    if len(parts) > 1:
+                        index = parts[0][1:]  # trim the preceding '_'
+                        field = parts[1]
+                        if index == current_index:
+                            ret[field] = ret[orig_field]
+                        del ret[orig_field]
+                elif field not in chain(instance.searchindex.fields.keys(), self._declared_fields.keys()):
+                    del ret[orig_field]
 
+        # include the highlighted field in either case
+        if getattr(instance, "highlighted", None):
+            ret["highlighted"] = instance.highlighted[0]
+        return ret
+
+    def multi_serializer_representation(self, instance):
+        serializers = self.Meta.serializers
         index = instance.searchindex
         serializer_class = serializers.get(type(index), None)
         if not serializer_class:
             raise ImproperlyConfigured("Could not find serializer for %s in mapping" % index)
         return serializer_class(context=self._context).to_representation(instance)
 
-    def default_to_representation(self, instance):
-        """
-        Since we might be dealing with multiple indexes, some fields might
-        not be valid for all results. Do not render the fields which don't belong
-        to the search result.
-        """
-        ret = super(HaystackSerializer, self).to_representation(instance)
-        prefix_field_names = len(getattr(self.Meta, "index_classes")) > 1
-        current_index = self._get_index_class_name(type(instance.searchindex))
-        for field in self.fields.keys():
-            orig_field = field
-            if prefix_field_names:
-                parts = field.split("__")
-                if len(parts) > 1:
-                    index = parts[0][1:]  # trim the preceding '_'
-                    field = parts[1]
-                    if index == current_index:
-                        ret[field] = ret[orig_field]
-                    del ret[orig_field]
-            elif field not in chain(instance.searchindex.fields.keys(), self._declared_fields.keys()):
-                del ret[orig_field]
-
-        if hasattr(instance, "highlighted") and instance.highlighted:
-            ret["highlighted"] = instance.highlighted[0]
-        return ret
-
     def _get_index_class_name(self, index_cls):
         """
         Converts in index model class to a name suitable for use as a field name prefix. A user
         may optionally specify custom aliases via an 'index_aliases' attribute on the Meta class
         """
-        cls_name = str(index_cls).replace("<class '", "").replace("'>", "")
+        cls_name = index_cls.__name__
         aliases = getattr(self.Meta, "index_aliases", {})
         return aliases.get(cls_name, cls_name.split('.')[-1])
 
