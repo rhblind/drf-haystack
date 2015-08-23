@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import, unicode_literals
+
 from rest_framework.fields import (
     BooleanField, CharField, DateField, DateTimeField,
     DecimalField, FloatField, IntegerField

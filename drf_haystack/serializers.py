@@ -23,6 +23,7 @@ from .fields import (
     HaystackDecimalField, HaystackFloatField, HaystackIntegerField
 )
 
+
 class HaystackSerializer(serializers.Serializer):
     """
     A `HaystackSerializer` which populates fields based on
@@ -103,7 +104,6 @@ class HaystackSerializer(serializers.Serializer):
         declared_fields = copy.deepcopy(self._declared_fields)
         prefix_field_names = len(indices) > 1
         field_mapping = OrderedDict()
-
 
         # overlapping fields on multiple indices is supported by internally prefixing the field
         # names with the index class to which they belong or, optionally, a user-provided alias

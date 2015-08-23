@@ -225,12 +225,6 @@ class HaystackHighlightFilter(HaystackFilter):
         return queryset
 
 
-class HaystackFacetFilter(HaystackFilter):
-    """
-
-    """
-
-
 class HaystackBoostFilter(HaystackFilter):
     """
     Filter backend for applying term boost on query time.
