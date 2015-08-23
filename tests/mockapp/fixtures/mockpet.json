@@ -1,0 +1,102 @@
+[
+{
+  "pk": 1,
+  "model": "mockapp.mockpet",
+  "fields": {
+    "name": "John",
+    "created": "2015-05-19T10:48:08.686Z",
+    "species": "Iguana",
+    "updated": "2015-05-19T10:48:08.686Z"
+  }
+},
+{
+  "pk": 2,
+  "model": "mockapp.mockpet",
+  "fields": {
+    "name": "Fido",
+    "created": "2015-05-19T10:48:08.688Z",
+    "species": "Dog",
+    "updated": "2015-05-19T10:48:08.688Z"
+  }
+},
+{
+  "pk": 3,
+  "model": "mockapp.mockpet",
+  "fields": {
+    "name": "Zane",
+    "created": "2015-05-19T10:48:08.689Z",
+    "species": "Dog",
+    "updated": "2015-05-19T10:48:08.689Z"
+  }
+},
+{
+  "pk": 4,
+  "model": "mockapp.mockpet",
+  "fields": {
+    "name": "Spot",
+    "created": "2015-05-19T10:48:08.690Z",
+    "species": "Dog",
+    "updated": "2015-05-19T10:48:08.690Z"
+  }
+},
+{
+  "pk": 5,
+  "model": "mockapp.mockpet",
+  "fields": {
+    "name": "Sam",
+    "created": "2015-05-19T10:48:08.691Z",
+    "species": "Bird",
+    "updated": "2015-05-19T10:48:08.691Z"
+  }
+},
+{
+  "pk": 6,
+  "model": "mockapp.mockpet",
+  "fields": {
+    "name": "Jenny",
+    "created": "2015-05-19T10:48:08.693Z",
+    "species": "Cat",
+    "updated": "2015-05-19T10:48:08.693Z"
+  }
+},
+{
+  "pk": 7,
+  "model": "mockapp.mockpet",
+  "fields": {
+    "name": "Mr. Squiggles",
+    "created": "2015-05-19T10:48:08.694Z",
+    "species": "Cat",
+    "updated": "2015-05-19T10:48:08.694Z"
+  }
+},
+{
+  "pk": 8,
+  "model": "mockapp.mockpet",
+  "fields": {
+    "name": "Mrs. Buttersworth",
+    "created": "2015-05-19T10:48:08.695Z",
+    "species": "Dog",
+    "updated": "2015-05-19T10:48:08.695Z"
+  }
+},
+{
+  "pk": 9,
+  "model": "mockapp.mockpet",
+  "fields": {
+    "name": "Tweety",
+    "created": "2015-05-19T10:48:08.696Z",
+    "species": "Bird",
+    "updated": "2015-05-19T10:48:08.696Z"
+  }
+},
+{
+  "pk": 10,
+  "model": "mockapp.mockpet",
+  "fields": {
+    "name": "Jake",
+    "created": "2015-05-19T10:48:08.697Z",
+    "species": "Cat",
+    "updated": "2015-05-19T10:48:08.697Z"
+  }
+}
+]
