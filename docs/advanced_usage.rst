@@ -343,9 +343,31 @@ Example response
         }
     ]
 
+.. _term-boost-label:
 
 Term Boost
 ==========
+
+.. warning::
+
+    **BIG FAT WARNING**
+
+    As far as I can see, the term boost functionality is implemented by the specs in the
+    `Haystack documentation <https://django-haystack.readthedocs.org/en/v2.4.0/boost.html#term-boost>`_,
+    however it does not really work as it should!
+
+    When applying term boost, results are discarded from the search result, and not re-ordered by
+    boost weight as they should.
+    These are known problems and there exists open issues for them:
+
+        - https://github.com/inonit/drf-haystack/issues/21
+        - https://github.com/django-haystack/django-haystack/issues/1235
+        - https://github.com/django-haystack/django-haystack/issues/508
+
+    **Please do not use this unless you really know what you are doing!**
+
+    (And please let me know if you know how to fix it!)
+
 
 Term boost is achieved on the SearchQuerySet level by calling ``SearchQuerySet().boost()``. It is
 implemented as a filter backend, and applies boost **after** regular filtering has occurred.
@@ -414,9 +436,6 @@ restrictions on the views. This can be overridden on a per-view basis as you wou
         permission_classes = [IsAuthenticated]
 
 
-.. _multiple-search-indexes-label:
-
-
 Reusing Model serializers
 =========================
 
@@ -455,6 +474,8 @@ search index.
     not be as performant as only retrieving data from the search index.  If performance is a concern, it would be
     better to recreate the desired data structure and store it in the search index.
 
+
+.. _multiple-search-indexes-label:
 
 Multiple Search indexes
 =======================
@@ -576,7 +597,7 @@ The results of a search might then look like the following:
     ]
 
 Multiple Serializers
------------------------
+--------------------
 
 Alternatively, you can specify a 'serializers' attribute on your Meta class to use a different serializer class
 for different indexes as show below:
@@ -589,7 +610,7 @@ for different indexes as show below:
                 PersonIndex: PersonSearchSerializer,
                 PlaceIndex: PlaceSearchSerializer,
                 ThingIndex: ThingSearchSerializer
-                }
+            }
 
 The ``serializers`` attribute is the important thing here, It's a dictionary with ``SearchIndex`` classes as
 keys and ``Serializer`` classes as values.  Each result in the list of results from a search that contained
