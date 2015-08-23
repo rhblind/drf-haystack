@@ -161,14 +161,27 @@ class _FacetSerializer(serializers.Serializer):
     fields = serializers.SerializerMethodField(method_name="_get_fields")
     queries = serializers.SerializerMethodField(method_name="_get_queries")
 
-    @staticmethod
-    def field_response(fname, facets):
+    def get_narrow_url(self, fname, text):
+        request = self.context["request"]
+        scheme = getattr(request, "versioning_scheme", None)
+        if scheme is not None:
+            pass
+        path = request.get_full_path()
+        return "{path}?selected_facets={field}_exact:{text}".format(
+            path=request.get_full_path(), field=fname, text=text
+        )
+
+    def field_response(self, fname, facets):
         ret = OrderedDict()
         if fname in facets:
             for field, result in six.iteritems(facets[fname]):
                 ret[field] = []
                 for text, count in result:
-                    ret[field].append({"text": text, "count": count})
+                    ret[field].append({
+                        "text": text,
+                        "count": count,
+                        "narrow": self.get_narrow_url(field, text)
+                    })
         return ret
 
     def _get_dates(self, facets):
