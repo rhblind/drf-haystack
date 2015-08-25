@@ -5,7 +5,7 @@ from __future__ import absolute_import, unicode_literals
 from django.utils import timezone
 from haystack import indexes
 
-from .models import MockLocation, MockPerson
+from .models import MockLocation, MockPerson, MockPet
 
 
 class MockLocationIndex(indexes.SearchIndex, indexes.Indexable):
@@ -63,3 +63,24 @@ class MockPersonIndex(indexes.SearchIndex, indexes.Indexable):
         return self.get_model().objects.filter(
             created__lte=timezone.now()
         )
+
+
+class MockPetIndex(indexes.SearchIndex, indexes.Indexable):
+
+    text = indexes.CharField(document=True, use_template=True)
+    name = indexes.CharField(model_attr="name")
+    species = indexes.CharField(model_attr="species")
+    description = indexes.CharField()
+
+    autocomplete = indexes.EdgeNgramField()
+
+    @staticmethod
+    def prepare_description(obj):
+        return " ".join((obj.name, "the", obj.species))
+
+    @staticmethod
+    def prepare_autocomplete(obj):
+        return obj.name
+
+    def get_model(self):
+        return MockPet

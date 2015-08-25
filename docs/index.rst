@@ -42,17 +42,35 @@ Requirements
     - Haystack (and a supported search engine such as Solr, Elasticsearch, Whoosh, etc.)
     - (geopy and libgeos if you want to use geo spatial filtering)
 
+Contributors
+============
+
+This library has mainly been written by `me <https://github.com/rhblind>`_ while working
+at `Inonit <https://github.com/inonit>`_. I have also had some help by these amazing people!
+Thanks guys!
+
+    - `Jacob Rief <https://github.com/jrief>`_
+    - `Jannon Frank <https://github.com/jannon>`_
 
 Changelog
 =========
+
+v1.5.2
+------
+*Release date: 2015-08-23*
+
+    - Proper support for :ref:`multiple-search-indexes-label` (Github :drf-issue:`22`).
+    - Experimental support for :ref:`term-boost-label` (This seems to have some issues upstreams,
+      so unfortunately it does not really work as expected).
+    - Support for negate in filters.
 
 v1.5.1
 ------
 *Release date: 2015-07-28*
 
-    - Support for More Like This results (Github :issue:`10`).
+    - Support for More Like This results (Github :drf-issue:`10`).
     - Deprecated ``SQHighlighterMixin`` in favor of ``HaystackHighlightFilter``.
-    - ``HaystackGenericAPIView`` now returns 404 for detail views if more than one entry is found (Github :issue:`19`).
+    - ``HaystackGenericAPIView`` now returns 404 for detail views if more than one entry is found (Github :drf-issue:`19`).
 
 v1.5.0
 ------
@@ -78,7 +96,7 @@ v1.3
 
     - ``HaystackGenericAPIView().get_object()`` now returns Http404 instead of an empty ``SearchQueryset``
       if no object is found. This mimics the behaviour from ``GenericAPIView().get_object()``.
-    - Removed hard dependencies for ``geopy`` and ``libgeos`` (See Github :issue:`5`). This means
+    - Removed hard dependencies for ``geopy`` and ``libgeos`` (See Github :drf-issue:`5`). This means
       that if you want to use the ``HaystackGEOSpatialFilter``, you have to install these libraries
       manually.
 

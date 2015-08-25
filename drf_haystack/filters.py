@@ -37,6 +37,7 @@ class HaystackFilter(BaseFilterBackend):
         """
 
         terms = []
+        exclude_terms = []
 
         if filters is None:
             filters = {}  # pragma: no cover
@@ -44,7 +45,14 @@ class HaystackFilter(BaseFilterBackend):
         for param, value in filters.items():
             # Skip if the parameter is not listed in the serializer's `fields`
             # or if it's in the `exclude` list.
-            base_param = param.split("__")[0]  # only test against field without lookup
+            excluding_term = False
+            param_parts = param.split("__")
+            base_param = param_parts[0]  # only test against field without lookup
+            negation_keyword = getattr(settings, "DRF_HAYSTACK_NEGATION_KEYWORD", "not")
+            if len(param_parts) > 1 and param_parts[1] == negation_keyword:
+                excluding_term = True
+                param = param.replace("__%s" % negation_keyword, "")  # haystack wouldn't understand our negation
+
             if view.serializer_class:
                 try:
                     if hasattr(view.serializer_class.Meta, "field_aliases"):
@@ -54,8 +62,9 @@ class HaystackFilter(BaseFilterBackend):
 
                     fields = getattr(view.serializer_class.Meta, "fields", [])
                     exclude = getattr(view.serializer_class.Meta, "exclude", [])
+                    search_fields = getattr(view.serializer_class.Meta, "search_fields", [])
 
-                    if base_param not in fields or param in exclude or not value:
+                    if ((fields or search_fields) and base_param not in chain(fields, search_fields)) or base_param in exclude or not value:
                         continue
 
                 except AttributeError:
@@ -69,15 +78,26 @@ class HaystackFilter(BaseFilterBackend):
                 if token:
                     field_queries.append(view.query_object((param, token)))
 
-            terms.append(six.moves.reduce(operator.or_, filter(lambda x: x, field_queries)))
+            term = six.moves.reduce(operator.or_, filter(lambda x: x, field_queries))
+            if excluding_term:
+                exclude_terms.append(term)
+            else:
+                terms.append(term)
 
-        return six.moves.reduce(operator.and_, filter(lambda x: x, terms)) if terms else []
+        terms = six.moves.reduce(operator.and_, filter(lambda x: x, terms)) if terms else []
+        exclude_terms = six.moves.reduce(operator.and_, filter(lambda x: x, exclude_terms)) if exclude_terms else []
+        return (terms, exclude_terms)
 
     def filter_queryset(self, request, queryset, view):
-        applicable_filters = self.build_filter(view, filters=request.GET.copy())
+        applicable_filters, applicable_exclusions = self.build_filter(view, filters=self.get_request_filters(request))
         if applicable_filters:
             queryset = queryset.filter(applicable_filters)
+        if applicable_exclusions:
+            queryset = queryset.exclude(applicable_exclusions)
         return queryset
+
+    def get_request_filters(self, request):
+        return request.GET.copy()
 
 
 class HaystackAutocompleteFilter(HaystackFilter):
@@ -94,20 +114,25 @@ class HaystackAutocompleteFilter(HaystackFilter):
         single SQ filter using `AND`.
         """
 
-        applicable_filters = self.build_filter(view, filters=request.GET.copy())
+        applicable_filters, applicable_exclusions = self.build_filter(view, filters=self.get_request_filters(request))
 
         if applicable_filters:
-            query_bits = []
-            for field_name, query in applicable_filters.children:
-                for word in query.split(" "):
-                    bit = queryset.query.clean(word.strip())
-                    kwargs = {
-                        field_name: bit
-                    }
-                    query_bits.append(view.query_object(**kwargs))
-            queryset = queryset.filter(six.moves.reduce(operator.and_, filter(lambda x: x, query_bits)))
+            queryset = queryset.filter(self._construct_query(applicable_filters, queryset, view))
+        if applicable_exclusions:
+            queryset = queryset.exclude(self._construct_query(applicable_exclusions, queryset, view))
 
         return queryset
+
+    def _construct_query(self, terms, queryset, view):
+        query_bits = []
+        for field_name, query in terms.children:
+            for word in query.split(" "):
+                bit = queryset.query.clean(word.strip())
+                kwargs = {
+                    field_name: bit
+                }
+                query_bits.append(view.query_object(**kwargs))
+        return six.moves.reduce(operator.and_, filter(lambda x: x, query_bits))
 
 
 class HaystackGEOSpatialFilter(HaystackFilter):
