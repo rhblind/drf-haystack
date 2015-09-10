@@ -8,7 +8,6 @@ from .search_indexes import MockPersonIndex, MockLocationIndex
 
 
 class SearchSerializer(HaystackSerializer):
-
     class Meta:
         index_classes = [MockPersonIndex, MockLocationIndex]
         fields = [
@@ -40,3 +39,16 @@ class MoreLikeThisSerializer(HaystackSerializer):
             "firstname", "lastname", "full_name",
             "autocomplete"
         ]
+
+
+class FacetsSerializer(HaystackSerializer):
+
+    facets = HyperlinkedIdentityField(view_name="search3-facets", read_only=True)
+
+    class Meta:
+        index_classes = [MockPersonIndex]
+        fields = [
+            "firstname", "lastname", "full_name",
+            "autocomplete"
+        ]
+        facet_fields = ["firstname"]
