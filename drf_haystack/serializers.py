@@ -191,9 +191,9 @@ class HaystackSerializer(serializers.Serializer):
 
 class HaystackSerializerMixin(object):
     """
-    This mixin can be added to a rerializer to use the actual object as the data source for serialization rather
+    This mixin can be added to a serializer to use the actual object as the data source for serialization rather
     than the data stored in the search index fields.  This makes it easy to return data from search results in
-    the same format as elswhere in your API and reuse your existing serializers
+    the same format as elsewhere in your API and reuse your existing serializers
     """
 
     def to_representation(self, instance):
