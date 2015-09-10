@@ -15,7 +15,7 @@ from haystack.utils import Highlighter
 
 from rest_framework import serializers
 from rest_framework.compat import OrderedDict
-from rest_framework.fields import empty
+from rest_framework.fields import empty, SkipField
 from rest_framework.utils.field_mapping import ClassLookupDict, get_field_kwargs
 
 from .fields import (
@@ -246,3 +246,82 @@ class HighlighterMixin(object):
             if highlighter and document_field:
                 ret["highlighted"] = highlighter.highlight(getattr(instance, self.highlighter_field or document_field))
         return ret
+
+
+class FacetingMixin(object):
+    """
+    A mixin for serializing faceted results.
+    """
+    # dates = serializers.SerializerMethodField(method_name="get_facet_dates")
+    # fields = serializers.SerializerMethodField(method_name="get_facet_fields")
+    # queries = serializers.SerializerMethodField(method_name="get_facet_queries")
+
+    def __init__(self, *args, **kwargs):
+        super(FacetingMixin, self).__init__(*args, **kwargs)
+
+        class FacetFieldSerializer(serializers.Serializer):
+            text = serializers.CharField()
+            count = serializers.IntegerField()
+
+        self.facet_field_serializer = FacetFieldSerializer
+
+
+    def get_fields(self):
+        # field_mapping = super(FacetingMixin, self).get_fields()
+        field_mapping = OrderedDict()
+        field_mapping.update({
+            # "dates": serializers.ListField(many=True),
+            "fields": serializers.ListField(child=self.facet_field_serializer()),
+            # "queries": serializers.ListField(many=True)
+        })
+        return field_mapping
+
+    def to_representation(self, instance):
+        ret = OrderedDict()
+        fields = self._readable_fields
+
+        for field in fields:
+            try:
+                attribute = field.get_attribute(instance)
+            except SkipField:
+                continue
+
+            if attribute is None:
+                # We skip `to_representation` for `None` values so that
+                # fields do not have to explicitly deal with that case.
+                ret[field.field_name] = None
+            else:
+                ret[field.field_name] = field.to_representation(attribute)
+
+        return ret
+
+    def get_narrow_url(self, fname, text):
+        request = self.context["request"]
+        scheme = getattr(request, "versioning_scheme", None)
+        if scheme is not None:
+            pass
+        return "{path}?selected_facets={field}_exact:{text}".format(
+            path=request.get_full_path(), field=fname, text=text
+        )
+
+    def field_response(self, fname, facets):
+        ret = OrderedDict()
+        if fname in facets:
+            for field, result in six.iteritems(facets[fname]):
+                ret[field] = []
+                for text, count in result:
+                    ret[field].append({
+                        "text": text,
+                        "count": count,
+                        "narrow": self.get_narrow_url(field, text)
+                    })
+        return ret
+
+    def get_facet_dates(self, facets):
+        return self.field_response("dates", facets)
+
+    def get_facet_fields(self, facets):
+        return self.field_response("fields", facets)
+
+    def get_facet_queries(self, facets):
+        return self.field_response("queries", facets)

@@ -23,6 +23,10 @@ class HaystackFilter(BaseFilterBackend):
     """
 
     @staticmethod
+    def get_request_filters(request):
+        return request.GET.copy()
+
+    @staticmethod
     def build_filter(view, filters=None):
         """
         Creates a single SQ filter from querystring parameters that
@@ -86,7 +90,7 @@ class HaystackFilter(BaseFilterBackend):
 
         terms = six.moves.reduce(operator.and_, filter(lambda x: x, terms)) if terms else []
         exclude_terms = six.moves.reduce(operator.and_, filter(lambda x: x, exclude_terms)) if exclude_terms else []
-        return (terms, exclude_terms)
+        return terms, exclude_terms
 
     def filter_queryset(self, request, queryset, view):
         applicable_filters, applicable_exclusions = self.build_filter(view, filters=self.get_request_filters(request))
@@ -95,9 +99,6 @@ class HaystackFilter(BaseFilterBackend):
         if applicable_exclusions:
             queryset = queryset.exclude(applicable_exclusions)
         return queryset
-
-    def get_request_filters(self, request):
-        return request.GET.copy()
 
 
 class HaystackAutocompleteFilter(HaystackFilter):
@@ -203,7 +204,7 @@ class HaystackGEOSpatialFilter(HaystackFilter):
         return queryset
 
     def filter_queryset(self, request, queryset, view):
-        queryset = self.geo_filter(queryset, filters=request.GET.copy())
+        queryset = self.geo_filter(queryset, filters=self.get_request_filters(request))
         return super(HaystackGEOSpatialFilter, self).filter_queryset(request, queryset, view)
 
 
@@ -252,4 +253,22 @@ class HaystackBoostFilter(HaystackFilter):
 
     def filter_queryset(self, request, queryset, view):
         queryset = super(HaystackBoostFilter, self).filter_queryset(request, queryset, view)
-        return self.apply_boost(queryset, filters=request.GET.copy())
+        return self.apply_boost(queryset, filters=self.get_request_filters(request))
+
+
+class HaystackFacetFilter(HaystackFilter):
+    """
+    Filter backend for faceting search result.
+    Note that this backend does *not* return a regular ``SearchQuerySet()``,
+    but a facet count.
+    """
+
+    def filter_queryset(self, request, queryset, view):
+        serializer_class = view.get_serializer_class()
+        if not hasattr(serializer_class.Meta, "field_options"):
+            raise AttributeError("%s must have a 'field_options' attribute" %
+                                 serializer_class.__class__.__name__)  # huh, wierd name..?
+        for option in serializer_class.Meta.field_options:
+            pass
+
+        return queryset

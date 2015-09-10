@@ -3,16 +3,21 @@
 from __future__ import absolute_import, unicode_literals
 
 
-from drf_haystack.filters import HaystackBoostFilter
+from drf_haystack.filters import HaystackBoostFilter, HaystackAutocompleteFilter, HaystackFacetFilter
+from drf_haystack.generics import SQHighlighterMixin
 from drf_haystack.viewsets import HaystackViewSet
 
 from .models import MockPerson, MockLocation
-from .serializers import SearchSerializer, HighlighterSerializer, MoreLikeThisSerializer, FacetsSerializer
+from .serializers import (
+    SearchSerializer, HighlighterSerializer,
+    MoreLikeThisSerializer, FacetSerializer
+)
 
 
 class SearchViewSet1(HaystackViewSet):
     index_models = [MockPerson]
-    serializer_class = SearchSerializer
+    serializer_class = FacetSerializer
+    filter_backends = [HaystackFacetFilter]
 
 
 class SearchViewSet2(HaystackViewSet):
@@ -22,5 +27,4 @@ class SearchViewSet2(HaystackViewSet):
 
 class SearchViewSet3(HaystackViewSet):
     index_models = [MockPerson]
-    serializer_class = FacetsSerializer
-    filter_backends = [HaystackBoostFilter]
+    serializer_class = MoreLikeThisSerializer

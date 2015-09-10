@@ -406,7 +406,7 @@ Faceting
 ========
 
 Faceting is a way of grouping and narrowing search results by a common factor, for example we can group
-all results which are registered on a certain date. Similar to the :ref:`more-like-this-label`, the faceting
+all results which are registered on a certain date. Similar to :ref:`more-like-this-label`, the faceting
 functionality is implemented by setting up a special ``^search/facets/$`` route on any view which inherits from the
 ``HaystackViewSet`` class.
 
@@ -424,7 +424,7 @@ Faceting on fields
 ------------------
 
 Add a ``facet_field`` attribute on your search viewset. This must be a ``list of dictionaries`` where each
-dictionary holds the field name and **options which should be used to facet on that particular field.
+dictionary holds the field name and ``**options`` which should be used to facet on that particular field.
 
 .. code-block:: python
 

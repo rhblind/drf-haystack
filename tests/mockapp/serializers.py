@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import, unicode_literals
+
+from datetime import datetime, timedelta
 from rest_framework.serializers import HyperlinkedIdentityField
 
-from drf_haystack.serializers import HaystackSerializer, HighlighterMixin
+from drf_haystack.serializers import HaystackSerializer, HighlighterMixin, FacetingMixin
 from .search_indexes import MockPersonIndex, MockLocationIndex
 
 
 class SearchSerializer(HaystackSerializer):
+
     class Meta:
         index_classes = [MockPersonIndex, MockLocationIndex]
         fields = [
@@ -41,14 +44,20 @@ class MoreLikeThisSerializer(HaystackSerializer):
         ]
 
 
-class FacetsSerializer(HaystackSerializer):
+class FacetSerializer(FacetingMixin, HaystackSerializer):
 
-    facets = HyperlinkedIdentityField(view_name="search3-facets", read_only=True)
+    # narrow_url = HyperlinkedIdentityField(view_name="search1-facets", read_only=True)
 
     class Meta:
         index_classes = [MockPersonIndex]
-        fields = [
-            "firstname", "lastname", "full_name",
-            "autocomplete"
-        ]
-        facet_fields = ["firstname"]
+        fields = ["firstname", "lastname", "created"]
+        field_options = {
+            "firstname": {},
+            "lastname": {},
+            "created": {
+                "start_date": datetime.now() - timedelta(days=3 * 365),
+                "end_date": datetime.now(),
+                "gap_by": "day",
+                "gap_amount": 10
+            }
+        }

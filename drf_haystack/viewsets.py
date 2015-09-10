@@ -2,9 +2,6 @@
 
 from __future__ import absolute_import, unicode_literals
 
-from itertools import chain
-from django.utils import six
-
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSetMixin
@@ -22,57 +19,40 @@ class HaystackViewSet(RetrieveModelMixin, ListModelMixin, ViewSetMixin, Haystack
     # @list_route(methods=["get"], url_path="facets")
     # def facets(self, request):
     #     """
-    #     Sets up a list route for ``facet`` results.
-    #
+    #     Sets up a list route for ``faceted`` results.
+    #     This will add ie. ^search/facets/$ to your existing ^search pattern.
     #
     #     """
     #     queryset = self.filter_queryset(self.get_queryset())
-    #
-    #     for f in chain(self.facet_fields, self.date_facet_fields):
-    #         serializer_klass = self.get_serializer_class()
-    #
-    #         for field, options in six.iteritems(f):
-    #             if any(filter(lambda obj: hasattr(obj, field), serializer_klass.Meta.index_classes)):
-    #                 if any(field in d for d in self.date_facet_fields):
-    #                     if not all(("start_date", "end_date", "gap_by" in options)):
-    #                         raise AttributeError("Date faceting requires 'start_date', 'end_date' "
-    #                                              "and 'gap_by' to be set.")
-    #
-    #                     valid_gap = ("year", "month", "day", "hour", "minute", "second")
-    #                     if options["gap_by"] not in valid_gap:
-    #                         raise ValueError("The 'gap_by' parameter must be one of %s." % ", ".join(valid_gap))
-    #
-    #                     options.setdefault("gap_amount", 1)
-    #                     queryset = queryset.date_facet(field, **options)
-    #
-    #                 elif any(field in d for d in self.facet_fields):
-    #                     queryset = queryset.facet(field, **options)
+    #     # serializer_cls = self.get_serializer_class()
+    #     # for facet in self.facet_fields:
+    #     #     for field, defaults in six.iteritems(facet):
+    #     #         if "type" not in defaults or defaults["type"] not in ("field", "date"):
+    #     #             raise AttributeError("You must specify field type for the %s field. "
+    #     #                                  "Valid types are 'field' and 'date'.")
+    #     #         if any(filter(lambda obj: hasattr(obj, field), serializer_cls.Meta.index_classes)):
+    #     #             if defaults["type"] == "date":
+    #     #                 valid_gap = ("year", "month", "day", "hour", "minute", "second")
+    #     #                 options = defaults.get("options", {})
+    #     #                 if not all(("start_date", "end_date", "gap_by" in options)):
+    #     #                     raise AttributeError("Date faceting requires a **options option with "
+    #     #                                          "'start_date', 'end_date' and 'gap_by' to be set.")
+    #     #                 if not options["gap_by"] in valid_gap:
+    #     #                     raise ValueError("The 'gap_by' parameter must be one of %s." % ", ".join(valid_gap))
+    #     #                 options.setdefault("gap_amount", 1)
+    #     #                 queryset = queryset.date_facet(field, **options)
+    #     #
+    #     #             elif defaults["type"] == "field":
+    #     #                 options = defaults.get("options", {})
+    #     #                 queryset.facet(field, **options)
     #
     #     # page = self.paginate_queryset(queryset.facet_counts())
     #     # if page is not None:
-    #     #     serializer = _FacetSerializer(page, many=False)
+    #     #     serializer = HaystackFacetSerializer(page, many=False)
     #     #     return self.get_paginated_response(serializer.data)
     #
-    #     serializer = _FacetSerializer(queryset.facet_counts(), many=False, context={"request": request})
+    #     serializer = self.get_serializer(queryset, many=True)
     #     return Response(serializer.data)
-
-    @list_route(methods=["get"], url_path="facets")
-    def facets(self, request):
-        """
-        Sets up a list route for ``facet`` results.
-        This will add ie. ^search/facets/$ to your existing ^search pattern.
-        """
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer_cls = self.get_serializer_class()
-
-        # Sort out valid query parameters
-        querystring = self.request.GET.copy()
-        for field, options in six.iteritems(querystring):
-            if any(filter(lambda obj: hasattr(obj, field), serializer_cls.Meta.index_classes)):
-                # TODO: Pick facet options from query string
-                queryset = queryset.facet(field)
-
-        return Response({})
 
     @detail_route(methods=["get"], url_path="more-like-this")
     def more_like_this(self, request, pk=None):
