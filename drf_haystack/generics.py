@@ -22,11 +22,6 @@ class HaystackGenericAPIView(GenericAPIView):
     # should include in the search result.
     index_models = []
 
-    # Faceting will use these lists. They should contain dictionaries
-    # in the format {"fieldname": **options}.
-    facet_fields = []
-    date_facet_fields = []
-
     object_class = SearchQuerySet
     query_object = SQ
 
