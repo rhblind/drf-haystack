@@ -263,12 +263,14 @@ class HaystackFacetFilter(HaystackFilter):
     but a facet count.
     """
 
-    def filter_queryset(self, request, queryset, view):
-        serializer_class = view.get_serializer_class()
-        if not hasattr(serializer_class.Meta, "field_options"):
-            raise AttributeError("%s must have a 'field_options' attribute" %
-                                 serializer_class.__class__.__name__)  # huh, wierd name..?
-        for option in serializer_class.Meta.field_options:
-            pass
+    @staticmethod
+    def apply_faceting(queryset, filters):
+        # TODO: Pick faceting options from query string
+        # TODO: Support faceting multiple indexes
+        queryset = queryset.facet("firstname")
+        return queryset.facet_counts()
 
-        return queryset
+    def filter_queryset(self, request, queryset, view):
+        queryset = super(HaystackFacetFilter, self).filter_queryset(request, queryset, view)
+        return self.apply_faceting(queryset, filters=self.get_request_filters(request))
+

@@ -87,6 +87,21 @@ class HaystackSerializer(serializers.Serializer):
 
         return kwargs
 
+    def _get_index_field(self, field_name):
+        """
+        Returns the correct index field.
+        """
+        return field_name
+
+    def _get_index_class_name(self, index_cls):
+        """
+        Converts in index model class to a name suitable for use as a field name prefix. A user
+        may optionally specify custom aliases via an 'index_aliases' attribute on the Meta class
+        """
+        cls_name = index_cls.__name__
+        aliases = getattr(self.Meta, "index_aliases", {})
+        return aliases.get(cls_name, cls_name.split('.')[-1])
+
     def get_fields(self):
         """
         Get the required fields for serializing the result.
@@ -179,15 +194,6 @@ class HaystackSerializer(serializers.Serializer):
             raise ImproperlyConfigured("Could not find serializer for %s in mapping" % index)
         return serializer_class(context=self._context).to_representation(instance)
 
-    def _get_index_class_name(self, index_cls):
-        """
-        Converts in index model class to a name suitable for use as a field name prefix. A user
-        may optionally specify custom aliases via an 'index_aliases' attribute on the Meta class
-        """
-        cls_name = index_cls.__name__
-        aliases = getattr(self.Meta, "index_aliases", {})
-        return aliases.get(cls_name, cls_name.split('.')[-1])
-
 
 class HaystackSerializerMixin(object):
     """
@@ -248,52 +254,67 @@ class HighlighterMixin(object):
         return ret
 
 
-class FacetingMixin(object):
+class FacetingSerializer(serializers.Serializer):
     """
-    A mixin for serializing faceted results.
+    A mixin for serializing facet count results.
     """
-    # dates = serializers.SerializerMethodField(method_name="get_facet_dates")
-    # fields = serializers.SerializerMethodField(method_name="get_facet_fields")
-    # queries = serializers.SerializerMethodField(method_name="get_facet_queries")
+    dates = serializers.SerializerMethodField(method_name="get_facet_dates")
+    fields = serializers.SerializerMethodField(method_name="get_facet_fields")
+    queries = serializers.SerializerMethodField(method_name="get_facet_queries")
 
-    def __init__(self, *args, **kwargs):
-        super(FacetingMixin, self).__init__(*args, **kwargs)
-
-        class FacetFieldSerializer(serializers.Serializer):
-            text = serializers.CharField()
-            count = serializers.IntegerField()
-
-        self.facet_field_serializer = FacetFieldSerializer
-
-
-    def get_fields(self):
-        # field_mapping = super(FacetingMixin, self).get_fields()
-        field_mapping = OrderedDict()
-        field_mapping.update({
-            # "dates": serializers.ListField(many=True),
-            "fields": serializers.ListField(child=self.facet_field_serializer()),
-            # "queries": serializers.ListField(many=True)
-        })
-        return field_mapping
-
-    def to_representation(self, instance):
-        ret = OrderedDict()
-        fields = self._readable_fields
-
-        for field in fields:
-            try:
-                attribute = field.get_attribute(instance)
-            except SkipField:
-                continue
-
-            if attribute is None:
-                # We skip `to_representation` for `None` values so that
-                # fields do not have to explicitly deal with that case.
-                ret[field.field_name] = None
-            else:
-                ret[field.field_name] = field.to_representation(attribute)
-
-        return ret
+    # def __init__(self, *args, **kwargs):
+    #     super(FacetingSerializer, self).__init__(*args, **kwargs)
+    #
+    #     class FacetFieldSerializer(serializers.Serializer):
+    #         text = serializers.SerializerMethodField(method_name="get_facet_text")
+    #         # count = serializers.IntegerField()
+    #         # narrow_url = ""
+    #
+    #         def field_response(self, fname, facets):
+    #             ret = OrderedDict()
+    #             if fname in facets:
+    #                 for field, result in six.iteritems(facets[fname]):
+    #                     ret[field] = []
+    #                     for text, count in result:
+    #                         ret[field].append({
+    #                             "text": text,
+    #                             "count": count,
+    #                             # "narrow": self.get_narrow_url(field, text)
+    #                         })
+    #             return ret
+    #
+    #         def get_facet_text(self, instance):
+    #             return instance
+    #
+    #     self.facet_field_serializer = FacetFieldSerializer
+    #
+    # def get_fields(self):
+    #     field_mapping = OrderedDict()
+    #     field_mapping.update({
+    #         "dates": serializers.ListField(child=serializers.DateTimeField(), required=False),
+    #         "fields": serializers.ListField(child=self.facet_field_serializer(), required=False),
+    #     })
+    #     return field_mapping
+    #
+    # def to_representation(self, instance):
+    #     ret = OrderedDict()
+    #     fields = self._readable_fields
+    #
+    #     for field in fields:
+    #         try:
+    #             # attribute = field.get_attribute(instance)
+    #             attribute = self.instance[instance]
+    #         except SkipField:
+    #             continue
+    #
+    #         if attribute is None:
+    #             # We skip `to_representation` for `None` values so that
+    #             # fields do not have to explicitly deal with that case.
+    #             ret[field.field_name] = None
+    #         else:
+    #             ret[field.field_name] = field.to_representation(attribute)
+    #
+    #     return ret
 
     def get_narrow_url(self, fname, text):
         request = self.context["request"]
@@ -313,15 +334,15 @@ class FacetingMixin(object):
                     ret[field].append({
                         "text": text,
                         "count": count,
-                        "narrow": self.get_narrow_url(field, text)
+                        # "narrow": self.get_narrow_url(field, text)
                     })
         return ret
 
     def get_facet_dates(self, facets):
-        return self.field_response("dates", facets)
+        return self.field_response("dates", self.instance)
 
     def get_facet_fields(self, facets):
-        return self.field_response("fields", facets)
+        return self.field_response("fields", self.instance)
 
     def get_facet_queries(self, facets):
-        return self.field_response("queries", facets)
+        return self.field_response("queries", self.instance)

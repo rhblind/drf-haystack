@@ -5,7 +5,7 @@ from __future__ import absolute_import, unicode_literals
 from datetime import datetime, timedelta
 from rest_framework.serializers import HyperlinkedIdentityField
 
-from drf_haystack.serializers import HaystackSerializer, HighlighterMixin, FacetingMixin
+from drf_haystack.serializers import HaystackSerializer, HighlighterMixin, FacetingSerializer
 from .search_indexes import MockPersonIndex, MockLocationIndex
 
 
@@ -44,7 +44,7 @@ class MoreLikeThisSerializer(HaystackSerializer):
         ]
 
 
-class FacetSerializer(FacetingMixin, HaystackSerializer):
+class MockPersonFacetSerializer(FacetingSerializer):
 
     # narrow_url = HyperlinkedIdentityField(view_name="search1-facets", read_only=True)
 
@@ -60,4 +60,12 @@ class FacetSerializer(FacetingMixin, HaystackSerializer):
                 "gap_by": "day",
                 "gap_amount": 10
             }
+        }
+
+
+class FacetSerializer(HaystackSerializer):
+
+    class Meta:
+        serializers = {
+            MockPersonIndex: MockPersonFacetSerializer
         }

@@ -10,13 +10,13 @@ from drf_haystack.viewsets import HaystackViewSet
 from .models import MockPerson, MockLocation
 from .serializers import (
     SearchSerializer, HighlighterSerializer,
-    MoreLikeThisSerializer, FacetSerializer
+    MoreLikeThisSerializer, FacetSerializer, MockPersonFacetSerializer
 )
 
 
 class SearchViewSet1(HaystackViewSet):
     index_models = [MockPerson]
-    serializer_class = FacetSerializer
+    serializer_class = MockPersonFacetSerializer
     filter_backends = [HaystackFacetFilter]
 
 
