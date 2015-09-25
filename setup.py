@@ -40,7 +40,6 @@ setup(
     ],
     tests_require=[
         "nose",
-        # "mock",
         "coverage",
         "unittest2",
         "elasticsearch>=1.4.0",
