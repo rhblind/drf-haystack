@@ -51,6 +51,7 @@ Thanks guys!
 
     - `Jacob Rief <https://github.com/jrief>`_
     - `Jannon Frank <https://github.com/jannon>`_
+    - `Michael Fladischer <https://github.com/fladi>`_ (Debian package)
 
 Changelog
 =========

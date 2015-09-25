@@ -4,7 +4,6 @@ coverage
 django-haystack
 djangorestframework
 elasticsearch
-mock
 nose
 sphinx-rtd-theme
 urllib3
