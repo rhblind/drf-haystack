@@ -6,6 +6,8 @@ import operator
 import warnings
 from itertools import chain
 
+from dateutil import parser
+
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
@@ -258,19 +260,76 @@ class HaystackBoostFilter(HaystackFilter):
 
 class HaystackFacetFilter(HaystackFilter):
     """
-    Filter backend for faceting search result.
-    Note that this backend does *not* return a regular ``SearchQuerySet()``,
-    but a facet count.
+    Filter backend for faceting search results.
+    This backend does not apply regular filtering, and does not return
+    a ``SearchQuerySet``, but a ``facet_counts` dictionary.
     """
 
+    # TODO: Support multiple indexes!
+
     @staticmethod
-    def apply_faceting(queryset, filters):
-        # TODO: Pick faceting options from query string
-        # TODO: Support faceting multiple indexes
-        queryset = queryset.facet("firstname")
-        return queryset.facet_counts()
+    def build_filter(view, filters=None):
+        """
+        Creates a dict of dictionaries suitable for passing to the
+        ``SearchQuerySet().facet()`` method.
+
+            /api/v1/search/?firstname=limit:100&created=start_date:21. Jan 2015,gap_by:day
+        """
+
+        facets = {}
+        date_facets = {}
+
+        if filters is None:
+            filters = {}  # pragma: no cover
+
+        # Skip if the field is not listed in the serializer's `fields` or
+        # if it's in the `exclude` list.
+        try:
+            fields = getattr(view.serializer_class.Meta, "fields", [])
+            exclude = getattr(view.serializer_class.Meta, "exclude", [])
+            field_options = getattr(view.serializer_class.Meta, "field_options", {})
+
+            for field, options in filters.items():
+
+                if field not in fields or field in exclude:
+                    continue
+
+                if field in field_options and len(options.split(":")) == 2:
+                    param, value = options.split(":")
+
+                    if param in ("start_date", "end_date"):
+                        value = parser.parse(value)
+
+                    defaults = field_options.pop(field, {})
+                    defaults.update({param: value})
+                    field_options[field] = defaults
+
+            for field, options in field_options.items():
+                if any([k in options for k in ("start_date", "end_date", "gap_by", "gap_amount")]):
+                    valid_gap = ("year", "month", "day", "hour", "minute", "second")
+                    if not all(("start_date", "end_date", "gap_by" in options)):
+                        raise ValueError("Date faceting requires at least 'start_date', 'end_date' "
+                                         "and 'gap_by' to be set.")
+                    if not options["gap_by"] in valid_gap:
+                        raise ValueError("The 'gap_by' parameter must be one of %s." % ", ".join(valid_gap))
+                    options.setdefault("gap_amount", 1)
+                    date_facets[field] = field_options[field]
+
+                else:
+                    facets[field] = field_options[field]
+
+        except AttributeError:
+            raise ImproperlyConfigured("%s must implement a Meta class." %
+                                       view.serializer_class.__class__.__name__)
+
+        return facets, date_facets
 
     def filter_queryset(self, request, queryset, view):
-        queryset = super(HaystackFacetFilter, self).filter_queryset(request, queryset, view)
-        return self.apply_faceting(queryset, filters=self.get_request_filters(request))
-
+        facets, date_facets = self.build_filter(view, filters=self.get_request_filters(request))
+        if facets:
+            for field, options in facets.items():
+                queryset = queryset.facet(field, **options)
+        if date_facets:
+            for field, options in date_facets.items():
+                queryset = queryset.date_facet(field, **options)
+        return queryset
