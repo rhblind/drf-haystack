@@ -262,10 +262,21 @@ class HaystackFacetFilter(HaystackFilter):
     """
     Filter backend for faceting search results.
     This backend does not apply regular filtering, and does not return
-    a ``SearchQuerySet``, but a ``facet_counts` dictionary.
+    a ``SearchQuerySet``, but a ``facet_counts` dictionary list.
+
+    Faceting field options can be set by using the ``field_options`` attribute
+    on the serializer, and will can be overridden by query parameters. Dates will be
+    parsed by the ``python-dateutil.parser()`` which can handle most formattings.
+
+    Query parameters is parsed in the following format:
+      ?field1=option1:value1,option2:value2&field2=option1:value1,option2:value2
+    where each option,value set is separated by the ``view.lookup_sep`` attribute.
     """
 
-    # TODO: Support multiple indexes!
+    # TODO: Fix a better way to update `field_options` from query parameters.
+    # TODO: Support multiple indexes/serializers
+    # TODO: Need to support multiple options separated by `view.lookup_sep`
+    # TODO: Need a better way to determine if to apply date or field faceting
 
     @staticmethod
     def build_filter(view, filters=None):
@@ -282,8 +293,11 @@ class HaystackFacetFilter(HaystackFilter):
         if filters is None:
             filters = {}  # pragma: no cover
 
-        # Skip if the field is not listed in the serializer's `fields` or
-        # if it's in the `exclude` list.
+        if view.lookup_sep == ":":
+            raise AttributeError("The %s.lookup_sep attribute conflicts with the HaystackFacetFilter "
+                                 "query parameter parser. Please choose another `lookup_sep` attribute "
+                                 "for %s." % view.__class__.__name__)
+
         try:
             fields = getattr(view.serializer_class.Meta, "fields", [])
             exclude = getattr(view.serializer_class.Meta, "exclude", [])
@@ -332,4 +346,4 @@ class HaystackFacetFilter(HaystackFilter):
         if date_facets:
             for field, options in date_facets.items():
                 queryset = queryset.date_facet(field, **options)
-        return queryset
+        return [queryset.facet_counts()]
