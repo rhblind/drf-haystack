@@ -254,122 +254,122 @@ class HighlighterMixin(object):
         return ret
 
 
-class FacetSerializer(serializers.Serializer):
-    """
-
-    """
-
-
-
-    def __init__(self, *args, **kwargs):
-        super(FacetSerializer, self).__init__(*args, **kwargs)
-
-        class FacetFieldSerializer(serializers.Serializer):
-            """
-            The FacetFieldSerializer is used to serialize each result.
-            """
-            text = serializers.SerializerMethodField()
-            count = serializers.SerializerMethodField()
-            narrow_url = serializers.CharField(required=False)
-
-            # def field_response(self, parent, field, iterable):
-            #     ret = OrderedDict()
-            #     if parent in iterable and field in iterable[parent]:
-            #         for result in iterable[parent][field]:
-            #             ret[field] = []
-            #             for text, count in dict([result]).items():
-            #                 ret[field].append({
-            #                     "text": text,
-            #                     "count": count,
-            #                     # "narrow": self.get_narrow_url(field, text)
-            #                 })
-            #     return ret
-            #
-            # def get_facet_fields(self, field):
-            #     return self.field_response(self.parent.field_name, field, self.root.instance)
-
-            def to_representation(self, instance):
-                ret = OrderedDict()
-
-                lst = []
-
-                for field in self._readable_fields:
-                    try:
-                        attribute = field.get_attribute(instance)
-                    except SkipField:
-                        continue
-
-                    if attribute is None:
-                        ret[field.field_name] = None
-                    else:
-                        if attribute not in ret:
-                            ret[attribute] = []
-
-                        lst.append({field.field_name: field.to_representation(attribute)})
-
-                        # i = {}
-                        # for d in lst:
-                        #     for k, v in d.items():
-                        #         i[k] = v
-                        # ret[attribute].append(i)
-                return ret
-
-            def get_text(self, instance):
-                # for entry in self.instance[0].get(self.parent.field_name)[instance]:
-                #     yield entry[0]
-                return "foo"
-
-            def get_count(self, instance):
-                # for entry in self.instance[0].get(self.parent.field_name)[instance]:
-                #     yield entry[1]
-                return "bar"
-
-        self.facet_field_serializer = FacetFieldSerializer
-
-    def get_fields(self):
-        field_mapping = OrderedDict()
-        for field in ("dates", "fields", "queries"):
-            field_mapping.update(
-                {field: serializers.ListField(child=self.facet_field_serializer(self.instance), required=False)}
-            )
-        return field_mapping
-
-    def to_representation(self, instance):
-
-
-    # dates = serializers.SerializerMethodField(method_name="get_facet_dates")
-    # fields = serializers.SerializerMethodField(method_name="get_facet_fields")
-    # queries = serializers.SerializerMethodField(method_name="get_facet_queries")
-    #
-    # def get_narrow_url(self, fname, text):
-    #     request = self.context["request"]
-    #     scheme = getattr(request, "versioning_scheme", None)
-    #     if scheme is not None:
-    #         pass
-    #     return "{path}?selected_facets={field}_exact:{text}".format(
-    #         path=request.get_full_path(), field=fname, text=text
-    #     )
-    #
-    # @staticmethod
-    # def field_response(field_name, instance):
-    #     ret = OrderedDict()
-    #     if field_name in instance:
-    #         for field, result in six.iteritems(instance[field_name]):
-    #             ret[field] = []
-    #             for text, count in result:
-    #                 ret[field].append({
-    #                     "text": text,
-    #                     "count": count,
-    #                     # "narrow": self.get_narrow_url(field, text)
-    #                 })
-    #     return ret
-    #
-    #
-    # def get_facet_dates(self, instance):
-    #     return self.field_response("dates", instance)
-    #
-    # def get_facet_fields(self, instance):
-    #     return self.field_response("fields", instance)
-    #
-    # def get_facet_queries(self, instance):
-    #     return self.field_response("queries", instance)
+# class FacetSerializer(serializers.Serializer):
+#     """
+#
+#     """
+#
+#
+#
+#     def __init__(self, *args, **kwargs):
+#         super(FacetSerializer, self).__init__(*args, **kwargs)
+#
+#         class FacetFieldSerializer(serializers.Serializer):
+#             """
+#             The FacetFieldSerializer is used to serialize each result.
+#             """
+#             text = serializers.SerializerMethodField()
+#             count = serializers.SerializerMethodField()
+#             narrow_url = serializers.CharField(required=False)
+#
+#             # def field_response(self, parent, field, iterable):
+#             #     ret = OrderedDict()
+#             #     if parent in iterable and field in iterable[parent]:
+#             #         for result in iterable[parent][field]:
+#             #             ret[field] = []
+#             #             for text, count in dict([result]).items():
+#             #                 ret[field].append({
+#             #                     "text": text,
+#             #                     "count": count,
+#             #                     # "narrow": self.get_narrow_url(field, text)
+#             #                 })
+#             #     return ret
+#             #
+#             # def get_facet_fields(self, field):
+#             #     return self.field_response(self.parent.field_name, field, self.root.instance)
+#
+#             def to_representation(self, instance):
+#                 ret = OrderedDict()
+#
+#                 lst = []
+#
+#                 for field in self._readable_fields:
+#                     try:
+#                         attribute = field.get_attribute(instance)
+#                     except SkipField:
+#                         continue
+#
+#                     if attribute is None:
+#                         ret[field.field_name] = None
+#                     else:
+#                         if attribute not in ret:
+#                             ret[attribute] = []
+#
+#                         lst.append({field.field_name: field.to_representation(attribute)})
+#
+#                         # i = {}
+#                         # for d in lst:
+#                         #     for k, v in d.items():
+#                         #         i[k] = v
+#                         # ret[attribute].append(i)
+#                 return ret
+#
+#             def get_text(self, instance):
+#                 # for entry in self.instance[0].get(self.parent.field_name)[instance]:
+#                 #     yield entry[0]
+#                 return "foo"
+#
+#             def get_count(self, instance):
+#                 # for entry in self.instance[0].get(self.parent.field_name)[instance]:
+#                 #     yield entry[1]
+#                 return "bar"
+#
+#         self.facet_field_serializer = FacetFieldSerializer
+#
+#     def get_fields(self):
+#         field_mapping = OrderedDict()
+#         for field in ("dates", "fields", "queries"):
+#             field_mapping.update(
+#                 {field: serializers.ListField(child=self.facet_field_serializer(self.instance), required=False)}
+#             )
+#         return field_mapping
+#
+#     def to_representation(self, instance):
+#
+#
+#     # dates = serializers.SerializerMethodField(method_name="get_facet_dates")
+#     # fields = serializers.SerializerMethodField(method_name="get_facet_fields")
+#     # queries = serializers.SerializerMethodField(method_name="get_facet_queries")
+#     #
+#     # def get_narrow_url(self, fname, text):
+#     #     request = self.context["request"]
+#     #     scheme = getattr(request, "versioning_scheme", None)
+#     #     if scheme is not None:
+#     #         pass
+#     #     return "{path}?selected_facets={field}_exact:{text}".format(
+#     #         path=request.get_full_path(), field=fname, text=text
+#     #     )
+#     #
+#     # @staticmethod
+#     # def field_response(field_name, instance):
+#     #     ret = OrderedDict()
+#     #     if field_name in instance:
+#     #         for field, result in six.iteritems(instance[field_name]):
+#     #             ret[field] = []
+#     #             for text, count in result:
+#     #                 ret[field].append({
+#     #                     "text": text,
+#     #                     "count": count,
+#     #                     # "narrow": self.get_narrow_url(field, text)
+#     #                 })
+#     #     return ret
+#     #
+#     #
+#     # def get_facet_dates(self, instance):
+#     #     return self.field_response("dates", instance)
+#     #
+#     # def get_facet_fields(self, instance):
+#     #     return self.field_response("fields", instance)
+#     #
+#     # def get_facet_queries(self, instance):
+#     #     return self.field_response("queries", instance)

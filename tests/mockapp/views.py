@@ -5,18 +5,19 @@ from __future__ import absolute_import, unicode_literals
 
 from drf_haystack.filters import HaystackBoostFilter, HaystackAutocompleteFilter
 from drf_haystack.generics import SQHighlighterMixin
-from drf_haystack.viewsets import HaystackViewSet, HaystackFacetViewSet
+from drf_haystack.viewsets import HaystackViewSet
 
 from .models import MockPerson, MockLocation
 from .serializers import (
     SearchSerializer, HighlighterSerializer,
-    MoreLikeThisSerializer, FacetSerializer, MockPersonFacetSerializer
+    MoreLikeThisSerializer, MockPersonFacetSerializer
 )
 
 
-class SearchViewSet1(HaystackFacetViewSet):
+class SearchViewSet1(HaystackViewSet):
     index_models = [MockPerson]
-    serializer_class = MockPersonFacetSerializer
+    serializer_class = SearchSerializer
+    facet_serializer_class = MockPersonFacetSerializer
 
 
 class SearchViewSet2(HaystackViewSet):

@@ -19,8 +19,8 @@ from drf_haystack.viewsets import HaystackViewSet
 from drf_haystack.serializers import HaystackSerializer
 from drf_haystack.filters import (
     HaystackAutocompleteFilter, HaystackBoostFilter,
-    HaystackGEOSpatialFilter, HaystackHighlightFilter
-)
+    HaystackGEOSpatialFilter, HaystackHighlightFilter,
+    HaystackFacetFilter)
 
 from . import geospatial_support
 from .constants import MOCKLOCATION_DATA_SET_SIZE, MOCKPERSON_DATA_SET_SIZE
@@ -375,3 +375,30 @@ class HaystackBoostFilterTestCase(TestCase):
             ValueError,
             self.view.as_view(actions={"get": "list"}), request
         )
+
+
+class HaystackFacetFilterTestCase(TestCase):
+
+    fixtures = ["mockperson"]
+
+    def setUp(self):
+        MockPersonIndex().reindex()
+
+        class Serializer1(serializers.Serializer):
+
+            class Meta:
+                index_classes = [MockPersonIndex]
+                fields = ["firstname", "lastname", "created"]
+
+        class ViewSet1(HaystackViewSet):
+            index_models = [MockPerson]
+            serializer_class = Serializer1
+            filter_backends = [HaystackFacetFilter]
+
+        self.view1 = ViewSet1
+
+    def tearDown(self):
+        MockPersonIndex().clear()
+
+    def test_filter_facet_counts(self):
+        pass

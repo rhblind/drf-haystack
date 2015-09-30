@@ -339,6 +339,7 @@ class HaystackFacetFilter(HaystackFilter):
         return facets, date_facets
 
     def filter_queryset(self, request, queryset, view):
+        queryset = super(HaystackFacetFilter, self).filter_queryset(request, queryset, view)
         facets, date_facets = self.build_filter(view, filters=self.get_request_filters(request))
         if facets:
             for field, options in facets.items():
@@ -346,4 +347,4 @@ class HaystackFacetFilter(HaystackFilter):
         if date_facets:
             for field, options in date_facets.items():
                 queryset = queryset.date_facet(field, **options)
-        return [queryset.facet_counts()]
+        return queryset
