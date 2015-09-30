@@ -20,7 +20,7 @@ following:
     http://example.com/api/v1/location/search/?city__startswith=Os
 
 This would perform a query looking up all documents where the `city field` started with "Os".
-You might get "Oslo", "Osaka", an "Ostrava".
+You might get "Oslo", "Osaka", and "Ostrava".
 
 Query Term Negation
 -------------------
