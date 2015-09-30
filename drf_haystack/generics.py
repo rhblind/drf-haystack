@@ -22,6 +22,7 @@ class HaystackGenericAPIView(GenericAPIView):
     # should include in the search result.
     index_models = []
 
+    facet_serializer_class = None
     object_class = SearchQuerySet
     query_object = SQ
 
@@ -72,6 +73,28 @@ class HaystackGenericAPIView(GenericAPIView):
             raise Http404("Multiple results matches the given query. Expected a single result.")
 
         raise Http404("No result matches the given query.")
+
+    def get_facet_serializer(self, *args, **kwargs):
+        """
+        Return the facet serializer instance that should be used for
+        serializing faceted output.
+        """
+        facet_serializer_class = self.get_facet_serializer_class()
+        kwargs["context"] = self.get_serializer_context()
+        return facet_serializer_class(*args, **kwargs)
+
+    def get_facet_serializer_class(self):
+        """
+        Return the class to use for serializing facets.
+        Defaults to using ``self.facet_serializer_class``.
+        """
+        if self.facet_serializer_class is None:
+            raise AttributeError(
+                "%(cls)s should either include a `facet_serializer_class` attribute, "
+                "or override %(cls)s.get_facet_serializer_class() method." %
+                {"cls": self.__class__.__name__}
+            )
+        return self.facet_serializer_class
 
 
 class SQHighlighterMixin(object):
