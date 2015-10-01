@@ -46,8 +46,6 @@ class MoreLikeThisSerializer(HaystackSerializer):
 
 class MockPersonFacetSerializer(HaystackFacetSerializer):
 
-    # narrow_url = HyperlinkedIdentityField(view_name="search1-facets", read_only=True)
-
     class Meta:
         index_classes = [MockPersonIndex]
         fields = ["firstname", "lastname", "created"]

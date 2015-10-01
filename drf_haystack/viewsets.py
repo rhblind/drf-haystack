@@ -47,3 +47,13 @@ class HaystackViewSet(RetrieveModelMixin, ListModelMixin, ViewSetMixin, Haystack
         queryset = self.filter_facet_queryset(self.get_queryset())
         serializer = self.get_facet_serializer(queryset.facet_counts(), many=False)
         return Response(serializer.data)
+
+    # @list_route(methods=["get"], url_path="facets/narrow")
+    # def narrow_facets(self, request):
+    #     """
+    #     Sets up a list route to narrow ``faceted`` results.
+    #
+    #     This will add ie ^search/facets/narrow/$ to your existing ^search pattern.
+    #     """
+    #     # TODO: Implement me!
+    #     return Response()
