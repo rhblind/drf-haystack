@@ -5,6 +5,7 @@ from __future__ import absolute_import, unicode_literals
 import copy
 import warnings
 from itertools import chain
+from datetime import datetime
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
@@ -210,10 +211,24 @@ class HaystackFacetSerializer(serializers.Serializer):
             # narrow_url = HyperlinkedIdentityField(view_name="search1-facets", read_only=True)
 
             def get_text(self, instance):
-                return "foo"
+                """
+                Haystack facets are returned as a two-tuple (value, count).
+                The text field should contain the faceted value.
+                """
+                instance = instance[0]
+                if isinstance(instance, (six.text_type, six.string_types)):
+                    return serializers.CharField(read_only=True).to_representation(instance)
+                elif isinstance(instance, datetime):
+                    return serializers.DateTimeField(read_only=True).to_representation(instance)
+                return instance
 
             def get_count(self, instance):
-                return "bar"
+                """
+                Haystack facets are returned as a two-tuple (value, count).
+                The text field should contain the faceted count.
+                """
+                instance = instance[1]
+                return serializers.IntegerField(read_only=True).to_representation(instance)
 
         self.facet_field_serializer = FacetFieldSerializer
 
@@ -225,7 +240,9 @@ class HaystackFacetSerializer(serializers.Serializer):
         field_mapping = OrderedDict()
         for field, data in self.instance.items():
             field_mapping.update(
-                {field: serializers.DictField(child=self.facet_field_serializer(data), required=False)}
+                {field: serializers.DictField(
+                    child=serializers.ListField(child=self.facet_field_serializer(data)),
+                    required=False)}
             )
         return field_mapping
 
