@@ -195,66 +195,57 @@ class HaystackSerializer(serializers.Serializer):
         return serializer_class(context=self._context).to_representation(instance)
 
 
-class HaystackSerializerMixin(object):
+class HaystackFacetSerializer(serializers.Serializer):
     """
-    This mixin can be added to a serializer to use the actual object as the data source for serialization rather
-    than the data stored in the search index fields.  This makes it easy to return data from search results in
-    the same format as elsewhere in your API and reuse your existing serializers
-    """
-
-    def to_representation(self, instance):
-        obj = instance.object
-        return super(HaystackSerializerMixin, self).to_representation(obj)
-
-
-class HighlighterMixin(object):
-    """
-    This mixin adds support for ``highlighting`` (the pure python, portable
-    version, not SearchQuerySet().highlight()). See Haystack docs
-    for more info).
+    The ``HaystackFacetSerializer`` is used to serialize the ``facet_counts``
+    dictionary results on a ``SearchQuerySet`` instance.
     """
 
-    highlighter_class = Highlighter
-    highlighter_css_class = "highlighted"
-    highlighter_html_tag = "span"
-    highlighter_max_length = 200
-    highlighter_field = None
+    def __init__(self, *args, **kwargs):
+        super(HaystackFacetSerializer, self).__init__(*args, **kwargs)
 
-    def get_highlighter(self):
-        if not self.highlighter_class:
-            raise ImproperlyConfigured(
-                "%(cls)s is missing a highlighter_class. Define %(cls)s.highlighter_class, "
-                "or override %(cls)s.get_highlighter()." %
-                {"cls": self.__class__.__name__}
+        class FacetFieldSerializer(serializers.Serializer):
+            text = serializers.SerializerMethodField()
+            count = serializers.SerializerMethodField()
+            # narrow_url = HyperlinkedIdentityField(view_name="search1-facets", read_only=True)
+
+            def get_text(self, instance):
+                return "foo"
+
+            def get_count(self, instance):
+                return "bar"
+
+        self.facet_field_serializer = FacetFieldSerializer
+
+    def get_fields(self):
+        """
+        This returns a dictionary containing the top most fields,
+        ``dates``, ``fields`` and ``queries``.
+        """
+        field_mapping = OrderedDict()
+        for field, data in self.instance.items():
+            field_mapping.update(
+                {field: serializers.DictField(child=self.facet_field_serializer(data), required=False)}
             )
-        return self.highlighter_class
-
-    @staticmethod
-    def get_document_field(instance):
-        """
-        Returns which field the search index has marked as it's
-        `document=True` field.
-        """
-        for name, field in instance.searchindex.fields.items():
-            if field.document is True:
-                return name
+        return field_mapping
 
     def to_representation(self, instance):
-        ret = super(HighlighterMixin, self).to_representation(instance)
-        terms = " ".join(six.itervalues(self.context["request"].GET))
-        if terms:
-            highlighter = self.get_highlighter()(terms, **{
-                "html_tag": self.highlighter_html_tag,
-                "css_class": self.highlighter_css_class,
-                "max_length": self.highlighter_max_length
-            })
-            document_field = self.get_document_field(instance)
-            if highlighter and document_field:
-                ret["highlighted"] = highlighter.highlight(getattr(instance, self.highlighter_field or document_field))
+        ret = OrderedDict()
+        for field in self._readable_fields:
+            try:
+                attribute = field.get_attribute(self.instance)
+            except SkipField:
+                continue
+
+            if attribute is None:
+                ret[field.field_name] = None
+            else:
+                ret[field.field_name] = field.to_representation(attribute)
+
         return ret
 
 
-# class FacetSerializer(serializers.Serializer):
+# class HaystackFacetSerializer(serializers.Serializer):
 #     """
 #
 #     """
@@ -262,7 +253,7 @@ class HighlighterMixin(object):
 #
 #
 #     def __init__(self, *args, **kwargs):
-#         super(FacetSerializer, self).__init__(*args, **kwargs)
+#         super(HaystackFacetSerializer, self).__init__(*args, **kwargs)
 #
 #         class FacetFieldSerializer(serializers.Serializer):
 #             """
@@ -373,3 +364,62 @@ class HighlighterMixin(object):
 #     #
 #     # def get_facet_queries(self, instance):
 #     #     return self.field_response("queries", instance)
+
+
+class HaystackSerializerMixin(object):
+    """
+    This mixin can be added to a serializer to use the actual object as the data source for serialization rather
+    than the data stored in the search index fields.  This makes it easy to return data from search results in
+    the same format as elsewhere in your API and reuse your existing serializers
+    """
+
+    def to_representation(self, instance):
+        obj = instance.object
+        return super(HaystackSerializerMixin, self).to_representation(obj)
+
+
+class HighlighterMixin(object):
+    """
+    This mixin adds support for ``highlighting`` (the pure python, portable
+    version, not SearchQuerySet().highlight()). See Haystack docs
+    for more info).
+    """
+
+    highlighter_class = Highlighter
+    highlighter_css_class = "highlighted"
+    highlighter_html_tag = "span"
+    highlighter_max_length = 200
+    highlighter_field = None
+
+    def get_highlighter(self):
+        if not self.highlighter_class:
+            raise ImproperlyConfigured(
+                "%(cls)s is missing a highlighter_class. Define %(cls)s.highlighter_class, "
+                "or override %(cls)s.get_highlighter()." %
+                {"cls": self.__class__.__name__}
+            )
+        return self.highlighter_class
+
+    @staticmethod
+    def get_document_field(instance):
+        """
+        Returns which field the search index has marked as it's
+        `document=True` field.
+        """
+        for name, field in instance.searchindex.fields.items():
+            if field.document is True:
+                return name
+
+    def to_representation(self, instance):
+        ret = super(HighlighterMixin, self).to_representation(instance)
+        terms = " ".join(six.itervalues(self.context["request"].GET))
+        if terms:
+            highlighter = self.get_highlighter()(terms, **{
+                "html_tag": self.highlighter_html_tag,
+                "css_class": self.highlighter_css_class,
+                "max_length": self.highlighter_max_length
+            })
+            document_field = self.get_document_field(instance)
+            if highlighter and document_field:
+                ret["highlighted"] = highlighter.highlight(getattr(instance, self.highlighter_field or document_field))
+        return ret

@@ -279,7 +279,7 @@ class HaystackFacetFilter(HaystackFilter):
     # TODO: Need a better way to determine if to apply date or field faceting
 
     @staticmethod
-    def build_filter(view, filters=None):
+    def build_facet_filter(view, filters=None):
         """
         Creates a dict of dictionaries suitable for passing to the
         ``SearchQuerySet().facet()`` method.
@@ -287,21 +287,23 @@ class HaystackFacetFilter(HaystackFilter):
             /api/v1/search/?firstname=limit:100&created=start_date:21. Jan 2015,gap_by:day
         """
 
-        facets = {}
+        field_facets = {}
         date_facets = {}
+        query_facets = {}
+        facet_serializer_cls = view.get_facet_serializer_class()
 
         if filters is None:
             filters = {}  # pragma: no cover
 
-        if view.lookup_sep == ":":
-            raise AttributeError("The %s.lookup_sep attribute conflicts with the HaystackFacetFilter "
-                                 "query parameter parser. Please choose another `lookup_sep` attribute "
-                                 "for %s." % view.__class__.__name__)
+        # if view.lookup_sep == ":":
+        #     raise AttributeError("The %s.lookup_sep attribute conflicts with the HaystackFacetFilter "
+        #                          "query parameter parser. Please choose another `lookup_sep` attribute "
+        #                          "for %s." % view.__class__.__name__)
 
         try:
-            fields = getattr(view.serializer_class.Meta, "fields", [])
-            exclude = getattr(view.serializer_class.Meta, "exclude", [])
-            field_options = getattr(view.serializer_class.Meta, "field_options", {})
+            fields = getattr(facet_serializer_cls.Meta, "fields", [])
+            exclude = getattr(facet_serializer_cls.Meta, "exclude", [])
+            field_options = getattr(facet_serializer_cls.Meta, "field_options", {})
 
             for field, options in filters.items():
 
@@ -319,32 +321,50 @@ class HaystackFacetFilter(HaystackFilter):
                     field_options[field] = defaults
 
             for field, options in field_options.items():
+
                 if any([k in options for k in ("start_date", "end_date", "gap_by", "gap_amount")]):
+
                     valid_gap = ("year", "month", "day", "hour", "minute", "second")
                     if not all(("start_date", "end_date", "gap_by" in options)):
                         raise ValueError("Date faceting requires at least 'start_date', 'end_date' "
                                          "and 'gap_by' to be set.")
+
                     if not options["gap_by"] in valid_gap:
                         raise ValueError("The 'gap_by' parameter must be one of %s." % ", ".join(valid_gap))
+
                     options.setdefault("gap_amount", 1)
                     date_facets[field] = field_options[field]
 
                 else:
-                    facets[field] = field_options[field]
+                    field_facets[field] = field_options[field]
 
         except AttributeError:
             raise ImproperlyConfigured("%s must implement a Meta class." %
-                                       view.serializer_class.__class__.__name__)
+                                       facet_serializer_cls.__class__.__name__)
 
-        return facets, date_facets
+        return {
+            "date_facets": date_facets,
+            "field_facets": field_facets,
+            "query_facets": query_facets
+        }
+
+    @staticmethod
+    def apply_facets(queryset, filters):
+        """
+        Apply faceting to the queryset
+        """
+
+        for field, options in filters["field_facets"].items():
+            queryset = queryset.facet(field, **options)
+
+        for field, options in filters["date_facets"].items():
+            queryset = queryset.date_facet(field, **options)
+
+        # TODO: Implement support for query faceting
+        # for field, options in filters["query_facets"].items():
+        #     continue
+
+        return queryset
 
     def filter_queryset(self, request, queryset, view):
-        queryset = super(HaystackFacetFilter, self).filter_queryset(request, queryset, view)
-        facets, date_facets = self.build_filter(view, filters=self.get_request_filters(request))
-        if facets:
-            for field, options in facets.items():
-                queryset = queryset.facet(field, **options)
-        if date_facets:
-            for field, options in date_facets.items():
-                queryset = queryset.date_facet(field, **options)
-        return queryset
+        return self.apply_facets(queryset, filters=self.build_facet_filter(view, self.get_request_filters(request)))

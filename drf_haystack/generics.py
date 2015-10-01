@@ -11,7 +11,7 @@ from haystack.query import SearchQuerySet
 from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny
 
-from .filters import HaystackFilter
+from .filters import HaystackFilter, HaystackFacetFilter
 
 
 class HaystackGenericAPIView(GenericAPIView):
@@ -22,7 +22,6 @@ class HaystackGenericAPIView(GenericAPIView):
     # should include in the search result.
     index_models = []
 
-    facet_serializer_class = None
     object_class = SearchQuerySet
     query_object = SQ
 
@@ -32,11 +31,11 @@ class HaystackGenericAPIView(GenericAPIView):
     document_uid_field = "id"
     lookup_sep = ","
 
-    #
-    # REST Framework overrides
-    #
     filter_backends = [HaystackFilter]
     permission_classes = [AllowAny]
+
+    facet_filter_backends = [HaystackFacetFilter]
+    facet_serializer_class = None
 
     def get_queryset(self):
         """
@@ -73,6 +72,15 @@ class HaystackGenericAPIView(GenericAPIView):
             raise Http404("Multiple results matches the given query. Expected a single result.")
 
         raise Http404("No result matches the given query.")
+
+    def filter_facet_queryset(self, queryset):
+        """
+        Given a search queryset, filter it with whichever facet filter backends
+        in use.
+        """
+        for backend in list(self.facet_filter_backends):
+            queryset = backend().filter_queryset(self.request, queryset, self)
+        return queryset
 
     def get_facet_serializer(self, *args, **kwargs):
         """

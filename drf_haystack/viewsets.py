@@ -44,7 +44,6 @@ class HaystackViewSet(RetrieveModelMixin, ListModelMixin, ViewSetMixin, Haystack
 
         This will add ie ^search/facets/$ to your existing ^search pattern.
         """
-
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_facet_serializer(queryset.facet_counts(), many=True)
+        queryset = self.filter_facet_queryset(self.get_queryset())
+        serializer = self.get_facet_serializer(queryset.facet_counts(), many=False)
         return Response(serializer.data)

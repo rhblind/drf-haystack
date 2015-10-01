@@ -17,6 +17,8 @@ from .serializers import (
 class SearchViewSet1(HaystackViewSet):
     index_models = [MockPerson]
     serializer_class = SearchSerializer
+
+    # Faceting
     facet_serializer_class = MockPersonFacetSerializer
 
 
