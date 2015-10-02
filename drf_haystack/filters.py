@@ -17,6 +17,8 @@ from haystack.query import SearchQuerySet
 
 from rest_framework.filters import BaseFilterBackend
 
+from .utils import merge_dict
+
 
 class HaystackFilter(BaseFilterBackend):
     """
@@ -273,13 +275,41 @@ class HaystackFacetFilter(HaystackFilter):
     where each option,value set is separated by the ``view.lookup_sep`` attribute.
     """
 
-    # TODO: Fix a better way to update `field_options` from query parameters.
     # TODO: Support multiple indexes/serializers
-    # TODO: Need to support multiple options separated by `view.lookup_sep`
-    # TODO: Need a better way to determine if to apply date or field faceting
 
     @staticmethod
-    def build_facet_filter(view, filters=None):
+    def parse(lookup_sep, options):
+        """
+        Parse the field options and return it as a dictionary suitable
+        for passing to the ``facet()``, ``date_facet()`` or ``query_facet()``
+        method.
+        """
+        defaults = {}
+        if isinstance(options, six.text_type):
+
+            tokens = [token.strip() for token in options.split(lookup_sep)]
+
+            for token in tokens:
+                if not len(token.split(":")) == 2:
+                    warnings.warn("The %s token is not properly formatted. Tokens need to be "
+                                  "formatted as 'token:value' pairs." % token)
+                    continue
+
+                param, value = token.split(":")
+
+                if any([k == param for k in ("start_date", "end_date", "gap_amount")]):
+
+                    if param in ("start_date", "end_date"):
+                        value = parser.parse(value)
+
+                    if param == "gap_amount":
+                        value = int(value)
+
+                defaults[param] = value
+
+        return defaults
+
+    def build_facet_filter(self, view, filters=None):
         """
         Creates a dict of dictionaries suitable for passing to the
         ``SearchQuerySet().facet()`` method.
@@ -295,10 +325,10 @@ class HaystackFacetFilter(HaystackFilter):
         if filters is None:
             filters = {}  # pragma: no cover
 
-        # if view.lookup_sep == ":":
-        #     raise AttributeError("The %s.lookup_sep attribute conflicts with the HaystackFacetFilter "
-        #                          "query parameter parser. Please choose another `lookup_sep` attribute "
-        #                          "for %s." % view.__class__.__name__)
+        if view.lookup_sep == ":":
+            raise AttributeError("The %(cls)s.lookup_sep attribute conflicts with the HaystackFacetFilter "
+                                 "query parameter parser. Please choose another `lookup_sep` attribute "
+                                 "for %(cls)s." % {"cls": view.__class__.__name__})
 
         try:
             fields = getattr(facet_serializer_cls.Meta, "fields", [])
@@ -310,21 +340,12 @@ class HaystackFacetFilter(HaystackFilter):
                 if field not in fields or field in exclude:
                     continue
 
-                if field in field_options and len(options.split(":")) == 2:
-                    param, value = options.split(":")
+                field_options = merge_dict(field_options, {field: self.parse(view.lookup_sep, options)})
 
-                    if param in ("start_date", "end_date"):
-                        value = parser.parse(value)
-
-                    defaults = field_options.pop(field, {})
-                    defaults.update({param: value})
-                    field_options[field] = defaults
-
+            valid_gap = ("year", "month", "day", "hour", "minute", "second")
             for field, options in field_options.items():
-
                 if any([k in options for k in ("start_date", "end_date", "gap_by", "gap_amount")]):
 
-                    valid_gap = ("year", "month", "day", "hour", "minute", "second")
                     if not all(("start_date", "end_date", "gap_by" in options)):
                         raise ValueError("Date faceting requires at least 'start_date', 'end_date' "
                                          "and 'gap_by' to be set.")
