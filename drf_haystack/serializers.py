@@ -234,15 +234,15 @@ class HaystackFacetSerializer(serializers.Serializer):
                 instance = instance[1]
                 return serializers.IntegerField(read_only=True).to_representation(instance)
 
-            def get_narrow_url(self, instance):
-                """
-                Return a link suitable for narrowing on the current item.
-
-                Since we don't have any means of getting the ``view name`` from here,
-                we can only return relative urls.
-                """
-
-                return "narrow url"
+            # def get_narrow_url(self, instance):
+            #     """
+            #     Return a link suitable for narrowing on the current item.
+            #
+            #     Since we don't have any means of getting the ``view name`` from here,
+            #     we can only return relative urls.
+            #     """
+            #     # TODO: Implement me!
+            #     return "narrow url"
 
         self.facet_field_serializer = FacetFieldSerializer
 
