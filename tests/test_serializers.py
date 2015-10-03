@@ -7,6 +7,7 @@ from __future__ import absolute_import, unicode_literals
 
 import json
 import warnings
+from datetime import datetime, timedelta
 
 from django.conf.urls import url, include
 from django.core.exceptions import ImproperlyConfigured
@@ -17,7 +18,10 @@ from rest_framework.routers import DefaultRouter
 from rest_framework.test import APIRequestFactory, APITestCase
 
 from drf_haystack.generics import SQHighlighterMixin
-from drf_haystack.serializers import HighlighterMixin, HaystackSerializer, HaystackSerializerMixin
+from drf_haystack.serializers import (
+    HighlighterMixin, HaystackSerializer,
+    HaystackSerializerMixin, HaystackFacetSerializer
+)
 from drf_haystack.viewsets import HaystackViewSet
 
 from .mockapp.models import MockPerson, MockPet
@@ -46,8 +50,26 @@ class SearchPersonSerializer(HaystackSerializer):
         fields = ["firstname", "lastname", "full_name"]
 
 
+class SearchPersonFacetSerializer(HaystackFacetSerializer):
+
+    class Meta:
+        index_classes = [MockPersonIndex]
+        fields = ["firstname", "lastname", "created"]
+        field_options = {
+            "firstname": {},
+            "lastname": {},
+            "created": {
+                "start_date": datetime.now() - timedelta(days=10 * 365),
+                "end_date": datetime.now(),
+                "gap_by": "month",
+                "gap_amount": 7
+            }
+        }
+
+
 class SearchPersonViewSet(HaystackViewSet):
     serializer_class = SearchPersonSerializer
+    facet_serializer_class = SearchPersonFacetSerializer
 
     class Meta:
         index_models = [MockPerson]
@@ -396,6 +418,56 @@ class HaystackSerializerMoreLikeThisTestCase(APITestCase):
         )
 
 
+class HaystackFacetSerializerTestCase(TestCase):
+
+    fixtures = ["mockperson"]
+    urls = "tests.test_serializers"
+
+    def setUp(self):
+        MockPersonIndex().reindex()
+        self.response = self.client.get(
+            path="/search-person/facets/",
+            data={},
+            format=json
+        )
+
+    def tearDown(self):
+        MockPersonIndex().clear()
+
+    def test_serializer_facet_top_level_structure(self):
+        for key in ("fields", "dates", "queries"):
+            self.assertContains(self.response, key, count=1)
+
+    def test_serializer_facet_field_result(self):
+        fields = self.response.data["fields"]
+        for field in ("firstname", "lastname"):
+            self.assertTrue(field in fields)
+            self.assertTrue(isinstance(fields[field], list))
+
+        self.assertEqual(len(fields["firstname"]), 88)
+        self.assertEqual(len(fields["lastname"]), 97)
+
+        firstname = fields["firstname"][0]
+        self.assertTrue([k in firstname for k in ("text", "count")])
+        self.assertEqual(firstname["text"], "John")
+        self.assertEqual(firstname["count"], 3)
+
+        lastname = fields["lastname"][0]
+        self.assertTrue([k in lastname for k in ("text", "count")])
+        self.assertEqual(lastname["text"], "Porter")
+        self.assertEqual(lastname["count"], 2)
+
+    def test_serializer_facet_date_result(self):
+        dates = self.response.data["dates"]
+        self.assertTrue("created" in dates)
+        self.assertTrue([k in dates for k in ("text", "count")])
+        self.assertEqual(len(dates["created"]), 1)
+
+        created = dates["created"][0]
+        self.assertEqual(created["text"], "2015-05-01T00:00:00")
+        self.assertEqual(created["count"], 100)
+
+
 class HaystackSerializerMixinTestCase(WarningTestCaseMixin, TestCase):
 
     fixtures = ["mockperson"]
@@ -471,7 +543,6 @@ class HaystackMultiSerializerTestCase(WarningTestCaseMixin, TestCase):
     def test_multi_serializer(self):
         objs = SearchQuerySet().filter(text="Zane")
         serializer = self.serializer1(instance=objs, many=True)
-        print(serializer.data)
         self.assertEqual(
             json.loads(json.dumps(serializer.data)),
             [{
