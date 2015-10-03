@@ -59,11 +59,3 @@ class MockPersonFacetSerializer(HaystackFacetSerializer):
                 "gap_amount": 10
             }
         }
-
-
-# class HaystackFacetSerializer(HaystackSerializer):
-#
-#     class Meta:
-#         serializers = {
-#             MockPersonIndex: MockPersonFacetSerializer
-#         }
