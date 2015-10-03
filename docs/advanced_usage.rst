@@ -401,6 +401,7 @@ the word ``hood``.
 
     Term boost are only applied on terms existing in the ``document field``.
 
+.. _faceting-label:
 
 Faceting
 ========
