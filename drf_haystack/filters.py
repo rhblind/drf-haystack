@@ -263,16 +263,15 @@ class HaystackBoostFilter(HaystackFilter):
 class HaystackFacetFilter(HaystackFilter):
     """
     Filter backend for faceting search results.
-    This backend does not apply regular filtering, and does not return
-    a ``SearchQuerySet``, but a ``facet_counts` dictionary list.
+    This backend does not apply regular filtering.
 
     Faceting field options can be set by using the ``field_options`` attribute
-    on the serializer, and will can be overridden by query parameters. Dates will be
-    parsed by the ``python-dateutil.parser()`` which can handle most formattings.
+    on the serializer, and can be overridden by query parameters. Dates will be
+    parsed by the ``python-dateutil.parser()`` which can handle most date formats.
 
     Query parameters is parsed in the following format:
       ?field1=option1:value1,option2:value2&field2=option1:value1,option2:value2
-    where each option,value set is separated by the ``view.lookup_sep`` attribute.
+    where each options ``key:value`` pair is separated by the ``view.lookup_sep`` attribute.
     """
 
     # TODO: Support multiple indexes/serializers
@@ -280,9 +279,7 @@ class HaystackFacetFilter(HaystackFilter):
     @staticmethod
     def parse(lookup_sep, options):
         """
-        Parse the field options and return it as a dictionary suitable
-        for passing to the ``facet()``, ``date_facet()`` or ``query_facet()``
-        method.
+        Parse the field options query string and return it as a dictionary.
         """
         defaults = {}
         if isinstance(options, six.text_type):
@@ -312,9 +309,7 @@ class HaystackFacetFilter(HaystackFilter):
     def build_facet_filter(self, view, filters=None):
         """
         Creates a dict of dictionaries suitable for passing to the
-        ``SearchQuerySet().facet()`` method.
-
-            /api/v1/search/?firstname=limit:100&created=start_date:21. Jan 2015,gap_by:day
+        SearchQuerySet ``facet``, ``date_facet`` or ``query_facet`` method.
         """
 
         field_facets = {}
