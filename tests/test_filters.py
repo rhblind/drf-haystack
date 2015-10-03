@@ -6,6 +6,8 @@
 from __future__ import absolute_import, unicode_literals
 
 import json
+from datetime import datetime, timedelta
+
 from unittest2 import skipIf
 
 from django.core.exceptions import ImproperlyConfigured
@@ -16,13 +18,14 @@ from rest_framework import serializers
 from rest_framework.test import APIRequestFactory
 
 from drf_haystack.viewsets import HaystackViewSet
-from drf_haystack.serializers import HaystackSerializer
+from drf_haystack.serializers import HaystackSerializer, HaystackFacetSerializer
 from drf_haystack.filters import (
     HaystackAutocompleteFilter, HaystackBoostFilter,
     HaystackGEOSpatialFilter, HaystackHighlightFilter,
     HaystackFacetFilter)
 
 from . import geospatial_support
+from .mixins import WarningTestCaseMixin
 from .constants import MOCKLOCATION_DATA_SET_SIZE, MOCKPERSON_DATA_SET_SIZE
 from .mockapp.models import MockLocation, MockPerson
 from .mockapp.search_indexes import MockLocationIndex, MockPersonIndex
@@ -184,6 +187,7 @@ class HaystackFilterTestCase(TestCase):
         response = self.view1.as_view(actions={"get": "list"})(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
+
 
 class HaystackAutocompleteFilterTestCase(TestCase):
 
@@ -377,28 +381,82 @@ class HaystackBoostFilterTestCase(TestCase):
         )
 
 
-class HaystackFacetFilterTestCase(TestCase):
+class HaystackFacetFilterTestCase(WarningTestCaseMixin, TestCase):
 
     fixtures = ["mockperson"]
 
     def setUp(self):
         MockPersonIndex().reindex()
 
-        class Serializer1(serializers.Serializer):
+        class FacetSerializer1(HaystackFacetSerializer):
 
             class Meta:
                 index_classes = [MockPersonIndex]
                 fields = ["firstname", "lastname", "created"]
 
+        class FacetSerializer2(HaystackFacetSerializer):
+
+            class Meta:
+                index_classes = [MockPersonIndex]
+                fields = ["firstname", "lastname", "created"]
+                field_options = {
+                    "firstname": {},
+                    "lastname": {},
+                    "created": {
+                        "start_date": datetime.now() - timedelta(days=3 * 365),
+                        "end_date": datetime.now(),
+                        "gap_by": "day",
+                        "gap_amount": 10
+                    }
+                }
+
         class ViewSet1(HaystackViewSet):
             index_models = [MockPerson]
-            serializer_class = Serializer1
-            filter_backends = [HaystackFacetFilter]
+            facet_serializer_class = FacetSerializer1
+
+        class ViewSet2(HaystackViewSet):
+            index_models = [MockPerson]
+            facet_serializer_class = FacetSerializer2
 
         self.view1 = ViewSet1
+        self.view2 = ViewSet2
 
     def tearDown(self):
         MockPersonIndex().clear()
 
-    def test_filter_facet_counts(self):
-        pass
+    def test_filter_facet_no_field_options(self):
+        request = factory.get("/", data={}, content_type="application/json")
+        response = self.view1.as_view(actions={"get": "facets"})(request)
+        response.render()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(json.loads(response.content.decode()), {})
+
+    def test_filter_facet_serializer_no_field_options_missing_required_query_parameters(self):
+        request = factory.get("/", data={"created": "start_date:Oct 3rd 2015"}, content_type="application/json")
+        try:
+            self.view1.as_view(actions={"get": "facets"})(request)
+            self.fail("Did not raise ValueError when called without all required "
+                      "attributes and no default field_options is set.")
+        except ValueError as e:
+            self.assertEqual(
+                str(e),
+                "Date faceting requires at least 'start_date', 'end_date' and 'gap_by' to be set."
+            )
+
+    def test_filter_facet_no_field_options_valid_required_query_parameters(self):
+        request = factory.get(
+            "/",
+            data={"created": "start_date:Jan 1th 2010,end_date:Dec 31th 2020,gap_by:month,gap_amount:1"},
+            content_type="application/json"
+        )
+        response = self.view1.as_view(actions={"get": "facets"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_filter_facet_with_field_options(self):
+        request = factory.get("/", data={}, content_type="application/json")
+        response = self.view2.as_view(actions={"get": "facets"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_filter_facet_warn_on_inproperly_formatted_token(self):
+        request = factory.get("/", data={"firstname": "token"}, content_type="application/json")
+        self.assertWarning(UserWarning, self.view2.as_view(actions={"get": "facets"}), request)
