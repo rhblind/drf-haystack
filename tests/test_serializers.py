@@ -24,22 +24,11 @@ from drf_haystack.serializers import (
 )
 from drf_haystack.viewsets import HaystackViewSet
 
+from .mixins import WarningTestCaseMixin
 from .mockapp.models import MockPerson, MockPet
 from .mockapp.search_indexes import MockPersonIndex, MockPetIndex
 
 factory = APIRequestFactory()
-
-
-class WarningTestCaseMixin(object):
-    """
-    TestCase mixin to catch warnings
-    """
-
-    def assertWarning(self, warning, callable, *args, **kwargs):
-        with warnings.catch_warnings(record=True) as warning_list:
-            warnings.simplefilter(action="always")
-            callable(*args, **kwargs)
-            self.assertTrue(any(item.category == warning for item in warning_list))
 
 
 class SearchPersonSerializer(HaystackSerializer):
@@ -381,7 +370,7 @@ class HaystackSerializerHighlighterMixinTestCase(WarningTestCaseMixin, TestCase)
         request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")
         try:
             self.viewset3.as_view(actions={"get": "list"})(request)
-            self.fail("Did not raise ImproperlyConfigured error when called without as serializer_class")
+            self.fail("Did not raise ImproperlyConfigured error when called without a serializer_class")
         except ImproperlyConfigured as e:
             self.assertEqual(
                 str(e),
