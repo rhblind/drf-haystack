@@ -420,23 +420,115 @@ functionality is implemented by setting up a special ``^search/facets/$`` route 
 First, read the `Haystack faceting docs <http://django-haystack.readthedocs.org/en/latest/faceting.html>`_ and set up
 your search index for faceting.
 
-Faceting on fields
-------------------
+Serializing faceted fields
+--------------------------
 
-Add a ``facet_field`` attribute on your search viewset. This must be a ``list of dictionaries`` where each
-dictionary holds the field name and ``**options`` which should be used to facet on that particular field.
+Faceting is a little special in terms that it *does not* care about SearchQuerySet filtering. Faceting is performed
+by calling the ``SearchQuerySet().facet_counts()`` method, which will return a dictionary with the faceted results.
+Therefore we have a special ``HaystackFacetSerializer`` class which is designed to serialize these results.
+
+.. tip::
+
+    It *is* possible to perform faceting on a subset of the queryset, in which case you'd have to override the
+    ``get_queryset()`` method of the view to limit the queryset before it is passed on to the
+    ``filter_facet_queryset()`` method.
+
+The ``HaystackFacetSerializer`` acts as a normal serializer except that it does not pick up any explicitly declared
+fields, and that it is possible to set up a default set of ``field_options`` which will be passed on to the
+``facet_counts()`` method.
+
+**Facet serializer example**
 
 .. code-block:: python
 
-    class SearchViewSet(HaystackViewSet):
-        ...
-        index_models = [Persons]
-        facet_fields = [
-            {"firstname": {"sort": "index", "limit": -1}},  # "sort" and "limit" are Solr specific options!
-            {"lastname": {}}
-        ]
+    class PersonFacetSerializer(HaystackFacetSerializer):
+
+        class Meta:
+            index_classes = [PersonIndex]
+            fields = ["firstname", "lastname", "created"]
+            field_options = {
+                "firstname": {},
+                "lastname": {},
+                "created": {
+                    "start_date": datetime.now() - timedelta(days=3 * 365),
+                    "end_date": datetime.now(),
+                    "gap_by": "month",
+                    "gap_amount": 3
+                }
+            }
+
+The declared ``field_options`` will be used as default options when faceting is applied to the queryset, but can be
+overridden by supplying query string parameters in the following format.
+
+    .. code-block:: none
+
+        ?firstname=limit:1&created=start_date:20th May 2014,gap_by:year
+
+Each field can be fed options as ``key:value`` pairs. Multiple ``key:value`` pairs can be supplied and
+will be separated by the ``view.lookup_sep`` attribute (which defaults to comma). Any ``start_date`` and ``end_date``
+parameters will be parsed by the python-dateutil
+`parser() <https://labix.org/python-dateutil#head-a23e8ae0a661d77b89dfb3476f85b26f0b30349c>`_ (which can handle most
+common date formats).
+
+    .. note::
+
+        The ``HaystackFacetFilter`` parses query string parameter options, separated with the ``view.lookup_sep``
+        attribute. Each option is parsed as ``key:value`` pairs where the ``:`` is a hardcoded separator. Setting
+        the ``view.lookup_sep`` attribute to ``":"`` will raise an AttributeError.
+
+    .. warning::
+
+        Do *not* use the ``HaystackFacetFilter`` in the regular ``filter_backends`` attribute on the serializer.
+        It will almost certainly produce errors or weird results.
+
+Setting up the view
+-------------------
+
+Any view that inherits the ``HaystackViewSet`` will have a special
+`action route <http://www.django-rest-framework.org/api-guide/viewsets/#marking-extra-actions-for-routing>`_ added as
+``^<view-url>/facets/$``. This view action will not care about regular filtering but will by default use the
+``HaystackFacetFilter`` to perform filtering.
+
+.. note::
+
+    In order to avoid confusing the filtering mechanisms in Django Rest Framework, the ``HaystackGenericAPIView`` base
+    class has a couple of new hooks for dealing with faceting, namely:
+
+        - ``facet_filter_backends`` - A list of filter backends that will be used to apply faceting to the queryset.
+          Defaults to ``HaystackFacetFilter``, which should be sufficient in most cases.
+        - ``facet_serializer_class`` - The ``HaystackFacetSerializer`` subclass instance that will be used for
+          serializing the result.
+        - ``filter_facet_queryset()`` - Works exactly as the normal ``filter_queryset()`` method, but will only filter
+          on backends in the ``facet_filter_backends`` list.
+        - ``get_facet_serializer_class()`` - Returns the ``facet_serializer_class`` class attribute.
+        - ``get_facet_serializer()`` - Instantiates and returns the ``HaystackFacetSerializer`` class returned from
+          ``get_facet_serializer_class()``.
 
 
+In order to set up a view which can respond to regular queries under ie ``^search/$`` and faceted queries under
+``^search/facets/$``, we could do something like this.
+
+.. code-block:: python
+
+    class SearchPersonViewSet(HaystackViewSet):
+
+        index_models = [MockPerson]
+
+        # This will be used to filter and serialize regular queries
+        serializer_class = SearchSerializer
+        filter_backends = [HaystackHighlightFilter, HaystackAutocompleteFilter]
+
+        # This will be used to filter and serialize faceted results
+        facet_serializer_class = PersonFacetSerializer  # See example above!
+        facet_filter_backends = [HaystackFacetFilter]   # This is the default facet filter, and can be left out.
+
+
+Narrowing
+---------
+
+.. todo::
+
+    This is not yet implemented!
 
 
 .. _permission-classes-label:
