@@ -205,6 +205,26 @@ class HaystackFacetSerializer(serializers.Serializer):
     def __init__(self, *args, **kwargs):
         super(HaystackFacetSerializer, self).__init__(*args, **kwargs)
 
+        class FacetDictField(serializers.DictField):
+            """
+            A special DictField which passes the key attribute down to the children
+            ``to_representation`` in order to let the serializer know what they're
+            currently processing.
+            """
+            def to_representation(self, value):
+                return dict([
+                    (six.text_type(key), self.child.to_representation(key, val))
+                    for key, val in value.items()
+                ])
+
+        class FacetListField(serializers.ListField):
+            """
+            The ``FacetListField`` just pass along the key derived from
+            ``FacetDictField``.
+            """
+            def to_representation(self, key, data):
+                return [self.child.to_representation(key, item) for item in data]
+
         class FacetFieldSerializer(serializers.Serializer):
             """
             Responsible for serializing each faceted result.
@@ -212,7 +232,19 @@ class HaystackFacetSerializer(serializers.Serializer):
 
             text = serializers.SerializerMethodField()
             count = serializers.SerializerMethodField()
-            # narrow_url = serializers.SerializerMethodField()  # TODO: Implement me!
+            narrow_url = serializers.SerializerMethodField()
+
+            def __init__(self, *args, **kwargs):
+                self._parent_field = None
+                super(FacetFieldSerializer, self).__init__(*args, **kwargs)
+
+            @property
+            def parent_field(self):
+                return self._parent_field
+
+            @parent_field.setter
+            def parent_field(self, value):
+                self._parent_field = value
 
             def get_text(self, instance):
                 """
@@ -234,31 +266,47 @@ class HaystackFacetSerializer(serializers.Serializer):
                 instance = instance[1]
                 return serializers.IntegerField(read_only=True).to_representation(instance)
 
-            # def get_narrow_url(self, instance):
-            #     """
-            #     Return a link suitable for narrowing on the current item.
-            #
-            #     Since we don't have any means of getting the ``view name`` from here,
-            #     we can only return relative urls.
-            #     """
-            #     # TODO: Implement me!
-            #     return "narrow url"
+            def get_narrow_url(self, instance):
+                """
+                Return a link suitable for narrowing on the current item.
 
-        self.facet_field_serializer = FacetFieldSerializer
+                Since we don't have any means of getting the ``view name`` from here,
+                we can only return relative paths.
+                """
+                text = instance[0]
+                return serializers.Hyperlink("%(path)snarrow/?selected_facets=%(field)s_exact:%(text)s" % {
+                    "path": self.context["request"].path_info, "field": self.parent_field, "text": str(text)
+                }, name="narrow-url")
+
+            def to_representation(self, field, instance):
+                """
+                Here we get the currently processing field name as the first argument.
+                Set the property on the serializer class, so that each field can query it
+                to see what kind of attribute they are processing.
+                """
+                self.parent_field = field
+                return super(FacetFieldSerializer, self).to_representation(instance)
+
+        self.FacetDictField = FacetDictField
+        self.FacetListField = FacetListField
+        self.FacetFieldSerializer = FacetFieldSerializer
 
     def get_fields(self):
         """
         This returns a dictionary containing the top most fields,
         ``dates``, ``fields`` and ``queries``.
         """
+
         field_mapping = OrderedDict()
         for field, data in self.instance.items():
             field_mapping.update(
-                {field: serializers.DictField(
-                    child=serializers.ListField(child=self.facet_field_serializer(data), label=field),
-                    required=False)}
+                {field: self.FacetDictField(
+                    child=self.FacetListField(child=self.FacetFieldSerializer(data)), required=False)}
             )
         return field_mapping
+
+    def to_representation(self, instance):
+        return super(HaystackFacetSerializer, self).to_representation(instance)
 
 
 class HaystackSerializerMixin(object):
