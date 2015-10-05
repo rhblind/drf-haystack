@@ -279,7 +279,7 @@ class HaystackFacetSerializer(serializers.Serializer):
 
                 selected_facets = set(query_params.pop("selected_facets", []))
                 selected_facets.add("%(field)s_exact:%(text)s" % {"field": self.parent_field, "text": str(text)})
-                query_params.setlist("selected_facets", selected_facets)
+                query_params.setlist("selected_facets", sorted(selected_facets))
 
                 return serializers.Hyperlink("%(path)s?%(query)s" % {
                     "path": self.context["request"].path_info,
