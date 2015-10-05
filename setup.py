@@ -48,7 +48,7 @@ setup(
     test_suite="tests.runtests.start",
     classifiers=[
         "Operating System :: OS Independent",
-        "Development Status :: 5 - Production/Stables",
+        "Development Status :: 5 - Production/Stable",
         "Environment :: Web Environment",
         "Framework :: Django",
         "Intended Audience :: Developers",
