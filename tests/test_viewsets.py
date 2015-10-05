@@ -14,6 +14,7 @@ from rest_framework.serializers import Serializer
 from rest_framework.test import force_authenticate, APIRequestFactory
 
 from drf_haystack.viewsets import HaystackViewSet
+from drf_haystack.serializers import HaystackFacetSerializer
 
 from .mockapp.models import MockPerson
 from .mockapp.search_indexes import MockPersonIndex
@@ -30,8 +31,14 @@ class HaystackViewSetTestCase(TestCase):
         MockPersonIndex().reindex()
         self.router = SimpleRouter()
 
+        class FacetSerializer(HaystackFacetSerializer):
+
+            class Meta:
+                fields = ["firstname", "lastname", "created"]
+
         class ViewSet(HaystackViewSet):
             serializer_class = Serializer
+            facet_serializer_class = FacetSerializer
 
         self.view = ViewSet
 
@@ -76,12 +83,23 @@ class HaystackViewSetTestCase(TestCase):
         setattr(self.view, "lookup_field", "custom_lookup")
         request = factory.get(path="/", data="", content_type="application/json")
         response = self.view.as_view(actions={"get": "retrieve"})(request, custom_lookup=1)
+        setattr(self.view, "lookup_field", "pk")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_viewset_more_like_this_decorator(self):
         route = self.router.get_routes(self.view)[2:].pop()
         self.assertEqual(route.url, "^{prefix}/{lookup}/more-like-this{trailing_slash}$")
         self.assertEqual(route.mapping, {"get": "more_like_this"})
+
+    def test_viewset_more_like_this_action_route(self):
+        request = factory.get(path="/", data={}, content_type="application/json")
+        response = self.view.as_view(actions={"get": "more_like_this"})(request, pk=1)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_viewset_facets_action_route(self):
+        request = factory.get(path="/", data={}, content_type="application/json")
+        response = self.view.as_view(actions={"get": "facets"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class HaystackViewSetPermissionsTestCase(TestCase):
