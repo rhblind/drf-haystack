@@ -58,7 +58,7 @@ Changelog
 
 v1.5.3
 ------
-*Release date: Not released*
+*Release date: 2015-10-05*
 
     - Added support for :ref:`faceting-label` (Github :drf-issue:`11`).
 
