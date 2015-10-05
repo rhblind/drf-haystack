@@ -11,8 +11,11 @@ from datetime import datetime, timedelta
 
 from django.conf.urls import url, include
 from django.core.exceptions import ImproperlyConfigured
+from django.http import QueryDict
 from django.test import TestCase
+
 from haystack.query import SearchQuerySet
+
 from rest_framework import serializers
 from rest_framework.routers import DefaultRouter
 from rest_framework.test import APIRequestFactory, APITestCase
@@ -437,24 +440,65 @@ class HaystackFacetSerializerTestCase(TestCase):
         self.assertEqual(len(fields["lastname"]), 97)
 
         firstname = fields["firstname"][0]
-        self.assertTrue([k in firstname for k in ("text", "count")])
+        self.assertTrue([k in firstname for k in ("text", "count", "narrow_url")])
         self.assertEqual(firstname["text"], "John")
         self.assertEqual(firstname["count"], 3)
+        self.assertEqual(firstname["narrow_url"], "/search-person/facets/?selected_facets=firstname_exact%3AJohn")
 
         lastname = fields["lastname"][0]
-        self.assertTrue([k in lastname for k in ("text", "count")])
+        self.assertTrue([k in lastname for k in ("text", "count", "narrow_url")])
         self.assertEqual(lastname["text"], "Porter")
         self.assertEqual(lastname["count"], 2)
+        self.assertEqual(lastname["narrow_url"], "/search-person/facets/?selected_facets=lastname_exact%3APorter")
 
     def test_serializer_facet_date_result(self):
         dates = self.response.data["dates"]
         self.assertTrue("created" in dates)
-        self.assertTrue([k in dates for k in ("text", "count")])
+        self.assertTrue([k in dates for k in ("text", "count", "narrow_url")])
         self.assertEqual(len(dates["created"]), 1)
 
         created = dates["created"][0]
         self.assertEqual(created["text"], "2015-05-01T00:00:00")
         self.assertEqual(created["count"], 100)
+        self.assertEqual(created["narrow_url"], "/search-person/facets/?selected_facets=created_exact%3A2015-05-01+00%3A00%3A00")
+
+    def test_serializer_facet_narrow(self):
+        response = self.client.get(
+            path="/search-person/facets/",
+            data=QueryDict("selected_facets=firstname_exact:John&selected_facets=lastname_exact:McClane"),
+            format="json"
+        )
+        self.maxDiff = None
+
+        self.assertEqual(response.data["queries"], {})
+
+        self.assertTrue([all(("firstname", "lastname" in response.data["fields"]))])
+
+        self.assertEqual(len(response.data["fields"]["firstname"]), 1)
+        self.assertEqual(response.data["fields"]["firstname"][0]["text"], "John")
+        self.assertEqual(response.data["fields"]["firstname"][0]["count"], 1)
+        print("firstname: ", response.data["fields"]["firstname"][0]["narrow_url"])
+        self.assertEqual(response.data["fields"]["firstname"][0]["narrow_url"], (
+            "/search-person/facets/?selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcClane"
+        ))
+
+        self.assertEqual(len(response.data["fields"]["lastname"]), 1)
+        self.assertEqual(response.data["fields"]["lastname"][0]["text"], "McClane")
+        self.assertEqual(response.data["fields"]["lastname"][0]["count"], 1)
+        print("lastname: ", response.data["fields"]["lastname"][0]["narrow_url"])
+        self.assertEqual(response.data["fields"]["lastname"][0]["narrow_url"], (
+            "/search-person/facets/?selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcClane"
+        ))
+
+        self.assertTrue("created" in response.data["dates"])
+        self.assertEqual(len(response.data["dates"]), 1)
+        self.assertEqual(response.data["dates"]["created"][0]["text"], "2015-05-01T00:00:00")
+        self.assertEqual(response.data["dates"]["created"][0]["count"], 1)
+        print("created: ", response.data["dates"]["created"][0]["narrow_url"])
+        self.assertEqual(response.data["dates"]["created"][0]["narrow_url"], (
+            "/search-person/facets/?selected_facets=created_exact%3A2015-05-01+00%3A00%3A00"
+            "&selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcClane"
+        ))
 
 
 class HaystackSerializerMixinTestCase(WarningTestCaseMixin, TestCase):

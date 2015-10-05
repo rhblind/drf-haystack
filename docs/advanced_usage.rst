@@ -482,6 +482,66 @@ common date formats).
         Do *not* use the ``HaystackFacetFilter`` in the regular ``filter_backends`` attribute on the serializer.
         It will almost certainly produce errors or weird results.
 
+**Example serialized content**
+
+The serialized content will look a little different than the default ``Haystack`` output.
+The top level items will *always* be **queries**, **fields** and **dates**, each containing a subset of fields
+matching the category. In the example below, we have faceted on the fields *firstname* and *lastname*, which will
+make them appear under the **fields** category. We also have faceted on the date field *created*, which will show up
+under the **dates** category. Next, each faceted result will have a ``text``, ``count`` and ``narrow_url``
+attribute which should be quite self explaining.
+
+    .. code-block:: json
+
+        {
+          "queries": {},
+          "fields": {
+            "firstname": [
+              {
+                "text": "John",
+                "count": 3,
+                "narrow_url": "/api/v1/search/facets/?selected_facets=firstname_exact%3AJohn"
+              },
+              {
+                "text": "Randall",
+                "count": 2,
+                "narrow_url": "/api/v1/search/facets/?selected_facets=firstname_exact%3ARandall"
+              },
+              {
+                "text": "Nehru",
+                "count": 2,
+                "narrow_url": "/api/v1/search/facets/?selected_facets=firstname_exact%3ANehru"
+              }
+            ],
+            "lastname": [
+              {
+                "text": "Porter",
+                "count": 2,
+                "narrow_url": "/api/v1/search/facets/?selected_facets=lastname_exact%3APorter"
+              },
+              {
+                "text": "Odonnell",
+                "count": 2,
+                "narrow_url": "/api/v1/search/facets/?selected_facets=lastname_exact%3AOdonnell"
+              },
+              {
+                "text": "Hood",
+                "count": 2,
+                "narrow_url": "/api/v1/search/facets/?selected_facets=lastname_exact%3AHood"
+              }
+            ]
+          },
+          "dates": {
+            "created": [
+              {
+                "text": "2015-05-15T00:00:00",
+                "count": 100,
+                "narrow_url": "/api/v1/search/facets/?selected_facets=created_exact%3A2015-05-15+00%3A00%3A00"
+              }
+            ]
+          }
+        }
+
 Setting up the view
 -------------------
 
@@ -527,10 +587,53 @@ In order to set up a view which can respond to regular queries under ie ``^searc
 Narrowing
 ---------
 
-.. todo::
+As we have seen in the examples above, the ``HaystackFacetSerializer`` will add a ``narrow_url`` attribute to each
+result it serializes. Follow that link to narrow the search result.
 
-    This is not yet implemented!
+The ``narrow_url`` is constructed like this:
 
+    - Read all query parameters from the request
+    - Get a list of ``selected_facets``
+    - Convert the list to a ``set()`` in order to avoid duplicates
+    - Add the current item to ``selected_facets`` and update the query parameters
+    - Return a ``serializers.Hyperlink`` with URL encoded query parameters.
+
+This means that for each drill-down performed, the original query parameters will be kept in order to make
+the ``HaystackFacetFilter`` happy. Additionally, all the previous ``selected_facets`` will be kept and applied
+to narrow the ``SearchQuerySet`` properly.
+
+**Example narrowed result**
+
+    .. code-block:: json
+
+        {
+          "queries": {},
+          "fields": {
+            "firstname": [
+              {
+                "text": "John",
+                "count": 1,
+                "narrow_url": "/api/v1/search/facets/?selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcLaughlin"
+              }
+            ],
+            "lastname": [
+              {
+                "text": "McLaughlin",
+                "count": 1,
+                "narrow_url": "/api/v1/search/facets/?selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcLaughlin"
+              }
+            ]
+          },
+          "dates": {
+            "created": [
+              {
+                "text": "2015-05-15T00:00:00",
+                "count": 1,
+                "narrow_url": "/api/v1/search/facets/?selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcLaughlin&selected_facets=created_exact%3A2015-05-15+00%3A00%3A00"
+              }
+            ]
+          }
+        }
 
 .. _permission-classes-label:
 

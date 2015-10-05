@@ -9,6 +9,7 @@ from datetime import datetime
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
+from django.utils.six.moves.urllib import parse as urlparse
 
 from haystack import fields as haystack_fields
 from haystack.query import EmptySearchQuerySet
@@ -198,12 +199,32 @@ class HaystackSerializer(serializers.Serializer):
 
 class HaystackFacetSerializer(serializers.Serializer):
     """
-    The ``HaystackFacetSerializer`` is used to serialize the ``facet_counts``
+    The ``HaystackFacetSerializer`` is used to serialize the ``facet_counts()``
     dictionary results on a ``SearchQuerySet`` instance.
     """
 
     def __init__(self, *args, **kwargs):
         super(HaystackFacetSerializer, self).__init__(*args, **kwargs)
+
+        class FacetDictField(serializers.DictField):
+            """
+            A special DictField which passes the key attribute down to the children's
+            ``to_representation()`` in order to let the serializer know what field they're
+            currently processing.
+            """
+            def to_representation(self, value):
+                return dict([
+                    (six.text_type(key), self.child.to_representation(key, val))
+                    for key, val in value.items()
+                ])
+
+        class FacetListField(serializers.ListField):
+            """
+            The ``FacetListField`` just pass along the key derived from
+            ``FacetDictField``.
+            """
+            def to_representation(self, key, data):
+                return [self.child.to_representation(key, item) for item in data]
 
         class FacetFieldSerializer(serializers.Serializer):
             """
@@ -212,7 +233,19 @@ class HaystackFacetSerializer(serializers.Serializer):
 
             text = serializers.SerializerMethodField()
             count = serializers.SerializerMethodField()
-            # narrow_url = serializers.SerializerMethodField()  # TODO: Implement me!
+            narrow_url = serializers.SerializerMethodField()
+
+            def __init__(self, *args, **kwargs):
+                self._parent_field = None
+                super(FacetFieldSerializer, self).__init__(*args, **kwargs)
+
+            @property
+            def parent_field(self):
+                return self._parent_field
+
+            @parent_field.setter
+            def parent_field(self, value):
+                self._parent_field = value
 
             def get_text(self, instance):
                 """
@@ -234,29 +267,48 @@ class HaystackFacetSerializer(serializers.Serializer):
                 instance = instance[1]
                 return serializers.IntegerField(read_only=True).to_representation(instance)
 
-            # def get_narrow_url(self, instance):
-            #     """
-            #     Return a link suitable for narrowing on the current item.
-            #
-            #     Since we don't have any means of getting the ``view name`` from here,
-            #     we can only return relative urls.
-            #     """
-            #     # TODO: Implement me!
-            #     return "narrow url"
+            def get_narrow_url(self, instance):
+                """
+                Return a link suitable for narrowing on the current item.
 
-        self.facet_field_serializer = FacetFieldSerializer
+                Since we don't have any means of getting the ``view name`` from here,
+                we can only return relative paths.
+                """
+                text = instance[0]
+                query_params = self.context["request"].GET.copy()
+
+                selected_facets = set(query_params.pop("selected_facets", []))
+                selected_facets.add("%(field)s_exact:%(text)s" % {"field": self.parent_field, "text": str(text)})
+                query_params.setlist("selected_facets", sorted(selected_facets))
+
+                return serializers.Hyperlink("%(path)s?%(query)s" % {
+                    "path": self.context["request"].path_info,
+                    "query": query_params.urlencode()
+                }, name="narrow-url")
+
+            def to_representation(self, field, instance):
+                """
+                Set the ``parent_field`` property equal to the current field on the serializer class,
+                so that each field can query it to see what kind of attribute they are processing.
+                """
+                self.parent_field = field
+                return super(FacetFieldSerializer, self).to_representation(instance)
+
+        self.FacetDictField = FacetDictField
+        self.FacetListField = FacetListField
+        self.FacetFieldSerializer = FacetFieldSerializer
 
     def get_fields(self):
         """
         This returns a dictionary containing the top most fields,
         ``dates``, ``fields`` and ``queries``.
         """
+
         field_mapping = OrderedDict()
         for field, data in self.instance.items():
             field_mapping.update(
-                {field: serializers.DictField(
-                    child=serializers.ListField(child=self.facet_field_serializer(data), label=field),
-                    required=False)}
+                {field: self.FacetDictField(
+                    child=self.FacetListField(child=self.FacetFieldSerializer(data)), required=False)}
             )
         return field_mapping
 
