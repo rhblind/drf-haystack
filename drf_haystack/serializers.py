@@ -9,6 +9,7 @@ from datetime import datetime
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
+from django.utils.six.moves.urllib import parse as urlparse
 
 from haystack import fields as haystack_fields
 from haystack.query import EmptySearchQuerySet
@@ -198,7 +199,7 @@ class HaystackSerializer(serializers.Serializer):
 
 class HaystackFacetSerializer(serializers.Serializer):
     """
-    The ``HaystackFacetSerializer`` is used to serialize the ``facet_counts``
+    The ``HaystackFacetSerializer`` is used to serialize the ``facet_counts()``
     dictionary results on a ``SearchQuerySet`` instance.
     """
 
@@ -207,8 +208,8 @@ class HaystackFacetSerializer(serializers.Serializer):
 
         class FacetDictField(serializers.DictField):
             """
-            A special DictField which passes the key attribute down to the children
-            ``to_representation`` in order to let the serializer know what they're
+            A special DictField which passes the key attribute down to the children's
+            ``to_representation()`` in order to let the serializer know what field they're
             currently processing.
             """
             def to_representation(self, value):
@@ -274,15 +275,21 @@ class HaystackFacetSerializer(serializers.Serializer):
                 we can only return relative paths.
                 """
                 text = instance[0]
-                return serializers.Hyperlink("%(path)snarrow/?selected_facets=%(field)s_exact:%(text)s" % {
-                    "path": self.context["request"].path_info, "field": self.parent_field, "text": str(text)
+                query_params = self.context["request"].GET.copy()
+
+                selected_facets = set(query_params.pop("selected_facets", []))
+                selected_facets.add("%(field)s_exact:%(text)s" % {"field": self.parent_field, "text": str(text)})
+                query_params.setlist("selected_facets", selected_facets)
+
+                return serializers.Hyperlink("%(path)s?%(query)s" % {
+                    "path": self.context["request"].path_info,
+                    "query": query_params.urlencode()
                 }, name="narrow-url")
 
             def to_representation(self, field, instance):
                 """
-                Here we get the currently processing field name as the first argument.
-                Set the property on the serializer class, so that each field can query it
-                to see what kind of attribute they are processing.
+                Set the ``parent_field`` property equal to the current field on the serializer class,
+                so that each field can query it to see what kind of attribute they are processing.
                 """
                 self.parent_field = field
                 return super(FacetFieldSerializer, self).to_representation(instance)
@@ -304,9 +311,6 @@ class HaystackFacetSerializer(serializers.Serializer):
                     child=self.FacetListField(child=self.FacetFieldSerializer(data)), required=False)}
             )
         return field_mapping
-
-    def to_representation(self, instance):
-        return super(HaystackFacetSerializer, self).to_representation(instance)
 
 
 class HaystackSerializerMixin(object):
