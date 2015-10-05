@@ -22,7 +22,7 @@ setup(
     name="drf-haystack",
     version=get_version("drf_haystack"),
     description="Makes Haystack play nice with Django REST Framework",
-    long_description="Implements a ViewSet, some filters and serializers in order to play nice with Haystack.",
+    long_description="Implements a ViewSet, FiltersBackends and Serializers in order to play nice with Haystack.",
     author="Rolf Håvard Blindheim, Eirik Krogstad",
     author_email="rolf.blindheim@inonit.no, eirik.krogstad@inonit.no",
     url="https://github.com/inonit/drf-haystack",
@@ -48,7 +48,7 @@ setup(
     test_suite="tests.runtests.start",
     classifiers=[
         "Operating System :: OS Independent",
-        "Development Status :: 4 - Beta",
+        "Development Status :: 5 - Production/Stables",
         "Environment :: Web Environment",
         "Framework :: Django",
         "Intended Audience :: Developers",
