@@ -49,3 +49,4 @@ Currently we support:
     * GEO Spatial searching
     * Highlighting
     * More Like This
+    * Faceting
