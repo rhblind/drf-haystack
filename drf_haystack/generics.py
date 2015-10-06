@@ -31,6 +31,11 @@ class HaystackGenericAPIView(GenericAPIView):
     document_uid_field = "id"
     lookup_sep = ","
 
+    # If set to False, DB lookups are done on a per-object basis,
+    # resulting in in many individual trips to the database. If True,
+    # the SearchQuerySet will group similar objects into a single query.
+    load_all = False
+
     filter_backends = [HaystackFilter]
     permission_classes = [AllowAny]
 
@@ -73,6 +78,14 @@ class HaystackGenericAPIView(GenericAPIView):
 
         raise Http404("No result matches the given query.")
 
+    def filter_queryset(self, queryset):
+        queryset = super(HaystackGenericAPIView, self).filter_queryset(queryset)
+        
+        if self.load_all:
+            queryset = queryset.load_all()
+
+        return queryset
+
     def filter_facet_queryset(self, queryset):
         """
         Given a search queryset, filter it with whichever facet filter backends
@@ -80,6 +93,10 @@ class HaystackGenericAPIView(GenericAPIView):
         """
         for backend in list(self.facet_filter_backends):
             queryset = backend().filter_queryset(self.request, queryset, self)
+
+        if self.load_all:
+            queryset = queryset.load_all()
+
         return queryset
 
     def get_facet_serializer(self, *args, **kwargs):
