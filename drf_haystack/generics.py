@@ -104,8 +104,13 @@ class HaystackGenericAPIView(GenericAPIView):
         Return the facet serializer instance that should be used for
         serializing faceted output.
         """
+        assert "objects" in kwargs, "`objects` is a required argument to `get_facet_serializer()`"
+
         facet_serializer_class = self.get_facet_serializer_class()
         kwargs["context"] = self.get_serializer_context()
+        kwargs["context"].update({
+            "objects": kwargs.pop("objects")
+        })
         return facet_serializer_class(*args, **kwargs)
 
     def get_facet_serializer_class(self):

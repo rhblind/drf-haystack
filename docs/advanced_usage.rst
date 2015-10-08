@@ -421,12 +421,14 @@ functionality is implemented by setting up a special ``^search/facets/$`` route 
 First, read the `Haystack faceting docs <http://django-haystack.readthedocs.org/en/latest/faceting.html>`_ and set up
 your search index for faceting.
 
-Serializing faceted fields
+Serializing faceted counts
 --------------------------
 
 Faceting is a little special in terms that it *does not* care about SearchQuerySet filtering. Faceting is performed
-by calling the ``SearchQuerySet().facet_counts()`` method, which will return a dictionary with the faceted results.
-Therefore we have a special ``HaystackFacetSerializer`` class which is designed to serialize these results.
+by calling the ``SearchQuerySet().facet(field, **options)`` and ``SearchQuerySet().date_facet(field, **options)``
+methods, which will apply facets to the SearchQuerySet. Next we need to call the ``SearchQuerySet().facet_counts()``
+in order to retrieve a dictionary with all the *counts* for the faceted fields.
+We have a special ``HaystackFacetSerializer`` class which is designed to serialize these results.
 
 .. tip::
 
@@ -434,9 +436,11 @@ Therefore we have a special ``HaystackFacetSerializer`` class which is designed 
     ``get_queryset()`` method of the view to limit the queryset before it is passed on to the
     ``filter_facet_queryset()`` method.
 
-The ``HaystackFacetSerializer`` acts as a normal serializer except that it does not pick up any explicitly declared
-fields, and that it is possible to set up a default set of ``field_options`` which will be passed on to the
-``facet_counts()`` method.
+The ``HaystackFacetSerializer`` overrides a number of methods is customized to only serialize facets in a very
+specific format. Using this serializer for other stuff will probably not work very good. Consider yourself warned!
+
+Any serializer subclassed from the ``HaystackFacetSerializer`` is expected to have a ``field_options`` dictionary
+containing a set of default options passed to ``facet()`` and ``date_facet()``.
 
 **Facet serializer example**
 
@@ -444,6 +448,10 @@ fields, and that it is possible to set up a default set of ``field_options`` whi
 
     class PersonFacetSerializer(HaystackFacetSerializer):
 
+        serialize_objects = False  # Setting this to True will serialize the
+                                   # queryset into an `objects` list. This
+                                   # is useful if you need to display the faceted
+                                   # results. Defaults to False.
         class Meta:
             index_classes = [PersonIndex]
             fields = ["firstname", "lastname", "created"]
@@ -473,18 +481,23 @@ common date formats).
 
     .. note::
 
-        The ``HaystackFacetFilter`` parses query string parameter options, separated with the ``view.lookup_sep``
-        attribute. Each option is parsed as ``key:value`` pairs where the ``:`` is a hardcoded separator. Setting
-        the ``view.lookup_sep`` attribute to ``":"`` will raise an AttributeError.
+        - The ``HaystackFacetFilter`` parses query string parameter options, separated with the ``view.lookup_sep``
+          attribute. Each option is parsed as ``key:value`` pairs where the ``:`` is a hardcoded separator. Setting
+          the ``view.lookup_sep`` attribute to ``":"`` will raise an AttributeError.
+
+        - The date parsing in the ``HaystackFacetFilter`` does intentionally blow up if fed a string format it can't
+          handle. No exception handling is done, so make sure to convert values to a format you know it can handle
+          before passing it to the filter. Ie., don't let your users feed their own values in here ;)
 
     .. warning::
 
-        Do *not* use the ``HaystackFacetFilter`` in the regular ``filter_backends`` attribute on the serializer.
-        It will almost certainly produce errors or weird results.
+        Do *not* use the ``HaystackFacetFilter`` in the regular ``filter_backends`` list on the serializer.
+        It will almost certainly produce errors or weird results. Faceting filters should go in the
+        ``facet_filter_backends`` list.
 
 **Example serialized content**
 
-The serialized content will look a little different than the default ``Haystack`` output.
+The serialized content will look a little different than the default Haystack faceted output.
 The top level items will *always* be **queries**, **fields** and **dates**, each containing a subset of fields
 matching the category. In the example below, we have faceted on the fields *firstname* and *lastname*, which will
 make them appear under the **fields** category. We also have faceted on the date field *created*, which will show up
@@ -542,6 +555,57 @@ attribute which should be quite self explaining.
           }
         }
 
+
+Serializing faceted results
+---------------------------
+
+When a ``HaystackFacetSerializer`` class determines what fields to serialize, it will check
+the ``serialize_objects`` class attribute to see if it is ``True`` or ``False``. Setting this value to ``True``
+will add an additional ``objects`` field to the serialized results, which will contain the results for the
+faceted ``SearchQuerySet``. The results will be serialized using the view's ``serializer_class``.
+
+**Example faceted results with paginated serialized objects**
+
+.. code-block:: json
+
+    {
+      "fields": {
+        "firstname": [
+          {"...": "..."}
+        ],
+        "lastname": [
+          {"...": "..."}
+        ]
+      },
+      "dates": {
+        "created": [
+          {"...": "..."}
+        ]
+      },
+      "queries": {},
+      "objects": {
+        "count": 3,
+        "next": "http://example.com/api/v1/search/facets/?page=2&selected_facets=firstname_exact%3AJohn",
+        "previous": null,
+        "results": [
+          {
+            "lastname": "Baker",
+            "firstname": "John",
+            "full_name": "John Baker",
+            "text": "John Baker\n"
+          },
+          {
+            "lastname": "McClane",
+            "firstname": "John",
+            "full_name": "John McClane",
+            "text": "John McClane\n"
+          }
+        ]
+      }
+    }
+
+
+
 Setting up the view
 -------------------
 
@@ -575,13 +639,16 @@ In order to set up a view which can respond to regular queries under ie ``^searc
 
         index_models = [MockPerson]
 
-        # This will be used to filter and serialize regular queries
+        # This will be used to filter and serialize regular queries as well
+        # as the results if the `facet_serializer_class` has the
+        # `serialize_objects = True` set.
         serializer_class = SearchSerializer
         filter_backends = [HaystackHighlightFilter, HaystackAutocompleteFilter]
 
         # This will be used to filter and serialize faceted results
         facet_serializer_class = PersonFacetSerializer  # See example above!
-        facet_filter_backends = [HaystackFacetFilter]   # This is the default facet filter, and can be left out.
+        facet_filter_backends = [HaystackFacetFilter]   # This is the default facet filter, and
+                                                        # can be left out.
 
 
 Narrowing
@@ -594,9 +661,8 @@ The ``narrow_url`` is constructed like this:
 
     - Read all query parameters from the request
     - Get a list of ``selected_facets``
-    - Convert the list to a ``set()`` in order to avoid duplicates
-    - Add the current item to ``selected_facets`` and update the query parameters
-    - Return a ``serializers.Hyperlink`` with URL encoded query parameters.
+    - Update the query parameters by adding the current item to ``selected_facets``
+    - Return a ``serializers.Hyperlink`` with URL encoded query parameters
 
 This means that for each drill-down performed, the original query parameters will be kept in order to make
 the ``HaystackFacetFilter`` happy. Additionally, all the previous ``selected_facets`` will be kept and applied

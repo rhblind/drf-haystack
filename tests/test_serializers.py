@@ -6,7 +6,6 @@
 from __future__ import absolute_import, unicode_literals
 
 import json
-import warnings
 from datetime import datetime, timedelta
 
 from django.conf.urls import url, include
@@ -17,6 +16,7 @@ from django.test import TestCase
 from haystack.query import SearchQuerySet
 
 from rest_framework import serializers
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.routers import DefaultRouter
 from rest_framework.test import APIRequestFactory, APITestCase
 
@@ -28,7 +28,7 @@ from drf_haystack.serializers import (
 from drf_haystack.viewsets import HaystackViewSet
 
 from .mixins import WarningTestCaseMixin
-from .mockapp.models import MockPerson, MockPet
+from .mockapp.models import MockPerson
 from .mockapp.search_indexes import MockPersonIndex, MockPetIndex
 
 factory = APIRequestFactory()
@@ -44,6 +44,8 @@ class SearchPersonSerializer(HaystackSerializer):
 
 class SearchPersonFacetSerializer(HaystackFacetSerializer):
 
+    serialize_objects = True
+
     class Meta:
         index_classes = [MockPersonIndex]
         fields = ["firstname", "lastname", "created"]
@@ -54,14 +56,20 @@ class SearchPersonFacetSerializer(HaystackFacetSerializer):
                 "start_date": datetime.now() - timedelta(days=10 * 365),
                 "end_date": datetime.now(),
                 "gap_by": "month",
-                "gap_amount": 7
+                "gap_amount": 1
             }
         }
+
+
+class BasicPagination(PageNumberPagination):
+    page_size = 2
+    page_size_query_param = "page_size"
 
 
 class SearchPersonViewSet(HaystackViewSet):
     serializer_class = SearchPersonSerializer
     facet_serializer_class = SearchPersonFacetSerializer
+    pagination_class = BasicPagination
 
     class Meta:
         index_models = [MockPerson]
@@ -399,8 +407,9 @@ class HaystackSerializerMoreLikeThisTestCase(APITestCase):
             data={"firstname": "odysseus", "lastname": "cooley"},
             format="json"
         )
+        self.assertTrue("results" in response.data)
         self.assertEqual(
-            response.data,
+            response.data["results"],
             [{
                 "lastname": "Cooley",
                 "full_name": "Odysseus Cooley",
@@ -423,8 +432,45 @@ class HaystackFacetSerializerTestCase(TestCase):
             format=json
         )
 
+        class FacetSerializer(HaystackFacetSerializer):
+
+            serialize_objects = True
+
+            class Meta:
+                fields = ["firstname", "lastname"]
+                field_options = {
+                    "firstname": {},
+                    "lastname": {}
+                }
+
+        class Serializer(HaystackSerializer):
+
+            class Meta:
+                index_classes = [MockPersonIndex]
+                fields = ["firstname", "lastname", "full_name"]
+
+        class ViewSet(HaystackViewSet):
+
+            serializer_class = Serializer
+            facet_serializer_class = FacetSerializer
+            pagination_class = PageNumberPagination
+
+            class Meta:
+                index_models = [MockPerson]
+
+        self.view = ViewSet
+
     def tearDown(self):
         MockPersonIndex().clear()
+
+    @staticmethod
+    def is_paginated_facet_response(response):
+        """
+        Returns True if the response.data seems like a faceted result.
+        Only works for responses created with the test client.
+        """
+        return "objects" in response.data and \
+               all([k in response.data["objects"] for k in ("count", "next", "previous", "results")])
 
     def test_serializer_facet_top_level_structure(self):
         for key in ("fields", "dates", "queries"):
@@ -440,13 +486,13 @@ class HaystackFacetSerializerTestCase(TestCase):
         self.assertEqual(len(fields["lastname"]), 97)
 
         firstname = fields["firstname"][0]
-        self.assertTrue([k in firstname for k in ("text", "count", "narrow_url")])
+        self.assertTrue(all([k in firstname for k in ("text", "count", "narrow_url")]))
         self.assertEqual(firstname["text"], "John")
         self.assertEqual(firstname["count"], 3)
         self.assertEqual(firstname["narrow_url"], "/search-person/facets/?selected_facets=firstname_exact%3AJohn")
 
         lastname = fields["lastname"][0]
-        self.assertTrue([k in lastname for k in ("text", "count", "narrow_url")])
+        self.assertTrue(all([k in lastname for k in ("text", "count", "narrow_url")]))
         self.assertEqual(lastname["text"], "Porter")
         self.assertEqual(lastname["count"], 2)
         self.assertEqual(lastname["narrow_url"], "/search-person/facets/?selected_facets=lastname_exact%3APorter")
@@ -454,13 +500,17 @@ class HaystackFacetSerializerTestCase(TestCase):
     def test_serializer_facet_date_result(self):
         dates = self.response.data["dates"]
         self.assertTrue("created" in dates)
-        self.assertTrue([k in dates for k in ("text", "count", "narrow_url")])
         self.assertEqual(len(dates["created"]), 1)
 
         created = dates["created"][0]
+        self.assertTrue(all([k in created for k in ("text", "count", "narrow_url")]))
         self.assertEqual(created["text"], "2015-05-01T00:00:00")
         self.assertEqual(created["count"], 100)
         self.assertEqual(created["narrow_url"], "/search-person/facets/?selected_facets=created_exact%3A2015-05-01+00%3A00%3A00")
+
+    def test_serializer_facet_queries_result(self):
+        # Not Implemented
+        pass
 
     def test_serializer_facet_narrow(self):
         response = self.client.get(
@@ -468,8 +518,6 @@ class HaystackFacetSerializerTestCase(TestCase):
             data=QueryDict("selected_facets=firstname_exact:John&selected_facets=lastname_exact:McClane"),
             format="json"
         )
-        self.maxDiff = None
-
         self.assertEqual(response.data["queries"], {})
 
         self.assertTrue([all(("firstname", "lastname" in response.data["fields"]))])
@@ -477,7 +525,6 @@ class HaystackFacetSerializerTestCase(TestCase):
         self.assertEqual(len(response.data["fields"]["firstname"]), 1)
         self.assertEqual(response.data["fields"]["firstname"][0]["text"], "John")
         self.assertEqual(response.data["fields"]["firstname"][0]["count"], 1)
-        print("firstname: ", response.data["fields"]["firstname"][0]["narrow_url"])
         self.assertEqual(response.data["fields"]["firstname"][0]["narrow_url"], (
             "/search-person/facets/?selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcClane"
         ))
@@ -485,7 +532,6 @@ class HaystackFacetSerializerTestCase(TestCase):
         self.assertEqual(len(response.data["fields"]["lastname"]), 1)
         self.assertEqual(response.data["fields"]["lastname"][0]["text"], "McClane")
         self.assertEqual(response.data["fields"]["lastname"][0]["count"], 1)
-        print("lastname: ", response.data["fields"]["lastname"][0]["narrow_url"])
         self.assertEqual(response.data["fields"]["lastname"][0]["narrow_url"], (
             "/search-person/facets/?selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcClane"
         ))
@@ -494,11 +540,50 @@ class HaystackFacetSerializerTestCase(TestCase):
         self.assertEqual(len(response.data["dates"]), 1)
         self.assertEqual(response.data["dates"]["created"][0]["text"], "2015-05-01T00:00:00")
         self.assertEqual(response.data["dates"]["created"][0]["count"], 1)
-        print("created: ", response.data["dates"]["created"][0]["narrow_url"])
         self.assertEqual(response.data["dates"]["created"][0]["narrow_url"], (
             "/search-person/facets/?selected_facets=created_exact%3A2015-05-01+00%3A00%3A00"
             "&selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcClane"
         ))
+
+    def test_serializer_facet_include_objects(self):
+        self.assertContains(self.response, "objects", count=1)
+
+    def test_serializer_facet_include_paginated_objects(self):
+        self.assertTrue(self.is_paginated_facet_response(self.response))
+        self.assertEqual(self.response.data["objects"]["next"], "http://testserver/search-person/facets/?page=2")
+        self.assertEqual(self.response.data["objects"]["previous"], None)
+        self.assertEqual(len(self.response.data["objects"]["results"]), 2)  # `page_size`
+
+    def test_serializer_faceted_and_paginated_response(self):
+        response = self.client.get(
+            path="/search-person/facets/",
+            data=QueryDict("selected_facets=firstname_exact:John"),
+            format="json"
+        )
+        self.assertTrue(self.is_paginated_facet_response(response))
+        self.assertEqual(len(response.data["objects"]["results"]), 2)
+        self.assertEqual(response.data["objects"]["count"], 3)
+        self.assertEqual(response.data["objects"]["previous"], None)
+        self.assertEqual(response.data["objects"]["next"],
+                         "http://testserver/search-person/facets/?page=2&selected_facets=firstname_exact%3AJohn")
+
+        response = self.client.get(
+            path="/search-person/facets/",
+            data=QueryDict("page=2&selected_facets=firstname_exact:John")
+        )
+        self.assertTrue(self.is_paginated_facet_response(response))
+        self.assertEqual(len(response.data["objects"]["results"]), 1)
+        self.assertEqual(response.data["objects"]["count"], 3)
+        self.assertEqual(response.data["objects"]["previous"],
+                         "http://testserver/search-person/facets/?selected_facets=firstname_exact%3AJohn")
+        self.assertEqual(response.data["objects"]["next"], None)
+
+        # Make sure that `page_query_param` is not included in the `narrow_url`.
+        # It will make the pagination fail because when we narrow the queryset, the
+        # pagination will have to be re-calculated.
+        fields = response.data["fields"]
+        firstname = fields["firstname"][0]
+        self.assertFalse("page=2" in firstname["narrow_url"])
 
 
 class HaystackSerializerMixinTestCase(WarningTestCaseMixin, TestCase):

@@ -203,6 +203,10 @@ class HaystackFacetSerializer(serializers.Serializer):
     dictionary results on a ``SearchQuerySet`` instance.
     """
 
+    # Setting the ``serialize_objects`` to True,
+    # will serialize the faceted queryset using the ``view.serializer_class``.
+    serialize_objects = False
+
     def __init__(self, *args, **kwargs):
         super(HaystackFacetSerializer, self).__init__(*args, **kwargs)
 
@@ -277,6 +281,13 @@ class HaystackFacetSerializer(serializers.Serializer):
                 text = instance[0]
                 query_params = self.context["request"].GET.copy()
 
+                # Never keep the page query parameter in narrowing urls.
+                # It will raise a NotFound exception when trying to paginate
+                # a narrowed queryset.
+                page_query_param = self.context["view"].paginator.page_query_param
+                if page_query_param in query_params:
+                    del query_params[page_query_param]
+
                 selected_facets = set(query_params.pop("selected_facets", []))
                 selected_facets.add("%(field)s_exact:%(text)s" % {"field": self.parent_field, "text": text})
                 query_params.setlist("selected_facets", sorted(selected_facets))
@@ -310,7 +321,31 @@ class HaystackFacetSerializer(serializers.Serializer):
                 {field: self.FacetDictField(
                     child=self.FacetListField(child=self.FacetFieldSerializer(data)), required=False)}
             )
+
+        if self.serialize_objects is True:
+            field_mapping["objects"] = serializers.SerializerMethodField()
+
         return field_mapping
+
+    def get_objects(self, instance):
+        """
+        Return a list of objects matching the faceted result.
+        """
+        view = self.context["view"]
+        queryset = self.context["objects"]
+
+        page = getattr(view.paginator, "page", None)
+        if page is not None:
+            serializer = view.get_serializer(page, many=True)
+            return OrderedDict([
+                ("count", view.paginator.page.paginator.count),
+                ("next", view.paginator.get_next_link()),
+                ("previous", view.paginator.get_previous_link()),
+                ("results", serializer.data)
+            ])
+
+        serializer = view.get_serializer(queryset, many=True)
+        return serializer.data
 
 
 class HaystackSerializerMixin(object):

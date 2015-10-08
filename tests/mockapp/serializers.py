@@ -46,6 +46,8 @@ class MoreLikeThisSerializer(HaystackSerializer):
 
 class MockPersonFacetSerializer(HaystackFacetSerializer):
 
+    serialize_objects = True
+
     class Meta:
         index_classes = [MockPersonIndex]
         fields = ["firstname", "lastname", "created"]

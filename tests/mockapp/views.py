@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import, unicode_literals
-
+from rest_framework.pagination import PageNumberPagination
 
 from drf_haystack.filters import HaystackBoostFilter, HaystackHighlightFilter, HaystackAutocompleteFilter
 from drf_haystack.generics import SQHighlighterMixin
@@ -14,6 +14,11 @@ from .serializers import (
 )
 
 
+class BasicPagination(PageNumberPagination):
+    page_size = 2
+    page_size_query_param = "page_size"
+
+
 class SearchViewSet1(HaystackViewSet):
     index_models = [MockPerson]
     serializer_class = SearchSerializer
@@ -21,6 +26,7 @@ class SearchViewSet1(HaystackViewSet):
 
     # Faceting
     facet_serializer_class = MockPersonFacetSerializer
+    pagination_class = BasicPagination
 
 
 class SearchViewSet2(HaystackViewSet):

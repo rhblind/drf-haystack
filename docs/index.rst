@@ -56,6 +56,12 @@ Thanks guys!
 Changelog
 =========
 
+v1.5.4
+------
+*Release date: 2015-10-08*
+
+    - Added support for serializing faceted results. Closing :drf-issue:`27`.
+
 v1.5.3
 ------
 *Release date: 2015-10-05*
