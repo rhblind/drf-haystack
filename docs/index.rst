@@ -56,6 +56,13 @@ Thanks guys!
 Changelog
 =========
 
+v1.5.5
+------
+*Release date: 2015-10-31*
+
+    - Added support for Django REST Framework 3.3.0 (Only for Python 2.7/Django 1.7 and above)
+    - Locked elasticsearch < 2.0.0 (See :drf-issue:`29`)
+
 v1.5.4
 ------
 *Release date: 2015-10-08*
