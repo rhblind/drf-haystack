@@ -6,7 +6,11 @@ import copy
 import warnings
 from itertools import chain
 from datetime import datetime
-from collections import OrderedDict
+
+try:
+    from collections import OrderedDict
+except ImportError:
+    from django.utils.datastructures import SortedDict as OrderedDict
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
