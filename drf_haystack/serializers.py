@@ -6,18 +6,17 @@ import copy
 import warnings
 from itertools import chain
 from datetime import datetime
+from collections import OrderedDict
 
 from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
-from django.utils.six.moves.urllib import parse as urlparse
 
 from haystack import fields as haystack_fields
 from haystack.query import EmptySearchQuerySet
 from haystack.utils import Highlighter
 
 from rest_framework import serializers
-from rest_framework.compat import OrderedDict
-from rest_framework.fields import empty, SkipField
+from rest_framework.fields import empty
 from rest_framework.utils.field_mapping import ClassLookupDict, get_field_kwargs
 
 from .fields import (
