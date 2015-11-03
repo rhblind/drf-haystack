@@ -436,7 +436,7 @@ We have a special ``HaystackFacetSerializer`` class which is designed to seriali
     ``get_queryset()`` method of the view to limit the queryset before it is passed on to the
     ``filter_facet_queryset()`` method.
 
-The ``HaystackFacetSerializer`` overrides a number of methods is customized to only serialize facets in a very
+The ``HaystackFacetSerializer`` overrides a number of methods and is customized to only serialize facets in a very
 specific format. Using this serializer for other stuff will probably not work very good. Consider yourself warned!
 
 Any serializer subclassed from the ``HaystackFacetSerializer`` is expected to have a ``field_options`` dictionary
