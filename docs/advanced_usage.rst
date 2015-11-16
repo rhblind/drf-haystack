@@ -134,6 +134,24 @@ The geospatial filter is somewhat special, and for the time being, relies on a f
         filter_backends = [HaystackGEOSpatialFilter]
 
 
+**Example subclassing the ``BaseHaystackGEOSpatialFilter``**
+
+Assuming that your ``LocationField`` is named ``location``.
+
+.. code-block:: python
+
+    from drf_haystack.filters import BaseHaystackGEOSpatialFilter
+
+    class CustomHaystackGEOSpatialFilter(BaseHaystackGEOSpatialFilter):
+        point_field = 'location'
+
+
+    class LocationGeoSearchViewSet(HaystackViewSet):
+
+        index_models = [Location]
+        serializer_class = LocationSerializer
+        filter_backends = [CustomHaystackGEOSpatialFilter]
+
 Assuming the above code works as it should, we would be able to do queries like this:
 
 .. code-block:: none
