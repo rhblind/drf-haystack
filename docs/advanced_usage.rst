@@ -100,7 +100,7 @@ have the ``HaystackGEOSpatialFilter``.
 
 The geospatial filter is somewhat special, and for the time being, relies on a few assumptions.
 
-#. The index model **must** to have a ``LocationField`` named ``coordinates`` (See :ref:`search-index-example-label` for example).
+#. The index model **must** to have a ``LocationField`` named ``coordinates`` (See :ref:`search-index-example-label` for example). If your ``LocationField`` is named differently, instead of using the ``HaystackGEOSpatialFilter``, subclass the ``BaseHaystackGEOSpatialFilter`` and provide the name of your ``LocationField`` in ``point_field`` (string).
 #. The query **must** contain a ``unit`` parameter where the unit is a valid ``UNIT`` in the ``django.contrib.gis.measure.Distance`` class.
 #. The query **must** contain a ``from`` parameter which is a comma separated longitude and latitude value.
 
@@ -133,6 +133,24 @@ The geospatial filter is somewhat special, and for the time being, relies on a f
         serializer_class = LocationSerializer
         filter_backends = [HaystackGEOSpatialFilter]
 
+
+**Example subclassing the ``BaseHaystackGEOSpatialFilter``**
+
+Assuming that your ``LocationField`` is named ``location``.
+
+.. code-block:: python
+
+    from drf_haystack.filters import BaseHaystackGEOSpatialFilter
+
+    class CustomHaystackGEOSpatialFilter(BaseHaystackGEOSpatialFilter):
+        point_field = 'location'
+
+
+    class LocationGeoSearchViewSet(HaystackViewSet):
+
+        index_models = [Location]
+        serializer_class = LocationSerializer
+        filter_backends = [CustomHaystackGEOSpatialFilter]
 
 Assuming the above code works as it should, we would be able to do queries like this:
 
