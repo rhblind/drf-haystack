@@ -131,6 +131,13 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
                 index_classes = [MockPersonIndex]
                 exclude = ["firstname"]
 
+        class Serializer6(HaystackSerializer):
+
+            class Meta:
+                index_classes = [MockPersonIndex]
+                fields = ["text", "firstname", "lastname", "autocomplete"]
+                ignore_fields = ["autocomplete"]
+
         class ViewSet1(HaystackViewSet):
             serializer_class = Serializer3
 
@@ -145,6 +152,7 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         self.serializer3 = Serializer3
         self.serializer4 = Serializer4
         self.serializer5 = Serializer5
+        self.serializer6 = Serializer6
 
         self.view1 = ViewSet1
         self.view2 = ViewSet2
@@ -206,6 +214,18 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         assert "firstname" not in fields, self.fail("serializer 'firstname' should not be present")
         assert isinstance(fields["lastname"], CharField), self.fail("serializer 'lastname' field is not a CharField instance")
         assert isinstance(fields["autocomplete"], CharField), self.fail("serializer 'autocomplete' field is not a CharField instance")
+
+    def test_serializer_get_fields_with_ignore_fields(self):
+        from rest_framework.fields import CharField
+
+        obj = SearchQuerySet().filter(lastname="Foreman")[0]
+        serializer = self.serializer6(instance=obj)
+        fields = serializer.get_fields()
+        assert isinstance(fields, dict), self.fail("serializer.data is not a dict")
+        assert isinstance(fields["text"], CharField), self.fail("serializer 'text' field is not a CharField instance")
+        assert isinstance(fields["firstname"], CharField), self.fail("serializer 'firtname' field is not a CharField instance")
+        assert isinstance(fields["lastname"], CharField), self.fail("serializer 'lastname' field is not a CharField instance")
+        assert "autocomplete" not in fields, self.fail("serializer 'autocomplete' should not be present")
 
 
 class HaystackSerializerMultipleIndexTestCase(WarningTestCaseMixin, TestCase):

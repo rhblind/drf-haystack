@@ -136,12 +136,17 @@ class HaystackSerializer(serializers.Serializer):
                 orig_name = field_name
                 field_name = "%s%s" % (prefix, field_name)
 
-                # This has become a little more complex, but provides convenient flexibility for users
-                if not exclude:
+                # Don't use this field if it is in `ignore_fields`
+                if orig_name in ignore_fields or field_name in ignore_fields:
+                    continue
+                # When fields to include are decided by `exclude`
+                if exclude:
+                    if orig_name in exclude or field_name in exclude:
+                        continue
+                # When fields to include are decided by `fields`
+                if fields:
                     if orig_name not in fields and field_name not in fields:
                         continue
-                elif orig_name in exclude or field_name in exclude or orig_name in ignore_fields or field_name in ignore_fields:
-                    continue
 
                 # Look up the field attributes on the current index model,
                 # in order to correctly instantiate the serializer field.
