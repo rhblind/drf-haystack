@@ -140,17 +140,22 @@ class HaystackAutocompleteFilter(HaystackFilter):
         return six.moves.reduce(operator.and_, filter(lambda x: x, query_bits))
 
 
-class HaystackGEOSpatialFilter(HaystackFilter):
+class BaseHaystackGEOSpatialFilter(HaystackFilter):
     """
-    A filter backend for doing geospatial filtering.
-    If using this filter make sure your index has a `LocationField`
-    named `coordinates`.
+    A base filter backend for doing geospatial filtering.
+    If using this filter make sure to provide a `point_field` with the name of
+    your the `LocationField` of your index.
 
     We'll always do the somewhat slower but more accurate `dwithin`
     (radius) filter.
     """
+    point_field = None
 
     def __init__(self, *args, **kwargs):
+        if not self.point_field:
+            raise ImproperlyConfigured("You should provide `point_field` in "
+                                       "your subclassed geo-spatial filter "
+                                       "class.")
         try:
             from haystack.utils.geo import D, Point
             self.D = D
@@ -200,7 +205,7 @@ class HaystackGEOSpatialFilter(HaystackFilter):
                         distance = self.unit_to_meters(self.D(**distance))  # pragma: no cover
                     else:
                         distance = self.D(**distance)
-                    queryset = queryset.dwithin("coordinates", point, distance).distance("coordinates", point)
+                    queryset = queryset.dwithin(self.point_field, point, distance).distance(self.point_field, point)
             except ValueError:
                 raise ValueError("Cannot convert `from=latitude,longitude` query parameter to "
                                  "float values. Make sure to provide numerical values only!")
@@ -209,7 +214,15 @@ class HaystackGEOSpatialFilter(HaystackFilter):
 
     def filter_queryset(self, request, queryset, view):
         queryset = self.geo_filter(queryset, filters=self.get_request_filters(request))
-        return super(HaystackGEOSpatialFilter, self).filter_queryset(request, queryset, view)
+        return super(BaseHaystackGEOSpatialFilter, self).filter_queryset(request, queryset, view)
+
+
+class HaystackGEOSpatialFilter(BaseHaystackGEOSpatialFilter):
+    """
+    If using this filter make sure your index has a `LocationField`
+    named `coordinates`.
+    """
+    point_field = 'coordinates'
 
 
 class HaystackHighlightFilter(HaystackFilter):
