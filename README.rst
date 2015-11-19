@@ -32,7 +32,7 @@ Tested with the following configurations:
 
     - Python 2.6
         - Django 1.5 and 1.6
-    - Python 2.7, 3.3, 3.4 and 3.5
+    - Python 2.7, 3.3 and 3.4
         - Django 1.5, 1.6, 1.7 and 1.8
 
 Installation
