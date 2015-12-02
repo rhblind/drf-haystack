@@ -40,7 +40,55 @@ Requirements
     - Django
     - Django REST Framework
     - Haystack (and a supported search engine such as Solr, Elasticsearch, Whoosh, etc.)
+    - Python bindings for the chosen backend (see below).
     - (geopy and libgeos if you want to use geo spatial filtering)
+
+Python bindings
+---------------
+
+You will also need to install python bindings for the search engine you'll use.
+
+Elasticsearch
+.............
+
+See haystack `Elasticsearch <https://django-haystack.readthedocs.org/en/v2.4.1/installing_search_engines.html#elasticsearch>`_
+docs for details
+
+.. warning::
+
+    ``django-haystack`` does not yet support Elasticsearch v2 yet, so we need to use the latest
+    1.x branch.
+
+.. code-block:: none
+
+    $ pip install elasticsearch<2.0.0
+
+Solr
+....
+
+See haystack `Solr <https://django-haystack.readthedocs.org/en/v2.4.1/installing_search_engines.html#solr>`_
+docs for details.
+
+.. code-block:: none
+
+    $ pip install pysolr
+
+Whoosh
+......
+
+See haystack `Whoosh <https://django-haystack.readthedocs.org/en/v2.4.1/installing_search_engines.html#whoosh>`_
+docs for details.
+
+.. code-block:: none
+
+    $ pip install whoosh
+
+Xapian
+......
+
+See haystack `Xapian <https://django-haystack.readthedocs.org/en/v2.4.1/installing_search_engines.html#xapian>`_
+docs for details.
+
 
 Contributors
 ============
@@ -55,6 +103,15 @@ Thanks guys!
 
 Changelog
 =========
+
+v1.5.6
+------
+*Release date: 2015-12-02*
+
+    - Fixed a bug where ``ignore_fields`` on ``HaystackSerializer`` did not work unless ``exclude`` evaluates
+      to ``True``.
+    - Removed ``elasticsearch`` from ``install_requires``. Elasticsearch should not be a mandatory requirement,
+      since it's useless if not using Elasticsearch as backend.
 
 v1.5.5
 ------
