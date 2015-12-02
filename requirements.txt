@@ -3,7 +3,7 @@ Sphinx
 coverage
 django-haystack
 djangorestframework
-elasticsearch
+elasticsearch<2.0.0
 nose
 sphinx-rtd-theme
 urllib3
