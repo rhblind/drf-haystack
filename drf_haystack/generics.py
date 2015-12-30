@@ -4,6 +4,8 @@ from __future__ import absolute_import, unicode_literals
 
 import warnings
 
+from django.contrib.contenttypes.models import ContentType
+from django.db.models.loading import get_model
 from django.http import Http404
 
 from haystack.backends import SQ
@@ -42,17 +44,21 @@ class HaystackGenericAPIView(GenericAPIView):
     facet_filter_backends = [HaystackFacetFilter]
     facet_serializer_class = None
 
-    def get_queryset(self):
+    def get_queryset(self, index_models=[]):
         """
         Get the list of items for this view.
         Returns ``self.queryset`` if defined and is a ``self.object_class``
         instance.
+
+        @:param index_models: override `self.index_models`
         """
         if self.queryset and isinstance(self.queryset, self.object_class):
             queryset = self.queryset.all()
         else:
             queryset = self.object_class()._clone()
-            if len(self.index_models):
+            if len(index_models):
+                queryset = queryset.models(*index_models)
+            elif len(self.index_models):
                 queryset = queryset.models(*self.index_models)
         return queryset
 
@@ -61,8 +67,23 @@ class HaystackGenericAPIView(GenericAPIView):
         Fetch a single document from the data store according to whatever
         unique identifier is available for that document in the
         SearchIndex.
+
+        In cases where the view has multiple ``index_models``, add a ``model`` query
+        parameter containing a single model name to the request in order to override which model
+        to include in the SearchQuerySet.
+
+        Example:
+            /api/v1/search/42/?model=person
         """
-        queryset = self.filter_queryset(self.get_queryset())
+        queryset = self.get_queryset()
+        if "model" in self.request.GET:
+            try:
+                ctype = ContentType.objects.get(model=self.request.GET["model"].lower())
+                queryset = self.get_queryset(index_models=[get_model(ctype.app_label, ctype.model)])
+            except ContentType.DoesNotExist:
+                raise Http404("Could not find any models matching '%s'. Make sure to use a valid "
+                              "model name for the 'model' query parameter." % self.request.GET["model"])
+
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
         if lookup_url_kwarg not in self.kwargs:
             raise AttributeError(

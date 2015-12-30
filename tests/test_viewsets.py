@@ -16,8 +16,8 @@ from rest_framework.test import force_authenticate, APIRequestFactory
 from drf_haystack.viewsets import HaystackViewSet
 from drf_haystack.serializers import HaystackFacetSerializer
 
-from .mockapp.models import MockPerson
-from .mockapp.search_indexes import MockPersonIndex
+from .mockapp.models import MockPerson, MockPet
+from .mockapp.search_indexes import MockPersonIndex, MockPetIndex
 
 
 factory = APIRequestFactory()
@@ -25,10 +25,11 @@ factory = APIRequestFactory()
 
 class HaystackViewSetTestCase(TestCase):
 
-    fixtures = ["mockperson"]
+    fixtures = ["mockperson", "mockpet"]
 
     def setUp(self):
         MockPersonIndex().reindex()
+        MockPetIndex().reindex()
         self.router = SimpleRouter()
 
         class FacetSerializer(HaystackFacetSerializer):
@@ -36,69 +37,84 @@ class HaystackViewSetTestCase(TestCase):
             class Meta:
                 fields = ["firstname", "lastname", "created"]
 
-        class ViewSet(HaystackViewSet):
+        class ViewSet1(HaystackViewSet):
+            index_models = [MockPerson]
             serializer_class = Serializer
             facet_serializer_class = FacetSerializer
 
-        self.view = ViewSet
+        class ViewSet2(HaystackViewSet):
+            index_models = [MockPerson, MockPet]
+            serializer_class = Serializer
+
+        self.view1 = ViewSet1
+        self.view2 = ViewSet2
 
     def tearDown(self):
         MockPersonIndex().clear()
 
     def test_viewset_get_queryset_no_queryset(self):
         request = factory.get(path="/", data="", content_type="application/json")
-        response = self.view.as_view(actions={"get": "list"})(request)
+        response = self.view1.as_view(actions={"get": "list"})(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_viewset_get_queryset_with_queryset(self):
-        setattr(self.view, "queryset", SearchQuerySet().all())
+        setattr(self.view1, "queryset", SearchQuerySet().all())
         request = factory.get(path="/", data="", content_type="application/json")
-        response = self.view.as_view(actions={"get": "list"})(request)
+        response = self.view1.as_view(actions={"get": "list"})(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_viewset_get_queryset_with_index_models(self):
-        setattr(self.view, "index_models", [MockPerson])
+    def test_viewset_get_object_single_index(self):
         request = factory.get(path="/", data="", content_type="application/json")
-        response = self.view.as_view(actions={"get": "list"})(request)
+        response = self.view1.as_view(actions={"get": "retrieve"})(request, pk=1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_viewset_get_object(self):
-        request = factory.get(path="/", data="", content_type="application/json")
-        response = self.view.as_view(actions={"get": "retrieve"})(request, pk=1)
+    def test_viewset_get_object_multiple_indices(self):
+        request = factory.get(path="/", data={"model": "mockperson"}, content_type="application/json")
+        response = self.view2.as_view(actions={"get": "retrieve"})(request, pk=1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_viewset_get_object_multiple_indices_no_model_query_param(self):
+        request = factory.get(path="/", data="", content_type="application/json")
+        response = self.view2.as_view(actions={"get": "retrieve"})(request, pk=1)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_viewset_get_object_multiple_indices_invalid_modelname(self):
+        request = factory.get(path="/", data={"model": "spam"}, content_type="application/json")
+        response = self.view2.as_view(actions={"get": "retrieve"})(request, pk=1)
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_viewset_get_obj_raise_404(self):
         request = factory.get(path="/", data="", content_type="application/json")
-        response = self.view.as_view(actions={"get": "retrieve"})(request, pk=100000)
+        response = self.view1.as_view(actions={"get": "retrieve"})(request, pk=100000)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_viewset_get_object_invalid_lookup_field(self):
         request = factory.get(path="/", data="", content_type="application/json")
         self.assertRaises(
             AttributeError,
-            self.view.as_view(actions={"get": "retrieve"}), request, invalid_lookup=1
+            self.view1.as_view(actions={"get": "retrieve"}), request, invalid_lookup=1
         )
 
     def test_viewset_get_obj_override_lookup_field(self):
-        setattr(self.view, "lookup_field", "custom_lookup")
+        setattr(self.view1, "lookup_field", "custom_lookup")
         request = factory.get(path="/", data="", content_type="application/json")
-        response = self.view.as_view(actions={"get": "retrieve"})(request, custom_lookup=1)
-        setattr(self.view, "lookup_field", "pk")
+        response = self.view1.as_view(actions={"get": "retrieve"})(request, custom_lookup=1)
+        setattr(self.view1, "lookup_field", "pk")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_viewset_more_like_this_decorator(self):
-        route = self.router.get_routes(self.view)[2:].pop()
+        route = self.router.get_routes(self.view1)[2:].pop()
         self.assertEqual(route.url, "^{prefix}/{lookup}/more-like-this{trailing_slash}$")
         self.assertEqual(route.mapping, {"get": "more_like_this"})
 
     def test_viewset_more_like_this_action_route(self):
         request = factory.get(path="/", data={}, content_type="application/json")
-        response = self.view.as_view(actions={"get": "more_like_this"})(request, pk=1)
+        response = self.view1.as_view(actions={"get": "more_like_this"})(request, pk=1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_viewset_facets_action_route(self):
         request = factory.get(path="/", data={}, content_type="application/json")
-        response = self.view.as_view(actions={"get": "facets"})(request)
+        response = self.view1.as_view(actions={"get": "facets"})(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
