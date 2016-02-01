@@ -5,16 +5,21 @@
 
 from __future__ import absolute_import, unicode_literals
 
+import json
+
 from django.test import TestCase
 from django.contrib.auth.models import User
+
 from haystack.query import SearchQuerySet
+
 from rest_framework import status
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.routers import SimpleRouter
 from rest_framework.serializers import Serializer
 from rest_framework.test import force_authenticate, APIRequestFactory
 
 from drf_haystack.viewsets import HaystackViewSet
-from drf_haystack.serializers import HaystackFacetSerializer
+from drf_haystack.serializers import HaystackSerializer, HaystackFacetSerializer
 
 from .mockapp.models import MockPerson, MockPet
 from .mockapp.search_indexes import MockPersonIndex, MockPetIndex
@@ -238,3 +243,51 @@ class HaystackViewSetPermissionsTestCase(TestCase):
             else:
                 self.assertEqual(str(e), "Cannot apply DjangoModelPermissions on a view that does "
                                          "not have `.model` or `.queryset` property.")
+
+
+class PaginatedHaystackViewSetTestCase(TestCase):
+
+    fixtures = ["mockperson"]
+
+    def setUp(self):
+
+        MockPersonIndex().reindex()
+
+        class Serializer1(HaystackSerializer):
+
+            class Meta:
+                fields = ["firstname", "lastname"]
+                index_classes = [MockPersonIndex]
+
+        class NumberPagination(PageNumberPagination):
+
+            page_size = 5
+
+        class ViewSet1(HaystackViewSet):
+
+            index_models = [MockPerson]
+            serializer_class = Serializer1
+            pagination_class = NumberPagination
+
+        self.view1 = ViewSet1
+
+    def tearDown(self):
+        MockPersonIndex().clear()
+
+    def test_viewset_PageNumberPagination_results(self):
+        request = factory.get(path="/", data="", content_type="application/json")
+        response = self.view1.as_view(actions={"get": "list"})(request)
+        response.render()
+        content = json.loads(response.content.decode())
+
+        self.assertTrue(all(k in content for k in ("count", "next", "previous", "results")))
+        self.assertEqual(len(content["results"]), 5)
+
+    def test_viewset_PageNumberPagination_navigation_urls(self):
+        request = factory.get(path="/", data={"page": 2}, content_type="application/json")
+        response = self.view1.as_view(actions={"get": "list"})(request)
+        response.render()
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(content["previous"], "http://testserver/")
+        self.assertEqual(content["next"], "http://testserver/?page=3")
