@@ -70,6 +70,7 @@ class MockPetIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
     name = indexes.CharField(model_attr="name")
     species = indexes.CharField(model_attr="species")
+    has_rabies = indexes.BooleanField(indexed=False)
     description = indexes.CharField()
 
     autocomplete = indexes.EdgeNgramField()
@@ -77,6 +78,10 @@ class MockPetIndex(indexes.SearchIndex, indexes.Indexable):
     @staticmethod
     def prepare_description(obj):
         return " ".join((obj.name, "the", obj.species))
+
+    @staticmethod
+    def prepare_has_rabies(obj):
+        return True if obj.species == "Dog" else False
 
     @staticmethod
     def prepare_autocomplete(obj):

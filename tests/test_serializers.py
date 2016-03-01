@@ -28,7 +28,7 @@ from drf_haystack.serializers import (
 from drf_haystack.viewsets import HaystackViewSet
 
 from .mixins import WarningTestCaseMixin
-from .mockapp.models import MockPerson
+from .mockapp.models import MockPerson, MockPet
 from .mockapp.search_indexes import MockPersonIndex, MockPetIndex
 
 factory = APIRequestFactory()
@@ -85,10 +85,11 @@ urlpatterns = [
 
 class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
 
-    fixtures = ["mockperson"]
+    fixtures = ["mockperson", "mockpet"]
 
     def setUp(self):
         MockPersonIndex().reindex()
+        MockPetIndex().reindex()
 
         class Serializer1(HaystackSerializer):
             # This is not allowed. Serializer must implement a
@@ -138,6 +139,11 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
                 fields = ["text", "firstname", "lastname", "autocomplete"]
                 ignore_fields = ["autocomplete"]
 
+        class Serializer7(HaystackSerializer):
+
+            class Meta:
+                index_classes = [MockPetIndex]
+
         class ViewSet1(HaystackViewSet):
             serializer_class = Serializer3
 
@@ -153,6 +159,7 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         self.serializer4 = Serializer4
         self.serializer5 = Serializer5
         self.serializer6 = Serializer6
+        self.serializer7 = Serializer7
 
         self.view1 = ViewSet1
         self.view2 = ViewSet2
@@ -226,6 +233,13 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         assert isinstance(fields["firstname"], CharField), self.fail("serializer 'firtname' field is not a CharField instance")
         assert isinstance(fields["lastname"], CharField), self.fail("serializer 'lastname' field is not a CharField instance")
         assert "autocomplete" not in fields, self.fail("serializer 'autocomplete' should not be present")
+
+    def test_serializer_boolean_field(self):
+        # https://github.com/inonit/drf-haystack/issues/39
+        dog = self.serializer7(instance=SearchQuerySet().filter(species="Dog")[0])
+        iguana = self.serializer7(instance=SearchQuerySet().filter(species="Iguana")[0])
+        self.assertTrue(dog.data["has_rabies"])
+        self.assertFalse(iguana.data["has_rabies"])
 
 
 class HaystackSerializerMultipleIndexTestCase(WarningTestCaseMixin, TestCase):
@@ -684,6 +698,7 @@ class HaystackMultiSerializerTestCase(WarningTestCaseMixin, TestCase):
         self.assertEqual(
             json.loads(json.dumps(serializer.data)),
             [{
+                "has_rabies": True,
                 "text": "Zane",
                 "name": "Zane",
                 "species": "Dog"
