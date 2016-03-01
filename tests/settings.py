@@ -101,12 +101,12 @@ LOGGING = {
         },
         'elasticsearch': {
             'handlers': ['file_handler'],
-            'level': 'DEBUG',
+            'level': 'WARNING',
             'propagate': True,
         },
         'elasticsearch.trace': {
             'handlers': ['file_handler'],
-            'level': 'DEBUG',
+            'level': 'WARNING',
             'propagate': True,
         },
     },
