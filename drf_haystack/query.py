@@ -132,8 +132,8 @@ class QueryBuilder:
             "query_facets": query_facets
         }
 
-    def build_geo_query(self, view, filters):
-        pass
+    def build_geo_query(self, view, **kwargs):
+        raise NotImplemented("GEO Queries are currently handled by subclassing BaseHaystackGEOSpatialFilter")
 
     def tokenize(self, stream, seperator):
         """
