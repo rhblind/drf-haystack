@@ -7,6 +7,8 @@ import warnings
 from itertools import chain
 from datetime import datetime
 
+from rest_framework.serializers import SerializerMetaclass
+
 try:
     from collections import OrderedDict
 except ImportError:
@@ -29,11 +31,66 @@ from .fields import (
 )
 
 
-class HaystackSerializer(serializers.Serializer):
+class Meta(type):
+
+    """
+    Template for the HaystackSerializerMeta.Meta class.
+    """
+
+    fields = tuple()
+    exclude = tuple()
+    search_fields = tuple()
+    index_classes = tuple()
+    serializers = tuple()
+    ignore_fields = tuple()
+    field_aliases = {}
+    field_options = {}
+    index_aliases = {}
+
+    def __new__(mcs, name, bases, attrs):
+        cls = super().__new__(mcs, name, bases, attrs)
+
+        if cls.fields and cls.exclude:
+            raise ImproperlyConfigured("%s cannot define fields and exclude" % name)
+
+        return cls
+
+    def __setattr__(cls, key, value):
+        raise AttributeError("Meta is immutable")
+
+    def __delattr__(cls, key, value):
+        raise AttributeError("Meta is immutable")
+
+
+class HaystackSerializerMeta(SerializerMetaclass):
+
+    """
+    Metaclass for the HaystackSerializer that ensures that all declared subclasses implemented a Meta.
+    """
+
+    def __new__(mcs, name, bases, attrs):
+        attrs.setdefault('_abstract', False)
+
+        cls = super(HaystackSerializerMeta, mcs).__new__(mcs, name, bases, attrs)
+
+        if getattr(cls, "Meta", None):
+            cls.Meta = Meta("Meta", (Meta,), dict(cls.Meta.__dict__))
+
+        elif not cls._abstract:
+            raise ImproperlyConfigured("%s must implement a Meta class or have the property _abstract" % name)
+
+        return cls
+
+
+class HaystackSerializer(six.with_metaclass(HaystackSerializerMeta, serializers.Serializer)):
+
     """
     A `HaystackSerializer` which populates fields based on
     which models that are available in the SearchQueryset.
     """
+
+    _abstract = True
+
     _field_mapping = ClassLookupDict({
         haystack_fields.BooleanField: HaystackBooleanField,
         haystack_fields.CharField: HaystackCharField,
@@ -59,12 +116,9 @@ class HaystackSerializer(serializers.Serializer):
     def __init__(self, instance=None, data=empty, **kwargs):
         super(HaystackSerializer, self).__init__(instance, data, **kwargs)
 
-        try:
-            if not hasattr(self.Meta, "index_classes") and not hasattr(self.Meta, "serializers"):
-                raise ImproperlyConfigured("You must set either the 'index_classes' or 'serializers' "
-                                           "attribute on the serializer Meta class.")
-        except AttributeError:
-            raise ImproperlyConfigured("%s must implement a Meta class." % self.__class__.__name__)
+        if not self.Meta.index_classes and not self.Meta.serializers:
+            raise ImproperlyConfigured("You must set either the 'index_classes' or 'serializers' "
+                                       "attribute on the serializer Meta class.")
 
         if not self.instance:
             self.instance = EmptySearchQuerySet()
@@ -104,7 +158,7 @@ class HaystackSerializer(serializers.Serializer):
         may optionally specify custom aliases via an 'index_aliases' attribute on the Meta class
         """
         cls_name = index_cls.__name__
-        aliases = getattr(self.Meta, "index_aliases", {})
+        aliases = self.Meta.index_aliases
         return aliases.get(cls_name, cls_name.split('.')[-1])
 
     def get_fields(self):
@@ -112,14 +166,10 @@ class HaystackSerializer(serializers.Serializer):
         Get the required fields for serializing the result.
         """
 
-        fields = getattr(self.Meta, "fields", [])
-        exclude = getattr(self.Meta, "exclude", [])
-
-        if fields and exclude:
-            raise ImproperlyConfigured("Cannot set both `fields` and `exclude`.")
-
-        ignore_fields = getattr(self.Meta, "ignore_fields", [])
-        indices = getattr(self.Meta, "index_classes")
+        fields = self.Meta.fields
+        exclude = self.Meta.exclude
+        ignore_fields = self.Meta.ignore_fields
+        indices = self.Meta.index_classes
 
         declared_fields = copy.deepcopy(self._declared_fields)
         prefix_field_names = len(indices) > 1
@@ -172,7 +222,7 @@ class HaystackSerializer(serializers.Serializer):
         not be valid for all results. Do not render the fields which don't belong
         to the search result.
         """
-        if getattr(self.Meta, "serializers", None):
+        if self.Meta.serializers:
             ret = self.multi_serializer_representation(instance)
         else:
             ret = super(HaystackSerializer, self).to_representation(instance)
@@ -205,11 +255,13 @@ class HaystackSerializer(serializers.Serializer):
         return serializer_class(context=self._context).to_representation(instance)
 
 
-class HaystackFacetSerializer(serializers.Serializer):
+class HaystackFacetSerializer(six.with_metaclass(HaystackSerializerMeta, serializers.Serializer)):
     """
     The ``HaystackFacetSerializer`` is used to serialize the ``facet_counts()``
     dictionary results on a ``SearchQuerySet`` instance.
     """
+
+    _abstract = True
 
     # Setting the ``serialize_objects`` to True,
     # will serialize the faceted queryset using the ``view.serializer_class``.
@@ -322,7 +374,6 @@ class HaystackFacetSerializer(serializers.Serializer):
         This returns a dictionary containing the top most fields,
         ``dates``, ``fields`` and ``queries``.
         """
-
         field_mapping = OrderedDict()
         for field, data in self.instance.items():
             field_mapping.update(

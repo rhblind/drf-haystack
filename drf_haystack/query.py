@@ -43,22 +43,17 @@ class QueryBuilder:
                 param = param.replace("__%s" % negation_keyword, "")  # haystack wouldn't understand our negation
 
             if view.serializer_class:
-                try:
-                    if hasattr(view.serializer_class.Meta, "field_aliases"):
-                        old_base = base_param
-                        base_param = view.serializer_class.Meta.field_aliases.get(base_param, base_param)
-                        param = param.replace(old_base, base_param)  # need to replace the alias
+                if view.serializer_class.Meta.field_aliases:
+                    old_base = base_param
+                    base_param = view.serializer_class.Meta.field_aliases.get(base_param, base_param)
+                    param = param.replace(old_base, base_param)  # need to replace the alias
 
-                    fields = getattr(view.serializer_class.Meta, "fields", [])
-                    exclude = getattr(view.serializer_class.Meta, "exclude", [])
-                    search_fields = getattr(view.serializer_class.Meta, "search_fields", [])
+                fields = view.serializer_class.Meta.fields
+                exclude = view.serializer_class.Meta.exclude
+                search_fields = view.serializer_class.Meta.search_fields
 
-                    if ((fields or search_fields) and base_param not in chain(fields, search_fields)) or base_param in exclude or not value:
-                        continue
-
-                except AttributeError:
-                    raise ImproperlyConfigured("%s must implement a Meta class." %
-                                               view.serializer_class.__class__.__name__)
+                if ((fields or search_fields) and base_param not in chain(fields, search_fields)) or base_param in exclude or not value:
+                    continue
 
             field_queries = []
             for token in self.tokenize(value, view.lookup_sep):
@@ -93,38 +88,33 @@ class QueryBuilder:
                                  "query parameter parser. Please choose another `lookup_sep` attribute "
                                  "for %(cls)s." % {"cls": view.__class__.__name__})
 
-        try:
-            fields = getattr(facet_serializer_cls.Meta, "fields", [])
-            exclude = getattr(facet_serializer_cls.Meta, "exclude", [])
-            field_options = getattr(facet_serializer_cls.Meta, "field_options", {})
+        fields = facet_serializer_cls.Meta.fields
+        exclude = facet_serializer_cls.Meta.exclude
+        field_options = facet_serializer_cls.Meta.field_options
 
-            for field, options in kwargs.items():
+        for field, options in kwargs.items():
 
-                if field not in fields or field in exclude:
-                    continue
+            if field not in fields or field in exclude:
+                continue
 
-                field_options = merge_dict(field_options, {field: self.parse_field_options(view.lookup_sep, *options)})
+            field_options = merge_dict(field_options, {field: self.parse_field_options(view.lookup_sep, *options)})
 
-            valid_gap = ("year", "month", "day", "hour", "minute", "second")
-            for field, options in field_options.items():
-                if any([k in options for k in ("start_date", "end_date", "gap_by", "gap_amount")]):
+        valid_gap = ("year", "month", "day", "hour", "minute", "second")
+        for field, options in field_options.items():
+            if any([k in options for k in ("start_date", "end_date", "gap_by", "gap_amount")]):
 
-                    if not all(("start_date", "end_date", "gap_by" in options)):
-                        raise ValueError("Date faceting requires at least 'start_date', 'end_date' "
-                                         "and 'gap_by' to be set.")
+                if not all(("start_date", "end_date", "gap_by" in options)):
+                    raise ValueError("Date faceting requires at least 'start_date', 'end_date' "
+                                     "and 'gap_by' to be set.")
 
-                    if not options["gap_by"] in valid_gap:
-                        raise ValueError("The 'gap_by' parameter must be one of %s." % ", ".join(valid_gap))
+                if not options["gap_by"] in valid_gap:
+                    raise ValueError("The 'gap_by' parameter must be one of %s." % ", ".join(valid_gap))
 
-                    options.setdefault("gap_amount", 1)
-                    date_facets[field] = field_options[field]
+                options.setdefault("gap_amount", 1)
+                date_facets[field] = field_options[field]
 
-                else:
-                    field_facets[field] = field_options[field]
-
-        except AttributeError:
-            raise ImproperlyConfigured("%s must implement a Meta class." %
-                                       facet_serializer_cls.__class__.__name__)
+            else:
+                field_facets[field] = field_options[field]
 
         return {
             "date_facets": date_facets,
