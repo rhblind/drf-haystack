@@ -22,16 +22,14 @@ from .utils import merge_dict
 
 class HaystackFilter(BaseFilterBackend):
     """
-    A filter backend that compiles a haystack compatible
-    filtering query.
+    A filter backend that compiles a haystack compatible filtering query.
     """
 
     @staticmethod
     def get_request_filters(request):
         return request.GET.copy()
 
-    @staticmethod
-    def build_filter(view, filters=None):
+    def build_filters(self, view, filters=None):
         """
         Creates a single SQ filter from querystring parameters that
         correspond to the SearchIndex fields that have been "registered"
@@ -44,8 +42,8 @@ class HaystackFilter(BaseFilterBackend):
         `view.fields` will be ignored.
         """
 
-        terms = []
-        exclude_terms = []
+        applicable_filters = []
+        applicable_exclusions = []
 
         if filters is None:
             filters = {}  # pragma: no cover
@@ -88,21 +86,36 @@ class HaystackFilter(BaseFilterBackend):
 
             term = six.moves.reduce(operator.or_, filter(lambda x: x, field_queries))
             if excluding_term:
-                exclude_terms.append(term)
+                applicable_exclusions.append(term)
             else:
-                terms.append(term)
+                applicable_filters.append(term)
 
-        terms = six.moves.reduce(operator.and_, filter(lambda x: x, terms)) if terms else []
-        exclude_terms = six.moves.reduce(operator.and_, filter(lambda x: x, exclude_terms)) if exclude_terms else []
-        return terms, exclude_terms
+        applicable_filters = six.moves.reduce(
+            operator.and_, filter(lambda x: x, applicable_filters)) if applicable_filters else []
+        applicable_exclusions = six.moves.reduce(
+            operator.and_, filter(lambda x: x, applicable_exclusions)) if applicable_exclusions else []
 
-    def filter_queryset(self, request, queryset, view):
-        applicable_filters, applicable_exclusions = self.build_filter(view, filters=self.get_request_filters(request))
+        return applicable_filters, applicable_exclusions
+
+    @staticmethod
+    def apply_filters(queryset, applicable_filters=None, applicable_exclusions=None):
+        """
+        Apply constructed filters and excludes and return the queryset
+
+        :param queryset: queryset to filter
+        :param applicable_filters: filters which are passed directly to queryset.filter()
+        :param applicable_exclusions: filters which are passed directly to queryset.exclude()
+        :returns filtered queryset
+        """
         if applicable_filters:
             queryset = queryset.filter(applicable_filters)
         if applicable_exclusions:
             queryset = queryset.exclude(applicable_exclusions)
         return queryset
+
+    def filter_queryset(self, request, queryset, view):
+        applicable_filters, applicable_exclusions = self.build_filters(view, filters=self.get_request_filters(request))
+        return self.apply_filters(queryset, applicable_filters, applicable_exclusions)
 
 
 class HaystackAutocompleteFilter(HaystackFilter):
@@ -113,24 +126,14 @@ class HaystackAutocompleteFilter(HaystackFilter):
     `EdgeNgramField`.
     """
 
-    def filter_queryset(self, request, queryset, view):
-        """
-        Applying `applicable_filters` to the queryset by creating a
-        single SQ filter using `AND`.
-        """
+    @staticmethod
+    def process_filters(filters, queryset, view):
 
-        applicable_filters, applicable_exclusions = self.build_filter(view, filters=self.get_request_filters(request))
+        if not filters:
+            return filters
 
-        if applicable_filters:
-            queryset = queryset.filter(self._construct_query(applicable_filters, queryset, view))
-        if applicable_exclusions:
-            queryset = queryset.exclude(self._construct_query(applicable_exclusions, queryset, view))
-
-        return queryset
-
-    def _construct_query(self, terms, queryset, view):
         query_bits = []
-        for field_name, query in terms.children:
+        for field_name, query in filters.children:
             for word in query.split(" "):
                 bit = queryset.query.clean(word.strip())
                 kwargs = {
@@ -138,6 +141,14 @@ class HaystackAutocompleteFilter(HaystackFilter):
                 }
                 query_bits.append(view.query_object(**kwargs))
         return six.moves.reduce(operator.and_, filter(lambda x: x, query_bits))
+
+    def filter_queryset(self, request, queryset, view):
+        applicable_filters, applicable_exclusions = self.build_filters(view, filters=self.get_request_filters(request))
+        return self.apply_filters(
+            queryset=queryset,
+            applicable_filters=self.process_filters(applicable_filters, queryset, view),
+            applicable_exclusions=self.process_filters(applicable_exclusions, queryset, view)
+        )
 
 
 class HaystackGEOSpatialFilter(HaystackFilter):
@@ -179,7 +190,7 @@ class HaystackGEOSpatialFilter(HaystackFilter):
         """
         return self.D(m=distance_obj.m * 1000)  # pragma: no cover
 
-    def geo_filter(self, queryset, filters=None):
+    def process_filters(self, filters, queryset, view):
         """
         Filter the queryset by looking up parameters from the query
         parameters.
@@ -196,30 +207,42 @@ class HaystackGEOSpatialFilter(HaystackFilter):
             with latitude 59.744076 and longitude 10.152045.
         """
 
-        filters = dict((k, filters[k]) for k in chain(self.D.UNITS.keys(), ["from"]) if k in filters)
-        distance = dict((k, v) for k, v in filters.items() if k in self.D.UNITS.keys())
-        if "from" in filters and len(filters["from"].split(",")) == 2:
-            try:
-                point_field = self.get_point_field()
-                latitude, longitude = map(float, filters["from"].split(","))
-                point = self.Point(longitude, latitude, srid=getattr(settings, "GEO_SRID", 4326))
-                if point and distance:
-                    major, minor, _ = haystack.__version__
-                    if queryset.query.backend.__class__.__name__ == "ElasticsearchSearchBackend" \
-                            and (major == 2 and minor < 4):
-                        distance = self.unit_to_meters(self.D(**distance))  # pragma: no cover
-                    else:
-                        distance = self.D(**distance)
-                    queryset = queryset.dwithin(point_field, point, distance).distance(point_field, point)
-            except ValueError:
-                raise ValueError("Cannot convert `from=latitude,longitude` query parameter to "
-                                 "float values. Make sure to provide numerical values only!")
+        # TODO: Create an SQ filter from this like the autocomplete filter
+        if not filters:
+            return filters
 
-        return queryset
+        query_bits = []
+        for field_name, query in filters.children:
+            pass
+
+        # filters = dict((k, filters[k]) for k in chain(self.D.UNITS.keys(), ["from"]) if k in filters)
+        # distance = dict((k, v) for k, v in filters.items() if k in self.D.UNITS.keys())
+        # if "from" in filters and len(filters["from"].split(",")) == 2:
+        #     try:
+        #         point_field = self.get_point_field()
+        #         latitude, longitude = map(float, filters["from"].split(","))
+        #         point = self.Point(longitude, latitude, srid=getattr(settings, "GEO_SRID", 4326))
+        #         if point and distance:
+        #             major, minor, _ = haystack.__version__
+        #             if queryset.query.backend.__class__.__name__ == "ElasticsearchSearchBackend" \
+        #                     and (major == 2 and minor < 4):
+        #                 distance = self.unit_to_meters(self.D(**distance))  # pragma: no cover
+        #             else:
+        #                 distance = self.D(**distance)
+        #             queryset = queryset.dwithin(point_field, point, distance).distance(point_field, point)
+        #     except ValueError:
+        #         raise ValueError("Cannot convert `from=latitude,longitude` query parameter to "
+        #                          "float values. Make sure to provide numerical values only!")
+        #
+        # return queryset
 
     def filter_queryset(self, request, queryset, view):
-        queryset = self.geo_filter(queryset, filters=self.get_request_filters(request))
-        return super(HaystackGEOSpatialFilter, self).filter_queryset(request, queryset, view)
+        applicable_filters, applicable_exclusions = self.build_filters(view, filters=self.get_request_filters(request))
+        return self.apply_filters(
+            queryset=queryset,
+            applicable_filters=self.process_filters(applicable_filters, queryset, view),
+            applicable_exclusions=self.process_filters(applicable_exclusions, queryset, view)
+        )
 
 
 class HaystackHighlightFilter(HaystackFilter):

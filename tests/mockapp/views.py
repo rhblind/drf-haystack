@@ -3,8 +3,7 @@
 from __future__ import absolute_import, unicode_literals
 from rest_framework.pagination import PageNumberPagination
 
-from drf_haystack.filters import HaystackBoostFilter, HaystackHighlightFilter, HaystackAutocompleteFilter
-from drf_haystack.generics import SQHighlighterMixin
+from drf_haystack.filters import HaystackBoostFilter, HaystackHighlightFilter, HaystackAutocompleteFilter, HaystackGEOSpatialFilter
 from drf_haystack.viewsets import HaystackViewSet
 
 from .models import MockPerson, MockLocation
@@ -32,6 +31,7 @@ class SearchViewSet1(HaystackViewSet):
 class SearchViewSet2(HaystackViewSet):
     index_models = [MockPerson, MockLocation]
     serializer_class = HighlighterSerializer
+    filter_backends = [HaystackGEOSpatialFilter]
 
 
 class SearchViewSet3(HaystackViewSet):
