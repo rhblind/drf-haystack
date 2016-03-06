@@ -146,31 +146,3 @@ class HaystackGenericAPIView(GenericAPIView):
                 {"cls": self.__class__.__name__}
             )
         return self.facet_serializer_class
-
-
-class SQHighlighterMixin(object):
-    """
-    DEPRECATED! Remove in v1.6.0.
-    Please use the HaystackHighlightFilter instead.
-
-    This mixin adds support for highlighting on the SearchQuerySet
-    level (the fast one).
-    Note that you need to use a backend which supports hightlighting in order
-    to use this.
-
-    This will add a `hightlighted` entry to your response, encapsulating the
-    highlighted words in an `<em>highlighted results</em>` block.
-    """
-    def filter_queryset(self, queryset):
-        warnings.warn(
-            "The SQHighlighterMixin is marked for deprecation, and has been re-written "
-            "as a filter backend. Please remove SQHighlighterMixin from the "
-            "%(cls)s, and add HaystackHighlightFilter to %(cls)s.filter_backends." %
-            {"cls": self.__class__.__name__},
-            DeprecationWarning
-        )
-
-        queryset = super(SQHighlighterMixin, self).filter_queryset(queryset)
-        if self.request.GET and isinstance(queryset, SearchQuerySet):
-            queryset = queryset.highlight()
-        return queryset

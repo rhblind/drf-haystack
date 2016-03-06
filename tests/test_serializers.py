@@ -20,7 +20,6 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework.routers import DefaultRouter
 from rest_framework.test import APIRequestFactory, APITestCase
 
-from drf_haystack.generics import SQHighlighterMixin
 from drf_haystack.serializers import (
     HighlighterMixin, HaystackSerializer,
     HaystackSerializerMixin, HaystackFacetSerializer
@@ -349,11 +348,6 @@ class HaystackSerializerHighlighterMixinTestCase(WarningTestCaseMixin, TestCase)
     def setUp(self):
         MockPersonIndex().reindex()
 
-        class Serializer1(HaystackSerializer):
-            class Meta:
-                index_classes = [MockPersonIndex]
-                fields = ["firstname", "lastname", "full_name"]
-
         class Serializer2(HighlighterMixin, HaystackSerializer):
             highlighter_html_tag = "div"
             highlighter_css_class = "my-fancy-highlighter"
@@ -366,61 +360,42 @@ class HaystackSerializerHighlighterMixinTestCase(WarningTestCaseMixin, TestCase)
         class Serializer3(Serializer2):
             highlighter_class = None
 
-        class ViewSet1(SQHighlighterMixin, HaystackViewSet):
-            serializer_class = Serializer1
-
-        class ViewSet2(HaystackViewSet):
+        class ViewSet1(HaystackViewSet):
             serializer_class = Serializer2
 
-        class ViewSet3(HaystackViewSet):
+        class ViewSet2(HaystackViewSet):
             serializer_class = Serializer3
 
-        self.viewset1 = ViewSet1
-        self.viewset2 = ViewSet2
-        self.viewset3 = ViewSet3
+        self.view1 = ViewSet1
+        self.view2 = ViewSet2
 
     def tearDown(self):
         MockPersonIndex().clear()
 
-    def test_serializer_qs_highlighting(self):
-        request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")
-        response = self.viewset1.as_view(actions={"get": "list"})(request)
-        response.render()
-        for result in json.loads(response.content.decode()):
-            self.assertTrue("highlighted" in result)
-            self.assertEqual(
-                result["highlighted"],
-                " ".join(("<em>Jeremy</em>", "%s\n" % result["lastname"]))
-            )
-
-    def test_serializer_qs_highlighter_gives_deprecation_warning(self):
-        request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")
-        self.assertWarning(DeprecationWarning, self.viewset1.as_view(actions={"get": "list"}), request)
-
     def test_serializer_highlighting(self):
         request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")
-        response = self.viewset2.as_view(actions={"get": "list"})(request)
+        response = self.view1.as_view(actions={"get": "list"})(request)
         response.render()
         for result in json.loads(response.content.decode()):
             self.assertTrue("highlighted" in result)
             self.assertEqual(
                 result["highlighted"],
                 " ".join(('<%(tag)s class="%(css_class)s">Jeremy</%(tag)s>' % {
-                    "tag": self.viewset2.serializer_class.highlighter_html_tag,
-                    "css_class": self.viewset2.serializer_class.highlighter_css_class
+                    "tag": self.view1.serializer_class.highlighter_html_tag,
+                    "css_class": self.view1.serializer_class.highlighter_css_class
                 }, "%s" % "is a nice chap!"))
             )
 
     def test_serializer_highlighter_raise_no_highlighter_class(self):
         request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")
         try:
-            self.viewset3.as_view(actions={"get": "list"})(request)
+            self.view2.as_view(actions={"get": "list"})(request)
             self.fail("Did not raise ImproperlyConfigured error when called without a serializer_class")
         except ImproperlyConfigured as e:
             self.assertEqual(
                 str(e),
                 "%(cls)s is missing a highlighter_class. Define %(cls)s.highlighter_class, "
-                "or override %(cls)s.get_highlighter()." % {"cls": self.viewset3.serializer_class.__name__}
+                "or override %(cls)s.get_highlighter()." % {"cls": self.view2.serializer_class.__name__}
             )
 
 

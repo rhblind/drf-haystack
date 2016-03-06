@@ -188,9 +188,6 @@ In order to add support for ``SearchQuerySet().highlight()``, all you have to do
 check if your queryset has highlighting enabled, and render an additional ``highlighted`` field to
 your result. The highlighted words will be encapsulated in an ``<em>words go here</em>`` html tag.
 
-.. warning::
-
-    The ``SQHighlighterMixin()`` is deprecated in favor of the  ``HaystackHighlightFilter()`` filter backend.
 
 .. class:: drf_haystack.filters.HaystackHighlightFilter
 
@@ -245,7 +242,7 @@ Pure Python Highlighting
 
 This implementation make use of the haystack ``Highlighter()`` class.
 It is implemented as a mixin class, and must be applied on the ``Serializer``.
-This is somewhat slower, but more configurable than the ``SQHighlighterMixin()``.
+This is somewhat slower, but more configurable than the ``HaystackHighlightFilter``.
 
 .. class:: drf_haystack.serializers.HighlighterMixin
 

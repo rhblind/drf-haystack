@@ -104,6 +104,13 @@ Thanks guys!
 Changelog
 =========
 
+v1.6.0
+------
+*Release date: Not yet released*
+
+    - Removed deprecated ``SQHighlighterMixin``
+
+
 v1.5.6
 ------
 *Release date: 2015-12-02*
