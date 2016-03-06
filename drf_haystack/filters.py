@@ -140,7 +140,7 @@ class HaystackAutocompleteFilter(HaystackFilter):
         return six.moves.reduce(operator.and_, filter(lambda x: x, query_bits))
 
 
-class BaseHaystackGEOSpatialFilter(HaystackFilter):
+class HaystackGEOSpatialFilter(HaystackFilter):
     """
     A base filter backend for doing geospatial filtering.
     If using this filter make sure to provide a `point_field` with the name of
@@ -149,13 +149,9 @@ class BaseHaystackGEOSpatialFilter(HaystackFilter):
     We'll always do the somewhat slower but more accurate `dwithin`
     (radius) filter.
     """
-    point_field = None
+    point_field = "coordinates"
 
     def __init__(self, *args, **kwargs):
-        if not self.point_field:
-            raise ImproperlyConfigured("You should provide `point_field` in "
-                                       "your subclassed geo-spatial filter "
-                                       "class.")
         try:
             from haystack.utils.geo import D, Point
             self.D = D
@@ -164,6 +160,14 @@ class BaseHaystackGEOSpatialFilter(HaystackFilter):
             warnings.warn("Make sure you've installed the `libgeos` library.\n "
                           "(`apt-get install libgeos` on linux, or `brew install geos` on OS X.)")
             raise e
+
+    def get_point_field(self):
+        """
+        Returns the field name which should be used for the location field.
+        """
+        assert self.point_field is not None, ("%(cls)s.point_field cannot be None. Set the %(cls)s.point_field "
+                                              "to the field name of a LocationField on your haystack index class.")
+        return self.point_field
 
     def unit_to_meters(self, distance_obj):
         """
@@ -196,6 +200,7 @@ class BaseHaystackGEOSpatialFilter(HaystackFilter):
         distance = dict((k, v) for k, v in filters.items() if k in self.D.UNITS.keys())
         if "from" in filters and len(filters["from"].split(",")) == 2:
             try:
+                point_field = self.get_point_field()
                 latitude, longitude = map(float, filters["from"].split(","))
                 point = self.Point(longitude, latitude, srid=getattr(settings, "GEO_SRID", 4326))
                 if point and distance:
@@ -205,7 +210,7 @@ class BaseHaystackGEOSpatialFilter(HaystackFilter):
                         distance = self.unit_to_meters(self.D(**distance))  # pragma: no cover
                     else:
                         distance = self.D(**distance)
-                    queryset = queryset.dwithin(self.point_field, point, distance).distance(self.point_field, point)
+                    queryset = queryset.dwithin(point_field, point, distance).distance(point_field, point)
             except ValueError:
                 raise ValueError("Cannot convert `from=latitude,longitude` query parameter to "
                                  "float values. Make sure to provide numerical values only!")
@@ -214,15 +219,7 @@ class BaseHaystackGEOSpatialFilter(HaystackFilter):
 
     def filter_queryset(self, request, queryset, view):
         queryset = self.geo_filter(queryset, filters=self.get_request_filters(request))
-        return super(BaseHaystackGEOSpatialFilter, self).filter_queryset(request, queryset, view)
-
-
-class HaystackGEOSpatialFilter(BaseHaystackGEOSpatialFilter):
-    """
-    If using this filter make sure your index has a `LocationField`
-    named `coordinates`.
-    """
-    point_field = 'coordinates'
+        return super(HaystackGEOSpatialFilter, self).filter_queryset(request, queryset, view)
 
 
 class HaystackHighlightFilter(HaystackFilter):
