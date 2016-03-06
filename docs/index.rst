@@ -109,7 +109,10 @@ v1.6.0
 *Release date: Not yet released*
 
     - Removed deprecated ``SQHighlighterMixin``
-
+    - Removed redundant ``BaseHaystackGEOSpatialFilter``. If name of ``indexes.LocationField`` needs to be changed, subclass the ``HaystackGEOSpatialFilter`` directly
+    - More consistent naming of methods in the ``HaystackFilters``
+        - ``build_filter`` renamed to ``build_filters``
+        - All filters follow the same logic for building and applying filters and exclusions to the ``SearchQuerySet``
 
 v1.5.6
 ------
