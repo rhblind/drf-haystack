@@ -2,8 +2,6 @@
 
 from __future__ import absolute_import, unicode_literals
 
-import warnings
-
 from django.contrib.contenttypes.models import ContentType
 from django.db.models.loading import get_model
 from django.http import Http404
