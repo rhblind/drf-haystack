@@ -18,8 +18,7 @@ About
 -----
 
 Small library which tries to simplify integration of Haystack with Django REST Framework.
-Contains a Generic ViewSet, a Serializer and a couple of Filters in order to make search as
-painless as possible.
+
 
 Fresh `documentation available <http://drf-haystack.readthedocs.org/en/latest/>`_ on Read the docs!
 
@@ -28,12 +27,9 @@ Fresh `documentation available <http://drf-haystack.readthedocs.org/en/latest/>`
 Supported Python and Django versions
 ------------------------------------
 
-Tested with the following configurations:
-
-    - Python 2.6
-        - Django 1.5 and 1.6
-    - Python 2.7, 3.3 and 3.4
-        - Django 1.5, 1.6, 1.7 and 1.8
+    - Python 2.7+ and Python 3.4+
+    - `All supported versions of Django <https://www.djangoproject.com/download/#supported-versions>`_ 
+    
 
 Installation
 ------------
@@ -46,7 +42,9 @@ We aim to support most features Haystack does (or at least those which can be us
 Currently we support:
 
     * Autocomplete
-    * GEO Spatial searching
+    * Boost (Experimental)
+    * Faceting
+    * Geo Spatial Search
     * Highlighting
     * More Like This
-    * Faceting
+    
