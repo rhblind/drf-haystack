@@ -3,7 +3,6 @@
 from __future__ import absolute_import, unicode_literals
 
 from django.contrib.contenttypes.models import ContentType
-from django.db.models.loading import get_model
 from django.http import Http404
 
 from haystack.backends import SQ
@@ -77,7 +76,7 @@ class HaystackGenericAPIView(GenericAPIView):
         if "model" in self.request.GET:
             try:
                 ctype = ContentType.objects.get(model=self.request.GET["model"].lower())
-                queryset = self.get_queryset(index_models=[get_model(ctype.app_label, ctype.model)])
+                queryset = self.get_queryset(index_models=[ctype.model_class()])
             except ContentType.DoesNotExist:
                 raise Http404("Could not find any models matching '%s'. Make sure to use a valid "
                               "model name for the 'model' query parameter." % self.request.GET["model"])
