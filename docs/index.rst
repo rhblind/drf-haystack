@@ -35,9 +35,10 @@ It's in the cheese shop!
 
 Requirements
 ============
-    - Django
-    - Django REST Framework
-    - Haystack (and a supported search engine such as Solr, Elasticsearch, Whoosh, etc.)
+    - A Supported Django install
+    - Django REST Framework v3.2.0 and later
+    - Haystack v2.4.0 and later
+    - A supported search engine such as Solr, Elasticsearch, Whoosh, etc.
     - Python bindings for the chosen backend (see below).
     - (geopy and libgeos if you want to use geo spatial filtering)
 
