@@ -18,12 +18,10 @@ Small library aiming to simplify using Haystack with Django REST Framework
 Features
 ========
 
-Supported Python versions:
+Supported Python and Django versions:
 
-    - Python 2.6
-        - Django 1.5 and 1.6
-    - Python 2.7, 3.3, 3.4 and 3.5
-        - Django 1.5, 1.6, 1.7 and 1.8
+    - Python 2.7+ and Python 3.4+
+    - `All supported versions of Django <https://www.djangoproject.com/download/#supported-versions>`_
 
 
 Installation
