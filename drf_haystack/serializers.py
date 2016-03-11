@@ -48,7 +48,7 @@ class Meta(type):
     index_aliases = {}
 
     def __new__(mcs, name, bases, attrs):
-        cls = super().__new__(mcs, name, bases, attrs)
+        cls = super(Meta, mcs).__new__(mcs, name, bases, attrs)
 
         if cls.fields and cls.exclude:
             raise ImproperlyConfigured("%s cannot define fields and exclude" % name)
