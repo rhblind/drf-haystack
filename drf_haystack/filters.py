@@ -31,7 +31,7 @@ class HaystackFilter(BaseFilterBackend):
         return request.GET.copy()
 
     @classmethod
-    def build_filter(cls, view, filters=None):
+    def build_filters(cls, view, filters=None):
         """
         Creates a single SQ filter from querystring parameters that
         correspond to the SearchIndex fields that have been "registered"

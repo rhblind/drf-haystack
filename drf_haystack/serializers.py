@@ -48,7 +48,7 @@ class Meta(type):
     index_aliases = {}
 
     def __new__(mcs, name, bases, attrs):
-        cls = super().__new__(mcs, name, bases, attrs)
+        cls = super(Meta, mcs).__new__(mcs, str(name), bases, attrs)
 
         if cls.fields and cls.exclude:
             raise ImproperlyConfigured("%s cannot define fields and exclude" % name)
@@ -71,7 +71,7 @@ class HaystackSerializerMeta(SerializerMetaclass):
     def __new__(mcs, name, bases, attrs):
         attrs.setdefault('_abstract', False)
 
-        cls = super(HaystackSerializerMeta, mcs).__new__(mcs, name, bases, attrs)
+        cls = super(HaystackSerializerMeta, mcs).__new__(mcs, str(name), bases, attrs)
 
         if getattr(cls, "Meta", None):
             cls.Meta = Meta("Meta", (Meta,), dict(cls.Meta.__dict__))
