@@ -8,11 +8,11 @@ from __future__ import absolute_import, unicode_literals
 import json
 from datetime import datetime, timedelta
 
+import six
 from django.conf.urls import url, include
 from django.core.exceptions import ImproperlyConfigured
 from django.http import QueryDict
-from django.test import TestCase
-
+from django.test import TestCase, SimpleTestCase
 from haystack.query import SearchQuerySet
 
 from rest_framework import serializers
@@ -22,8 +22,8 @@ from rest_framework.test import APIRequestFactory, APITestCase
 
 from drf_haystack.serializers import (
     HighlighterMixin, HaystackSerializer,
-    HaystackSerializerMixin, HaystackFacetSerializer
-)
+    HaystackSerializerMixin, HaystackFacetSerializer,
+    HaystackSerializerMeta)
 from drf_haystack.viewsets import HaystackViewSet
 
 from .mixins import WarningTestCaseMixin
@@ -91,26 +91,6 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         MockPetIndex().reindex()
 
         class Serializer1(HaystackSerializer):
-            # This is not allowed. Serializer must implement a
-            # `Meta` class
-            pass
-
-        class Serializer2(HaystackSerializer):
-
-            class Meta:
-                # This is not allowed. The Meta class must implement
-                # a `index_classes` attribute
-                pass
-
-        class Serializer3(HaystackSerializer):
-
-            class Meta:
-                index_classes = [MockPersonIndex]
-                fields = ["some_field"]
-                exclude = ["another_field"]
-                # This is not allowed. Can't set both `fields` and `exclude`
-
-        class Serializer4(HaystackSerializer):
 
             integer_field = serializers.IntegerField()
             city = serializers.CharField()
@@ -125,13 +105,13 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
             def get_city(self, obj):
                 return "Declared overriding field"
 
-        class Serializer5(HaystackSerializer):
+        class Serializer2(HaystackSerializer):
 
             class Meta:
                 index_classes = [MockPersonIndex]
                 exclude = ["firstname"]
 
-        class Serializer6(HaystackSerializer):
+        class Serializer3(HaystackSerializer):
 
             class Meta:
                 index_classes = [MockPersonIndex]
@@ -144,10 +124,7 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
                 index_classes = [MockPetIndex]
 
         class ViewSet1(HaystackViewSet):
-            serializer_class = Serializer3
-
-        class ViewSet2(HaystackViewSet):
-            serializer_class = Serializer4
+            serializer_class = Serializer1
 
             class Meta:
                 index_models = [MockPerson]
@@ -155,44 +132,22 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         self.serializer1 = Serializer1
         self.serializer2 = Serializer2
         self.serializer3 = Serializer3
-        self.serializer4 = Serializer4
-        self.serializer5 = Serializer5
-        self.serializer6 = Serializer6
         self.serializer7 = Serializer7
-
         self.view1 = ViewSet1
-        self.view2 = ViewSet2
 
     def tearDown(self):
         MockPersonIndex().clear()
 
     def test_serializer_raise_without_meta_class(self):
         try:
-            self.serializer1()
-            self.fail("Did not fail when initialized serializer with no Meta class")
+            class Serializer(HaystackSerializer):
+                pass
+            self.fail("Did not fail when defining a Serializer without a Meta class")
         except ImproperlyConfigured as e:
-            self.assertEqual(str(e), "%s must implement a Meta class." % self.serializer1.__name__)
-
-    def test_serializer_raise_without_index_models(self):
-        try:
-            self.serializer2()
-            self.fail("Did not fail when initialized serializer with no 'index_classes' attribute")
-        except ImproperlyConfigured as e:
-            self.assertEqual(str(e), "You must set either the 'index_classes' or 'serializers' "
-                                     "attribute on the serializer Meta class.")
-
-    def test_serializer_raise_on_both_fields_and_exclude(self):
-        # Make sure we're getting an ImproperlyConfigured when trying to call a viewset
-        # which has both `fields` and `exclude` set.
-        request = factory.get(path="/", data="", content_type="application/json")
-        try:
-            self.view1.as_view(actions={"get": "list"})(request)
-            self.fail("Did not fail when serializer has both 'fields' and 'exclude' attributes")
-        except ImproperlyConfigured as e:
-            self.assertEqual(str(e), "Cannot set both `fields` and `exclude`.")
+            self.assertEqual(str(e), "%s must implement a Meta class or have the property _abstract" % "Serializer")
 
     def test_serializer_gets_default_instance(self):
-        serializer = self.serializer4(instance=None)
+        serializer = self.serializer1(instance=None)
         assert isinstance(serializer.instance, SearchQuerySet), self.fail("Did not get default instance "
                                                                           "of type SearchQuerySet")
 
@@ -200,7 +155,7 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         from rest_framework.fields import CharField, IntegerField
 
         obj = SearchQuerySet().filter(lastname="Foreman")[0]
-        serializer = self.serializer4(instance=obj)
+        serializer = self.serializer1(instance=obj)
         fields = serializer.get_fields()
         assert isinstance(fields, dict), self.fail("serializer.data is not a dict")
         assert isinstance(fields["integer_field"], IntegerField), self.fail("serializer 'integer_field' field is not a IntegerField instance")
@@ -213,7 +168,7 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         from rest_framework.fields import CharField
 
         obj = SearchQuerySet().filter(lastname="Foreman")[0]
-        serializer = self.serializer5(instance=obj)
+        serializer = self.serializer2(instance=obj)
         fields = serializer.get_fields()
         assert isinstance(fields, dict), self.fail("serializer.data is not a dict")
         assert isinstance(fields["text"], CharField), self.fail("serializer 'text' field is not a CharField instance")
@@ -225,7 +180,7 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         from rest_framework.fields import CharField
 
         obj = SearchQuerySet().filter(lastname="Foreman")[0]
-        serializer = self.serializer6(instance=obj)
+        serializer = self.serializer3(instance=obj)
         fields = serializer.get_fields()
         assert isinstance(fields, dict), self.fail("serializer.data is not a dict")
         assert isinstance(fields["text"], CharField), self.fail("serializer 'text' field is not a CharField instance")
@@ -441,34 +396,6 @@ class HaystackFacetSerializerTestCase(TestCase):
             format=json
         )
 
-        class FacetSerializer(HaystackFacetSerializer):
-
-            serialize_objects = True
-
-            class Meta:
-                fields = ["firstname", "lastname"]
-                field_options = {
-                    "firstname": {},
-                    "lastname": {}
-                }
-
-        class Serializer(HaystackSerializer):
-
-            class Meta:
-                index_classes = [MockPersonIndex]
-                fields = ["firstname", "lastname", "full_name"]
-
-        class ViewSet(HaystackViewSet):
-
-            serializer_class = Serializer
-            facet_serializer_class = FacetSerializer
-            pagination_class = PageNumberPagination
-
-            class Meta:
-                index_models = [MockPerson]
-
-        self.view = ViewSet
-
     def tearDown(self):
         MockPersonIndex().clear()
 
@@ -594,6 +521,13 @@ class HaystackFacetSerializerTestCase(TestCase):
         firstname = fields["firstname"][0]
         self.assertFalse("page=2" in firstname["narrow_url"])
 
+    def test_serializer_raise_without_meta_class(self):
+        try:
+            class FacetSerializer(HaystackFacetSerializer):
+                pass
+            self.fail("Did not fail when defining a Serializer without a Meta class")
+        except ImproperlyConfigured as e:
+            self.assertEqual(str(e), "%s must implement a Meta class or have the property _abstract" % "FacetSerializer")
 
 class HaystackSerializerMixinTestCase(WarningTestCaseMixin, TestCase):
 
@@ -685,3 +619,46 @@ class HaystackMultiSerializerTestCase(WarningTestCaseMixin, TestCase):
                 "description": "Zane is a nice chap!"
             }]
         )
+
+
+class TestHaystackSerializerMeta(SimpleTestCase):
+
+    def test_abstract_not_inherited(self):
+        class Base(six.with_metaclass(HaystackSerializerMeta, serializers.Serializer)):
+            _abstract = True
+
+        def create_subclass():
+            class Sub(HaystackSerializer):
+                pass
+
+        self.assertRaises(ImproperlyConfigured, create_subclass)
+
+
+class TestMeta(SimpleTestCase):
+
+    def test_inheritance(self):
+        """
+        Tests that Meta fields are correctly overriden by subclasses.
+        """
+        class Serializer(HaystackSerializer):
+            class Meta:
+                fields = ('overriden_fields',)
+
+        self.assertEqual(Serializer.Meta.fields, ('overriden_fields',))
+
+    def test_default_attrs(self):
+        class Serializer(HaystackSerializer):
+            class Meta:
+                fields = ('overriden_fields',)
+
+        self.assertEqual(Serializer.Meta.exclude, tuple())
+
+    def test_raises_if_fields_and_exclude_defined(self):
+        def create_subclass():
+            class Serializer(HaystackSerializer):
+                class Meta:
+                    fields = ('include_field',)
+                    exclude = ('exclude_field',)
+            return Serializer
+
+        self.assertRaises(ImproperlyConfigured, create_subclass)

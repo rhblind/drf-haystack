@@ -96,7 +96,7 @@ LOGGING = {
     'loggers': {
         'default': {
             'handlers': ['file_handler'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': True,
         },
         'elasticsearch': {
