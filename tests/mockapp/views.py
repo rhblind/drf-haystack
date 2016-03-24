@@ -6,8 +6,8 @@ from rest_framework.pagination import PageNumberPagination
 from drf_haystack.filters import HaystackBoostFilter, HaystackHighlightFilter, HaystackAutocompleteFilter, HaystackGEOSpatialFilter
 from drf_haystack.viewsets import HaystackViewSet
 
-from .models import MockPerson, MockLocation
-from .serializers import (
+from mockapp.models import MockPerson, MockLocation
+from mockapp.serializers import (
     SearchSerializer, HighlighterSerializer,
     MoreLikeThisSerializer, MockPersonFacetSerializer
 )
@@ -21,7 +21,7 @@ class BasicPagination(PageNumberPagination):
 class SearchViewSet1(HaystackViewSet):
     index_models = [MockPerson]
     serializer_class = SearchSerializer
-    filter_backends = [HaystackHighlightFilter, HaystackAutocompleteFilter]
+    # filter_backends = [HaystackHighlightFilter, HaystackAutocompleteFilter]
 
     # Faceting
     facet_serializer_class = MockPersonFacetSerializer

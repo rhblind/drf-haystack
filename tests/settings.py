@@ -22,7 +22,8 @@ INSTALLED_APPS = (
 
     'haystack',
     'rest_framework',
-    'tests.mockapp',
+
+    'mockapp',
 )
 
 MIDDLEWARE_CLASSES = (
