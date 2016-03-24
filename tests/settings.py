@@ -11,8 +11,12 @@ TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
-
-# Application definition
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'test.db'),
+    }
+}
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -23,7 +27,7 @@ INSTALLED_APPS = (
     'haystack',
     'rest_framework',
 
-    'mockapp',
+    'tests.mockapp',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -37,31 +41,11 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'tests.urls'
 WSGI_APPLICATION = 'tests.wsgi.application'
-
-# Database
-# https://docs.djangoproject.com/en/1.7/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'test.db'),
-    }
-}
-
-# Internationalization
-# https://docs.djangoproject.com/en/1.7/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/1.7/howto/static-files/
-
 STATIC_URL = '/static/'
 
 HAYSTACK_CONNECTIONS = {

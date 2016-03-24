@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import, unicode_literals
+
 from rest_framework.pagination import PageNumberPagination
 
 from drf_haystack.filters import HaystackBoostFilter, HaystackHighlightFilter, HaystackAutocompleteFilter, HaystackGEOSpatialFilter
 from drf_haystack.viewsets import HaystackViewSet
 
-from mockapp.models import MockPerson, MockLocation
-from mockapp.serializers import (
+from .models import MockPerson, MockLocation
+from .serializers import (
     SearchSerializer, HighlighterSerializer,
     MoreLikeThisSerializer, MockPersonFacetSerializer
 )

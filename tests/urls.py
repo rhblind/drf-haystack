@@ -4,7 +4,7 @@ from django.conf.urls import include, url
 
 from rest_framework import routers
 
-from .mockapp.views import SearchViewSet1, SearchViewSet2, SearchViewSet3
+from tests.mockapp.views import SearchViewSet1, SearchViewSet2, SearchViewSet3
 
 router = routers.DefaultRouter()
 router.register("search1", viewset=SearchViewSet1, base_name="search1")
