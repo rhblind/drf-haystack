@@ -4,49 +4,26 @@ from __future__ import absolute_import, unicode_literals
 
 import operator
 import warnings
-from itertools import chain
 
-
-from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
-
-import haystack
 from haystack.query import SearchQuerySet
-
 from rest_framework.filters import BaseFilterBackend
 
-from .query import QueryBuilder
+from .query import FacetQueryBuilder, FilterQueryBuilder
 
 
-class HaystackFilter(BaseFilterBackend):
+class BaseHaystackFilterBackend(BaseFilterBackend):
     """
-    A filter backend that compiles a haystack compatible filtering query.
+    A base class from which all Haystack filter backend classes should inherit.
     """
 
-    query_builder = QueryBuilder()
+    query_builder_class = None
 
     @staticmethod
     def get_request_filters(request):
-        return request.GET.copy()
+        return request.query_params.copy()
 
-    @classmethod
-    def build_filters(cls, view, filters=None):
-        """
-        Creates a single SQ filter from querystring parameters that
-        correspond to the SearchIndex fields that have been "registered"
-        in `view.fields`.
-
-        Default behavior is to `OR` terms for the same parameters, and `AND`
-        between parameters.
-
-        Any querystring parameters that are not registered in
-        `view.fields` will be ignored.
-        """
-        return cls.query_builder.build_query(view, **(filters if filters else {}))
-
-    @staticmethod
-    def apply_filters(queryset, applicable_filters=None, applicable_exclusions=None):
+    def apply_filters(self, queryset, applicable_filters=None, applicable_exclusions=None):
         """
         Apply constructed filters and excludes and return the queryset
 
@@ -61,9 +38,68 @@ class HaystackFilter(BaseFilterBackend):
             queryset = queryset.exclude(applicable_exclusions)
         return queryset
 
+    def build_filters(self, view, filters=None):
+        """
+        Creates a single SQ filter from querystring parameters that
+        correspond to the SearchIndex fields that have been "registered"
+        in `view.fields`.
+
+        Default behavior is to `OR` terms for the same parameters, and `AND`
+        between parameters.
+
+        Any querystring parameters that are not registered in
+        `view.fields` will be ignored.
+        """
+        query_builder = self.get_query_builder(view=view)
+        return query_builder.build_query(**(filters if filters else {}))
+
+    def process_filters(self, filters, queryset, view):
+        """
+        Convenient hook to do any post-processing of the filters before they
+        are applied to the queryset.
+        """
+        return filters
+
     def filter_queryset(self, request, queryset, view):
+        """
+        Return the filtered queryset.
+        """
         applicable_filters, applicable_exclusions = self.build_filters(view, filters=self.get_request_filters(request))
-        return self.apply_filters(queryset, applicable_filters, applicable_exclusions)
+        return self.apply_filters(
+            queryset=queryset,
+            applicable_filters=self.process_filters(applicable_filters, queryset, view),
+            applicable_exclusions=self.process_filters(applicable_exclusions, queryset, view)
+        )
+
+    def get_query_builder(self, *args, **kwargs):
+        """
+        Return the query builder class instance that should be used to
+        build the query which is passed to the search engine backend.
+        """
+        query_builder = self.get_query_builder_class()
+        return query_builder(*args, **kwargs)
+
+    def get_query_builder_class(self):
+        """
+        Return the class to use for building the query.
+        Defaults to using `self.query_builder_class`.
+
+        You may want to override this if you need to provide different
+        methods of building the query sent to the search engine backend.
+        """
+        assert self.query_builder_class is not None, (
+            "'%s' should either include a `query_builder_class` attribute, "
+            "or override the `get_query_builder_class()` method." % self.__class__.__name__
+        )
+        return self.query_builder_class
+
+
+class HaystackFilter(BaseHaystackFilterBackend):
+    """
+    A filter backend that compiles a haystack compatible filtering query.
+    """
+
+    query_builder_class = FilterQueryBuilder
 
 
 class HaystackAutocompleteFilter(HaystackFilter):
@@ -74,9 +110,7 @@ class HaystackAutocompleteFilter(HaystackFilter):
     `EdgeNgramField`.
     """
 
-    @staticmethod
-    def process_filters(filters, queryset, view):
-
+    def process_filters(self, filters, queryset, view):
         if not filters:
             return filters
 
@@ -90,16 +124,8 @@ class HaystackAutocompleteFilter(HaystackFilter):
                 query_bits.append(view.query_object(**kwargs))
         return six.moves.reduce(operator.and_, filter(lambda x: x, query_bits))
 
-    def filter_queryset(self, request, queryset, view):
-        applicable_filters, applicable_exclusions = self.build_filters(view, filters=self.get_request_filters(request))
-        return self.apply_filters(
-            queryset=queryset,
-            applicable_filters=self.process_filters(applicable_filters, queryset, view),
-            applicable_exclusions=self.process_filters(applicable_exclusions, queryset, view)
-        )
 
-
-class HaystackGEOSpatialFilter(HaystackFilter):
+class HaystackGEOSpatialFilter(BaseHaystackFilterBackend):
     """
     A base filter backend for doing geospatial filtering.
     If using this filter make sure to provide a `point_field` with the name of
@@ -108,6 +134,8 @@ class HaystackGEOSpatialFilter(HaystackFilter):
     We'll always do the somewhat slower but more accurate `dwithin`
     (radius) filter.
     """
+
+    query_builder_class = FilterQueryBuilder
     point_field = "coordinates"
 
     def __init__(self, *args, **kwargs):
@@ -241,7 +269,7 @@ class HaystackBoostFilter(HaystackFilter):
         return self.apply_boost(queryset, filters=self.get_request_filters(request))
 
 
-class HaystackFacetFilter(HaystackFilter):
+class HaystackFacetFilter(BaseHaystackFilterBackend):
     """
     Filter backend for faceting search results.
     This backend does not apply regular filtering.
@@ -255,32 +283,22 @@ class HaystackFacetFilter(HaystackFilter):
     where each options ``key:value`` pair is separated by the ``view.lookup_sep`` attribute.
     """
 
-    # TODO: Support multiple indexes/serializers
+    query_builder_class = FacetQueryBuilder
 
-    def build_facet_filter(self, view, filters=None):
-        """
-        Creates a dict of dictionaries suitable for passing to the
-        SearchQuerySet ``facet``, ``date_facet`` or ``query_facet`` method.
-        """
-        return self.query_builder.build_facet_query(view, **(filters if filters else {}))
-
-    @staticmethod
-    def apply_facets(queryset, filters):
+    def apply_filters(self, queryset, applicable_filters=None, applicable_exclusions=None):
         """
         Apply faceting to the queryset
         """
-
-        for field, options in filters["field_facets"].items():
+        for field, options in applicable_filters["field_facets"].items():
             queryset = queryset.facet(field, **options)
 
-        for field, options in filters["date_facets"].items():
+        for field, options in applicable_filters["date_facets"].items():
             queryset = queryset.date_facet(field, **options)
 
-        # TODO: Implement support for query faceting
-        # for field, options in filters["query_facets"].items():
-        #     continue
+        for field, options in applicable_filters["query_facets"].items():
+            queryset = queryset.query_facet(field, **options)
 
         return queryset
 
     def filter_queryset(self, request, queryset, view):
-        return self.apply_facets(queryset, filters=self.build_facet_filter(view, self.get_request_filters(request)))
+        return self.apply_filters(queryset, self.build_filters(view, filters=self.get_request_filters(request)))

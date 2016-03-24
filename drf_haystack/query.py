@@ -2,20 +2,52 @@ import operator
 import warnings
 from itertools import chain
 
-import six
+from django.utils import six
 from dateutil import parser
-from django.core.exceptions import ImproperlyConfigured
+
 from drf_haystack.utils import merge_dict
+
 from . import constants
 
 
-class QueryBuilder:
-
+class BaseQueryBuilder(object):
     """
     Builds query parameters for haystack filters.
     """
 
-    def build_query(self, view, **kwargs):
+    def __init__(self, view):
+        self.view = view
+
+    def build_query(self, **filters):
+        """
+        :param dict[str, list[str]] filters: is an expanded QueryDict
+        or a mapping of keys to a list of parameters.
+        """
+        raise NotImplementedError("You should override this method in subclasses.")
+
+    def tokenize(self, stream, seperator):
+        """
+        Tokenizes a value into
+        :param stream:
+        :param seperator:
+        :return:
+        """
+        for value in stream:
+            for token in value.split(seperator):
+                if token:
+                    yield token.strip()
+
+    #
+    # def build_geo_query(self, view, **kwargs):
+    #     raise NotImplemented("GEO Queries are currently handled by subclassing BaseHaystackGEOSpatialFilter")
+
+
+class FilterQueryBuilder(BaseQueryBuilder):
+    """
+    Query builder class suitable for doing basic filtering.
+    """
+
+    def build_query(self, **filters):
         """
         Creates a single SQ filter from querystring parameters that correspond to the SearchIndex fields
         that have been "registered" in `view.fields`.
@@ -23,15 +55,14 @@ class QueryBuilder:
         Default behavior is to `OR` terms for the same parameters, and `AND` between parameters. Any
         querystring parameters that are not registered in `view.fields` will be ignored.
 
-        :param view:
-        :param dict[str, list[str]] kwargs: is an expanded QueryDict or a mapping of keys to a list of
+        :param dict[str, list[str]] filters: is an expanded QueryDict or a mapping of keys to a list of
         parameters.
         """
 
         applicable_filters = []
         applicable_exclusions = []
 
-        for param, value in kwargs.items():
+        for param, value in filters.items():
             # Skip if the parameter is not listed in the serializer's `fields`
             # or if it's in the `exclude` list.
             excluding_term = False
@@ -42,22 +73,22 @@ class QueryBuilder:
                 excluding_term = True
                 param = param.replace("__%s" % negation_keyword, "")  # haystack wouldn't understand our negation
 
-            if view.serializer_class:
-                if view.serializer_class.Meta.field_aliases:
+            if self.view.serializer_class:
+                if self.view.serializer_class.Meta.field_aliases:
                     old_base = base_param
-                    base_param = view.serializer_class.Meta.field_aliases.get(base_param, base_param)
+                    base_param = self.view.serializer_class.Meta.field_aliases.get(base_param, base_param)
                     param = param.replace(old_base, base_param)  # need to replace the alias
 
-                fields = view.serializer_class.Meta.fields
-                exclude = view.serializer_class.Meta.exclude
-                search_fields = view.serializer_class.Meta.search_fields
+                fields = self.view.serializer_class.Meta.fields
+                exclude = self.view.serializer_class.Meta.exclude
+                search_fields = self.view.serializer_class.Meta.search_fields
 
                 if ((fields or search_fields) and base_param not in chain(fields, search_fields)) or base_param in exclude or not value:
                     continue
 
             field_queries = []
-            for token in self.tokenize(value, view.lookup_sep):
-                field_queries.append(view.query_object((param, token)))
+            for token in self.tokenize(value, self.view.lookup_sep):
+                field_queries.append(self.view.query_object((param, token)))
 
             term = six.moves.reduce(operator.or_, filter(lambda x: x, field_queries))
             if excluding_term:
@@ -65,43 +96,49 @@ class QueryBuilder:
             else:
                 applicable_filters.append(term)
 
-        applicable_filters = \
-            six.moves.reduce(operator.and_, filter(lambda x: x, applicable_filters)) if applicable_filters else []
+        applicable_filters = six.moves.reduce(
+            operator.and_, filter(lambda x: x, applicable_filters)) if applicable_filters else []
 
-        applicable_exclusions = \
-            six.moves.reduce(operator.and_, filter(lambda x: x, applicable_exclusions)) if applicable_exclusions else []
+        applicable_exclusions = six.moves.reduce(
+            operator.and_, filter(lambda x: x, applicable_exclusions)) if applicable_exclusions else []
 
         return applicable_filters, applicable_exclusions
 
-    def build_facet_query(self, view, **kwargs):
+
+class FacetQueryBuilder(BaseQueryBuilder):
+    """
+    Query builder class suitable for construction facet queries.
+    """
+
+    def build_query(self, **filters):
         """
         Creates a dict of dictionaries suitable for passing to the SearchQuerySet ``facet``, ``date_facet``
         or ``query_facet`` method. All key word arguments should be wrapped in a list.
 
         :param view:
-        :param dict[str, list[str]] kwargs: is an expanded QueryDict or a mapping of keys to a list of
-        parameters.
+        :param dict[str, list[str]] filters: is an expanded QueryDict or a mapping
+        of keys to a list of parameters.
         """
         field_facets = {}
         date_facets = {}
         query_facets = {}
-        facet_serializer_cls = view.get_facet_serializer_class()
+        facet_serializer_cls = self.view.get_facet_serializer_class()
 
-        if view.lookup_sep == ":":
+        if self.view.lookup_sep == ":":
             raise AttributeError("The %(cls)s.lookup_sep attribute conflicts with the HaystackFacetFilter "
                                  "query parameter parser. Please choose another `lookup_sep` attribute "
-                                 "for %(cls)s." % {"cls": view.__class__.__name__})
+                                 "for %(cls)s." % {"cls": self.view.__class__.__name__})
 
         fields = facet_serializer_cls.Meta.fields
         exclude = facet_serializer_cls.Meta.exclude
         field_options = facet_serializer_cls.Meta.field_options
 
-        for field, options in kwargs.items():
+        for field, options in filters.items():
 
             if field not in fields or field in exclude:
                 continue
 
-            field_options = merge_dict(field_options, {field: self.parse_field_options(view.lookup_sep, *options)})
+            field_options = merge_dict(field_options, {field: self.parse_field_options(self.view.lookup_sep, *options)})
 
         valid_gap = ("year", "month", "day", "hour", "minute", "second")
         for field, options in field_options.items():
@@ -126,29 +163,14 @@ class QueryBuilder:
             "query_facets": query_facets
         }
 
-    def build_geo_query(self, view, **kwargs):
-        raise NotImplemented("GEO Queries are currently handled by subclassing BaseHaystackGEOSpatialFilter")
-
-    def tokenize(self, stream, seperator):
-        """
-        Tokenizes a value into
-        :param stream:
-        :param seperator:
-        :return:
-        """
-        for value in stream:
-            for token in value.split(seperator):
-                if token:
-                    yield token.strip()
-
-    def parse_field_options(self, lookup_sep, *options):
+    def parse_field_options(self, *options):
         """
         Parse the field options query string and return it as a dictionary.
         """
         defaults = {}
         for option in options:
             if isinstance(option, six.text_type):
-                tokens = [token.strip() for token in option.split(lookup_sep)]
+                tokens = [token.strip() for token in option.split(self.view.lookup_sep)]
 
                 for token in tokens:
                     if not len(token.split(":")) == 2:
@@ -169,3 +191,10 @@ class QueryBuilder:
                     defaults[param] = value
 
         return defaults
+
+
+class SpatialQueryBuilder(BaseQueryBuilder):
+    """
+    Query builder class suitable for construction spatial queries.
+    """
+    pass
