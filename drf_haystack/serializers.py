@@ -32,7 +32,6 @@ from .fields import (
 
 
 class Meta(type):
-
     """
     Template for the HaystackSerializerMeta.Meta class.
     """
@@ -51,15 +50,15 @@ class Meta(type):
         cls = super(Meta, mcs).__new__(mcs, str(name), bases, attrs)
 
         if cls.fields and cls.exclude:
-            raise ImproperlyConfigured("%s cannot define fields and exclude" % name)
+            raise ImproperlyConfigured("%s cannot define both 'fields' and 'exclude'." % name)
 
         return cls
 
     def __setattr__(cls, key, value):
-        raise AttributeError("Meta is immutable")
+        raise AttributeError("Meta class is immutable.")
 
     def __delattr__(cls, key, value):
-        raise AttributeError("Meta is immutable")
+        raise AttributeError("Meta class is immutable.")
 
 
 class HaystackSerializerMeta(SerializerMetaclass):
@@ -69,7 +68,7 @@ class HaystackSerializerMeta(SerializerMetaclass):
     """
 
     def __new__(mcs, name, bases, attrs):
-        attrs.setdefault('_abstract', False)
+        attrs.setdefault("_abstract", False)
 
         cls = super(HaystackSerializerMeta, mcs).__new__(mcs, str(name), bases, attrs)
 
@@ -83,7 +82,6 @@ class HaystackSerializerMeta(SerializerMetaclass):
 
 
 class HaystackSerializer(six.with_metaclass(HaystackSerializerMeta, serializers.Serializer)):
-
     """
     A `HaystackSerializer` which populates fields based on
     which models that are available in the SearchQueryset.
