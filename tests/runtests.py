@@ -14,8 +14,11 @@ def start(argv=None):
 
     if argv is None:
         argv = [
-            "nosetests", "--cover-branches", "--with-coverage",
-            "--cover-erase", "--verbose",
+            "nosetests",
+            "--verbose",
+            "--with-coverage",
+            "--cover-erase",
+            "--cover-branches",
             "--cover-package=drf_haystack",
         ]
 
