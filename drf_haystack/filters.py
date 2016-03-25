@@ -9,7 +9,7 @@ from django.utils import six
 from haystack.query import SearchQuerySet
 from rest_framework.filters import BaseFilterBackend
 
-from .query import FacetQueryBuilder, FilterQueryBuilder
+from .query import FilterQueryBuilder, FacetQueryBuilder, SpatialQueryBuilder
 
 
 class BaseHaystackFilterBackend(BaseFilterBackend):
@@ -40,17 +40,9 @@ class BaseHaystackFilterBackend(BaseFilterBackend):
 
     def build_filters(self, view, filters=None):
         """
-        Creates a single SQ filter from querystring parameters that
-        correspond to the SearchIndex fields that have been "registered"
-        in `view.fields`.
-
-        Default behavior is to `OR` terms for the same parameters, and `AND`
-        between parameters.
-
-        Any querystring parameters that are not registered in
-        `view.fields` will be ignored.
+        Get the query builder instance and return constructed query filters.
         """
-        query_builder = self.get_query_builder(view=view)
+        query_builder = self.get_query_builder(backend=self, view=view)
         return query_builder.build_query(**(filters if filters else {}))
 
     def process_filters(self, filters, queryset, view):
@@ -135,90 +127,17 @@ class HaystackGEOSpatialFilter(BaseHaystackFilterBackend):
     (radius) filter.
     """
 
-    query_builder_class = FilterQueryBuilder
+    query_builder_class = SpatialQueryBuilder
     point_field = "coordinates"
 
-    def __init__(self, *args, **kwargs):
-        try:
-            from haystack.utils.geo import D, Point
-            self.D = D
-            self.Point = Point
-        except ImportError as e:  # pragma: no cover
-            warnings.warn("Make sure you've installed the `libgeos` library.\n "
-                          "(`apt-get install libgeos` on linux, or `brew install geos` on OS X.)")
-            raise e
-
-    def get_point_field(self):
-        """
-        Returns the field name which should be used for the location field.
-        """
-        assert self.point_field is not None, ("%(cls)s.point_field cannot be None. Set the %(cls)s.point_field "
-                                              "to the field name of a LocationField on your haystack index class.")
-        return self.point_field
-
-    def unit_to_meters(self, distance_obj):
-        """
-        Emergency fix for https://github.com/toastdriven/django-haystack/issues/957
-        According to Elasticsearch documentation, units are always measured in meters unless
-        explicitly declared otherwise. It seems that the unit description is lost somewhere,
-        so everything ends up in the query without any unit values, thus the value is calculated
-        in meters.
-        """
-        return self.D(m=distance_obj.m * 1000)  # pragma: no cover
-
     def process_filters(self, filters, queryset, view):
-        """
-        Filter the queryset by looking up parameters from the query
-        parameters.
+        if filters and len(filters) == 1:
+            return filters[0]
 
-        Expected query parameters are:
-        - a `unit=value` parameter where the unit is a valid UNIT in the
-          `django.contrib.gis.measure.Distance` class.
-        - `from` which must be a comma separated longitude and latitude.
-
-        Example query:
-            /api/v1/search/?km=10&from=59.744076,10.152045
-
-            Will perform a `dwithin` query within 10 km from the point
-            with latitude 59.744076 and longitude 10.152045.
-        """
-
-        # TODO: Create an SQ filter from this like the autocomplete filter
-        if not filters:
-            return filters
-
-        query_bits = []
-        for field_name, query in filters.children:
-            pass
-
-        # filters = dict((k, filters[k]) for k in chain(self.D.UNITS.keys(), ["from"]) if k in filters)
-        # distance = dict((k, v) for k, v in filters.items() if k in self.D.UNITS.keys())
-        # if "from" in filters and len(filters["from"].split(",")) == 2:
-        #     try:
-        #         point_field = self.get_point_field()
-        #         latitude, longitude = map(float, filters["from"].split(","))
-        #         point = self.Point(longitude, latitude, srid=getattr(settings, "GEO_SRID", 4326))
-        #         if point and distance:
-        #             major, minor, _ = haystack.__version__
-        #             if queryset.query.backend.__class__.__name__ == "ElasticsearchSearchBackend" \
-        #                     and (major == 2 and minor < 4):
-        #                 distance = self.unit_to_meters(self.D(**distance))  # pragma: no cover
-        #             else:
-        #                 distance = self.D(**distance)
-        #             queryset = queryset.dwithin(point_field, point, distance).distance(point_field, point)
-        #     except ValueError:
-        #         raise ValueError("Cannot convert `from=latitude,longitude` query parameter to "
-        #                          "float values. Make sure to provide numerical values only!")
-        #
-        # return queryset
-
-    def filter_queryset(self, request, queryset, view):
-        applicable_filters, applicable_exclusions = self.build_filters(view, filters=self.get_request_filters(request))
-        return self.apply_filters(
-            queryset=queryset,
-            applicable_filters=self.process_filters(applicable_filters, queryset, view),
-            applicable_exclusions=self.process_filters(applicable_exclusions, queryset, view)
-        )
+    def apply_filters(self, queryset, applicable_filters=None, applicable_exclusions=None):
+        if applicable_filters:
+            queryset = queryset.dwithin(**applicable_filters["dwithin"]).distance(**applicable_filters["distance"])
+        return queryset
 
 
 class HaystackHighlightFilter(HaystackFilter):
@@ -234,7 +153,7 @@ class HaystackHighlightFilter(HaystackFilter):
 
     def filter_queryset(self, request, queryset, view):
         queryset = super(HaystackHighlightFilter, self).filter_queryset(request, queryset, view)
-        if request.GET and isinstance(queryset, SearchQuerySet):
+        if self.get_request_filters(request) and isinstance(queryset, SearchQuerySet):
             queryset = queryset.highlight()
         return queryset
 

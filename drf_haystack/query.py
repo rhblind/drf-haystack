@@ -12,10 +12,11 @@ from . import constants
 
 class BaseQueryBuilder(object):
     """
-    Builds query parameters for haystack filters.
+    Query builder base class.
     """
 
-    def __init__(self, view):
+    def __init__(self, backend, view):
+        self.backend = backend
         self.view = view
 
     def build_query(self, **filters):
@@ -25,21 +26,19 @@ class BaseQueryBuilder(object):
         """
         raise NotImplementedError("You should override this method in subclasses.")
 
-    def tokenize(self, stream, seperator):
+    @staticmethod
+    def tokenize(stream, separator):
         """
-        Tokenizes a value into
-        :param stream:
-        :param seperator:
+        Tokenize and yield query parameter values.
+
+        :param stream: Input value
+        :param separator: Character to use to separate the tokens.
         :return:
         """
         for value in stream:
-            for token in value.split(seperator):
+            for token in value.split(separator):
                 if token:
                     yield token.strip()
-
-    #
-    # def build_geo_query(self, view, **kwargs):
-    #     raise NotImplemented("GEO Queries are currently handled by subclassing BaseHaystackGEOSpatialFilter")
 
 
 class FilterQueryBuilder(BaseQueryBuilder):
@@ -112,10 +111,10 @@ class FacetQueryBuilder(BaseQueryBuilder):
 
     def build_query(self, **filters):
         """
-        Creates a dict of dictionaries suitable for passing to the SearchQuerySet ``facet``, ``date_facet``
-        or ``query_facet`` method. All key word arguments should be wrapped in a list.
+        Creates a dict of dictionaries suitable for passing to the  SearchQuerySet `facet`,
+        `date_facet` or `query_facet` method. All key word arguments should be wrapped in a list.
 
-        :param view:
+        :param view: API View
         :param dict[str, list[str]] filters: is an expanded QueryDict or a mapping
         of keys to a list of parameters.
         """
@@ -178,7 +177,7 @@ class FacetQueryBuilder(BaseQueryBuilder):
                                       "formatted as 'token:value' pairs." % token)
                         continue
 
-                    param, value = token.split(":")
+                    param, value = token.split(":", 1)
 
                     if any([k == param for k in ("start_date", "end_date", "gap_amount")]):
 
@@ -197,4 +196,75 @@ class SpatialQueryBuilder(BaseQueryBuilder):
     """
     Query builder class suitable for construction spatial queries.
     """
-    pass
+
+    def __init__(self, backend, view):
+        super(SpatialQueryBuilder, self).__init__(backend, view)
+
+        assert getattr(self.backend, "point_field", None) is not None, (
+            "%(cls)s.point_field cannot be None. Set the %(cls)s.point_field "
+            "to the name of the `LocationField` you want to filter on your index class." % {
+                "cls": self.backend.__class__.__name__
+            })
+
+        try:
+            from haystack.utils.geo import D, Point
+            self.D = D
+            self.Point = Point
+        except ImportError:
+            warnings.warn("Make sure you've installed the `libgeos` library. "
+                          "Run `apt-get install libgeos` on debian based linux systems, "
+                          "or `brew install geos` on OS X.")
+            raise
+
+    def build_query(self, **filters):
+        """
+        Build queries for geo spatial filtering.
+
+        Expected query parameters are:
+         - a `unit=value` parameter where the unit is a valid UNIT in the
+           `django.contrib.gis.measure.Distance` class.
+         - `from` which must be a comma separated latitude and longitude.
+
+         Example query:
+             /api/v1/search/?km=10&from=59.744076,10.152045
+
+             Will perform a `dwithin` query within 10 km from the point
+             with latitude 59.744076 and longitude 10.152045.
+        """
+
+        applicable_filters = []
+        applicable_exclusions = None
+
+        filters = dict((k, filters[k]) for k in chain(self.D.UNITS.keys(), ["from"]) if k in filters)
+        distance = dict((k, v) for k, v in filters.items() if k in self.D.UNITS.keys())
+
+        try:
+            latitude, longitude = map(float, self.tokenize(filters["from"], self.view.lookup_sep))
+            point = self.Point(longitude, latitude, srid=constants.GEO_SRID)
+        except ValueError:
+            raise ValueError("Cannot convert `from=latitude,longitude` query parameter to "
+                             "float values. Make sure to provide numerical values only!")
+        except KeyError:
+            # If the user has not provided any `from` query string parameter,
+            # just return.
+            pass
+        else:
+            for unit in distance.keys():
+                if not len(distance[unit]) == 1:
+                    raise ValueError("Each unit must have exactly one value.")
+                distance[unit] = float(distance[unit][0])
+
+            if point and distance:
+                applicable_filters.append({
+                    "dwithin": {
+                        "field": self.backend.point_field,
+                        "point": point,
+                        "distance": self.D(**distance)
+                    },
+                    "distance": {
+                        "field": self.backend.point_field,
+                        "point": point
+                    }
+                })
+
+        return applicable_filters, applicable_exclusions
