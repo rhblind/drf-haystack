@@ -302,7 +302,7 @@ class HaystackHighlightFilterTestCase(TestCase):
     def tearDown(self):
         MockPersonIndex().clear()
 
-    def test_filter_sq_highlighter_filter(self):
+    def test_filter_highlighter_filter(self):
         request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")
         response = self.view.as_view(actions={"get": "list"})(request)
         response.render()
