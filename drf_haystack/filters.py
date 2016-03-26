@@ -118,7 +118,7 @@ class HaystackAutocompleteFilter(HaystackFilter):
 
 class HaystackGEOSpatialFilter(BaseHaystackFilterBackend):
     """
-    A base filter backend for doing geospatial filtering.
+    A base filter backend for doing geo spatial filtering.
     If using this filter make sure to provide a `point_field` with the name of
     your the `LocationField` of your index.
 

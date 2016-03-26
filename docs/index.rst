@@ -37,7 +37,7 @@ Requirements
 ============
     - A Supported Django install
     - Django REST Framework v3.2.0 and later
-    - Haystack v2.4.0 and later
+    - Haystack v2.4.0 and later (Requires Haystack v2.4.2 or later for Django v1.9)
     - A supported search engine such as Solr, Elasticsearch, Whoosh, etc.
     - Python bindings for the chosen backend (see below).
     - (geopy and libgeos if you want to use geo spatial filtering)
@@ -93,12 +93,13 @@ Contributors
 ============
 
 This library has mainly been written by `me <https://github.com/rhblind>`_ while working
-at `Inonit <https://github.com/inonit>`_. I have also had some help by these amazing people!
+at `Inonit <https://github.com/inonit>`_. I have also had some help from these amazing people!
 Thanks guys!
 
     - `Jacob Rief <https://github.com/jrief>`_
     - `Jannon Frank <https://github.com/jannon>`_
     - `Michael Fladischer <https://github.com/fladi>`_ (Debian package)
+    - `Sam Peka <https://github.com/sampeka>`_
 
 Changelog
 =========
@@ -107,11 +108,21 @@ v1.6.0
 ------
 *Release date: Not yet released*
 
-    - Removed deprecated ``SQHighlighterMixin``
-    - Removed redundant ``BaseHaystackGEOSpatialFilter``. If name of ``indexes.LocationField`` needs to be changed, subclass the ``HaystackGEOSpatialFilter`` directly
-    - More consistent naming of methods in the ``HaystackFilters``
-        - ``build_filter`` renamed to ``build_filters``
-        - All filters follow the same logic for building and applying filters and exclusions to the ``SearchQuerySet``
+    .. note::
+
+        **This release include breaking changes to the API**
+
+        - Dropped support for Python 2.6, Django 1.5, 1.6 and 1.7
+        - Will follow `Haystack's <https://github.com/django-haystack/django-haystack#requirements>`_ supported versions
+
+
+    - Removed deprecated ``SQHighlighterMixin``.
+    - Removed redundant ``BaseHaystackGEOSpatialFilter``. If name of ``indexes.LocationField`` needs to be changed, subclass the ``HaystackGEOSpatialFilter`` directly.
+    - Reworked filters:
+        - More consistent naming of methods.
+        - All filters follow the same logic for building and applying filters and exclusions.
+        - All filter classes use a ``QueryBuilder`` class for working out validation and building queries which are to be passed to the ``SearchQuerySet``.
+        - Most filters does *not* inherit from ``HaystackFilter`` anymore (except ``HaystackAutocompleteFilter`` and ``HaystackHighlightFilter``) and will no longer do basic field filtering. Filters should be properly placed in the ``filter_backends`` class attribute in their respective order to be applied. This solves issues where inherited filters responds to query parameters they should ignore.
 
 v1.5.6
 ------
