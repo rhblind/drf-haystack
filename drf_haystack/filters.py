@@ -3,7 +3,6 @@
 from __future__ import absolute_import, unicode_literals
 
 import operator
-import warnings
 
 from django.utils import six
 from haystack.query import SearchQuerySet
@@ -130,14 +129,13 @@ class HaystackGEOSpatialFilter(BaseHaystackFilterBackend):
     query_builder_class = SpatialQueryBuilder
     point_field = "coordinates"
 
-    def process_filters(self, filters, queryset, view):
-        if filters and len(filters) == 1:
-            return filters[0]
-
     def apply_filters(self, queryset, applicable_filters=None, applicable_exclusions=None):
         if applicable_filters:
             queryset = queryset.dwithin(**applicable_filters["dwithin"]).distance(**applicable_filters["distance"])
         return queryset
+
+    def filter_queryset(self, request, queryset, view):
+        return self.apply_filters(queryset, self.build_filters(view, filters=self.get_request_filters(request)))
 
 
 class HaystackHighlightFilter(HaystackFilter):
@@ -158,7 +156,7 @@ class HaystackHighlightFilter(HaystackFilter):
         return queryset
 
 
-class HaystackBoostFilter(HaystackFilter):
+class HaystackBoostFilter(BaseHaystackFilterBackend):
     """
     Filter backend for applying term boost on query time.
 
@@ -168,8 +166,6 @@ class HaystackBoostFilter(HaystackFilter):
 
     Gives a slight increase in relevance for documents that include "banana":
         /api/v1/search/?boost=banana,1.1
-
-    The boost is applied *after* regular filtering has occurred.
     """
 
     @staticmethod
