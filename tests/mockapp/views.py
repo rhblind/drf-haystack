@@ -22,7 +22,7 @@ class BasicPagination(PageNumberPagination):
 class SearchViewSet1(HaystackViewSet):
     index_models = [MockPerson]
     serializer_class = SearchSerializer
-    # filter_backends = [HaystackHighlightFilter, HaystackAutocompleteFilter]
+    filter_backends = [HaystackHighlightFilter, HaystackAutocompleteFilter]
 
     # Faceting
     facet_serializer_class = MockPersonFacetSerializer
@@ -30,7 +30,7 @@ class SearchViewSet1(HaystackViewSet):
 
 
 class SearchViewSet2(HaystackViewSet):
-    index_models = [MockPerson, MockLocation]
+    index_models = [MockLocation]
     serializer_class = HighlighterSerializer
     filter_backends = [HaystackGEOSpatialFilter]
 

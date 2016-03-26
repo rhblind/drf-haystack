@@ -15,7 +15,7 @@ class SearchSerializer(HaystackSerializer):
         index_classes = [MockPersonIndex, MockLocationIndex]
         fields = [
             "firstname", "lastname", "full_name", "text",
-            "address", "city", "zip_code",
+            "address", "city", "zip_code", "highlighted"
         ]
 
 
@@ -28,7 +28,7 @@ class HighlighterSerializer(HighlighterMixin, HaystackSerializer):
         index_classes = [MockPersonIndex, MockLocationIndex]
         fields = [
             "firstname", "lastname", "full_name",
-            "address", "city", "zip_code",
+            "address", "city", "zip_code", "coordinates"
         ]
 
 
