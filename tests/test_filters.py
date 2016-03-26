@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 
 from unittest2 import skipIf
 
-from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase
 
 from rest_framework import status
@@ -21,8 +20,9 @@ from drf_haystack.viewsets import HaystackViewSet
 from drf_haystack.serializers import HaystackSerializer, HaystackFacetSerializer
 from drf_haystack.filters import (
     HaystackAutocompleteFilter, HaystackBoostFilter,
-    HaystackGEOSpatialFilter, HaystackHighlightFilter,
-    HaystackFacetFilter)
+    HaystackFacetFilter, HaystackFilter,
+    HaystackGEOSpatialFilter, HaystackHighlightFilter
+)
 
 from . import geospatial_support
 from .mixins import WarningTestCaseMixin
@@ -77,6 +77,9 @@ class HaystackFilterTestCase(TestCase):
 
     def tearDown(self):
         MockPersonIndex().clear()
+
+    def test_filter_view_has_default_filter(self):
+        self.assertEqual(self.view1.filter_backends, [HaystackFilter])
 
     def test_filter_no_query_parameters(self):
         request = factory.get(path="/", data="", content_type="application/json")
@@ -364,12 +367,33 @@ class HaystackBoostFilterTestCase(TestCase):
     #     self.assertEqual(data[0]["firstname"], "Walker")
     #     self.assertEqual(data[1]["firstname"], "Bruno")
 
-    def test_filter_boost_invalid_params(self):
+    def test_filter_boost_valid_params(self):
+        request = factory.get(path="/", data={"boost": "bruno,1.2"}, content_type="application/json")
+        response = self.view.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_filter_boost_invalid_non_numeric(self):
         request = factory.get(path="/", data={"boost": "bruno,i am not numeric!"}, content_type="application/json")
-        self.assertRaises(
-            ValueError,
-            self.view.as_view(actions={"get": "list"}), request
-        )
+        try:
+            self.view.as_view(actions={"get": "list"})(request)
+            self.fail("Did not raise ValueError when called with a non-numeric boost value.")
+        except ValueError as e:
+            self.assertEqual(
+                str(e),
+                "Cannot convert boost to float value. Make sure to provide a numerical boost value."
+            )
+
+    def test_filter_boost_invalid_malformed_query_params(self):
+        request = factory.get(path="/", data={"boost": "bruno"}, content_type="application/json")
+        try:
+            self.view.as_view(actions={"get": "list"})(request)
+            self.fail("Did not raise ValueError when called with a malformed query parameters.")
+        except ValueError as e:
+            self.assertEqual(
+                str(e),
+                "Cannot convert the '%s' query parameter to a valid boost filter."
+                % HaystackBoostFilter.query_param
+            )
 
 
 class HaystackFacetFilterTestCase(WarningTestCaseMixin, TestCase):
@@ -414,6 +438,9 @@ class HaystackFacetFilterTestCase(WarningTestCaseMixin, TestCase):
 
     def tearDown(self):
         MockPersonIndex().clear()
+
+    def test_filter_view_has_default_facet_filter(self):
+        self.assertEqual(self.view1.facet_filter_backends, [HaystackFacetFilter])
 
     def test_filter_facet_no_field_options(self):
         request = factory.get("/", data={}, content_type="application/json")

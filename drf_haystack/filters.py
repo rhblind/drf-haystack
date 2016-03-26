@@ -8,7 +8,7 @@ from django.utils import six
 from haystack.query import SearchQuerySet
 from rest_framework.filters import BaseFilterBackend
 
-from .query import FilterQueryBuilder, FacetQueryBuilder, SpatialQueryBuilder
+from .query import BoostQueryBuilder, FilterQueryBuilder, FacetQueryBuilder, SpatialQueryBuilder
 
 
 class BaseHaystackFilterBackend(BaseFilterBackend):
@@ -168,20 +168,16 @@ class HaystackBoostFilter(BaseHaystackFilterBackend):
         /api/v1/search/?boost=banana,1.1
     """
 
-    @staticmethod
-    def apply_boost(queryset, filters):
-        if "boost" in filters and len(filters["boost"].split(",")) == 2:
-            term, boost = iter(filters["boost"].split(","))
-            try:
-                queryset = queryset.boost(term, float(boost))
-            except ValueError:
-                raise ValueError("Cannot convert boost to float value. Make sure to provide a "
-                                 "numerical boost value.")
+    query_builder_class = BoostQueryBuilder
+    query_param = "boost"
+
+    def apply_filters(self, queryset, applicable_filters=None, applicable_exclusions=None):
+        if applicable_filters:
+            queryset = queryset.boost(**applicable_filters)
         return queryset
 
     def filter_queryset(self, request, queryset, view):
-        queryset = super(HaystackBoostFilter, self).filter_queryset(request, queryset, view)
-        return self.apply_boost(queryset, filters=self.get_request_filters(request))
+        return self.apply_filters(queryset, self.build_filters(view, filters=self.get_request_filters(request)))
 
 
 class HaystackFacetFilter(BaseHaystackFilterBackend):

@@ -1,8 +1,13 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import absolute_import, unicode_literals
+
 import operator
 import warnings
 from itertools import chain
 
 from django.utils import six
+from django.utils.six.moves import zip
 from dateutil import parser
 
 from drf_haystack.utils import merge_dict
@@ -21,8 +26,8 @@ class BaseQueryBuilder(object):
 
     def build_query(self, **filters):
         """
-        :param dict[str, list[str]] filters: is an expanded QueryDict
-        or a mapping of keys to a list of parameters.
+        :param dict[str, list[str]] filters: is an expanded QueryDict or
+          a mapping of keys to a list of parameters.
         """
         raise NotImplementedError("You should override this method in subclasses.")
 
@@ -39,6 +44,33 @@ class BaseQueryBuilder(object):
             for token in value.split(separator):
                 if token:
                     yield token.strip()
+
+
+class BoostQueryBuilder(BaseQueryBuilder):
+    """
+    Query builder class for adding boost to queries.
+    """
+
+    def build_query(self, **filters):
+
+        applicable_filters = None
+        query_param = getattr(self.backend, "query_param", None)
+
+        value = filters.pop(query_param, None)
+        if value:
+            try:
+                term, val = chain.from_iterable(zip(self.tokenize(value, self.view.lookup_sep)))
+            except ValueError:
+                raise ValueError("Cannot convert the '%s' query parameter to a valid boost filter."
+                                 % query_param)
+            else:
+                try:
+                    applicable_filters = {"term": term, "boost": float(val)}
+                except ValueError:
+                    raise ValueError("Cannot convert boost to float value. Make sure to provide a "
+                                     "numerical boost value.")
+
+        return applicable_filters
 
 
 class FilterQueryBuilder(BaseQueryBuilder):
@@ -106,7 +138,7 @@ class FilterQueryBuilder(BaseQueryBuilder):
 
 class FacetQueryBuilder(BaseQueryBuilder):
     """
-    Query builder class suitable for construction facet queries.
+    Query builder class suitable for constructing faceted queries.
     """
 
     def build_query(self, **filters):
@@ -232,8 +264,7 @@ class SpatialQueryBuilder(BaseQueryBuilder):
              with latitude 59.744076 and longitude 10.152045.
         """
 
-        applicable_filters = []
-        applicable_exclusions = None
+        applicable_filters = None
 
         filters = dict((k, filters[k]) for k in chain(self.D.UNITS.keys(), ["from"]) if k in filters)
         distance = dict((k, v) for k, v in filters.items() if k in self.D.UNITS.keys())
@@ -255,7 +286,7 @@ class SpatialQueryBuilder(BaseQueryBuilder):
                 distance[unit] = float(distance[unit][0])
 
             if point and distance:
-                applicable_filters.append({
+                applicable_filters = {
                     "dwithin": {
                         "field": self.backend.point_field,
                         "point": point,
@@ -265,6 +296,6 @@ class SpatialQueryBuilder(BaseQueryBuilder):
                         "field": self.backend.point_field,
                         "point": point
                     }
-                })
+                }
 
-        return applicable_filters, applicable_exclusions
+        return applicable_filters
