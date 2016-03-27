@@ -11,8 +11,12 @@ before_install:
   - sudo apt-get install default-jdk
 
 install:
+  - pip install coveralls
   - pip install tox
   - pip install -e .
+
+after_success:
+  coveralls
 
 script:
   - tox -e $TOX_ENV
