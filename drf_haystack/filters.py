@@ -91,6 +91,7 @@ class HaystackFilter(BaseHaystackFilterBackend):
     """
 
     query_builder_class = FilterQueryBuilder
+    bool_operator = operator.and_
 
 
 class HaystackAutocompleteFilter(HaystackFilter):

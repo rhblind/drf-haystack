@@ -78,6 +78,15 @@ class FilterQueryBuilder(BaseQueryBuilder):
     Query builder class suitable for doing basic filtering.
     """
 
+    def __init__(self, backend, view):
+        super(FilterQueryBuilder, self).__init__(backend, view)
+
+        assert getattr(self.backend, "bool_operator", None) in (operator.and_, operator.or_), (
+            "%(cls)s.bool_operator must be either 'operator.and_' or 'operator.or_'." % {
+                "cls": self.backend.__class__.__name__
+            })
+        self.bool_operator = self.backend.bool_operator
+
     def build_query(self, **filters):
         """
         Creates a single SQ filter from querystring parameters that correspond to the SearchIndex fields
@@ -128,10 +137,10 @@ class FilterQueryBuilder(BaseQueryBuilder):
                 applicable_filters.append(term)
 
         applicable_filters = six.moves.reduce(
-            operator.and_, filter(lambda x: x, applicable_filters)) if applicable_filters else []
+            self.bool_operator, filter(lambda x: x, applicable_filters)) if applicable_filters else []
 
         applicable_exclusions = six.moves.reduce(
-            operator.and_, filter(lambda x: x, applicable_exclusions)) if applicable_exclusions else []
+            self.bool_operator, filter(lambda x: x, applicable_exclusions)) if applicable_exclusions else []
 
         return applicable_filters, applicable_exclusions
 
