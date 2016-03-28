@@ -140,6 +140,13 @@ class HaystackViewSetPermissionsTestCase(TestCase):
     def tearDown(self):
         MockPersonIndex().clear()
 
+    def test_viewset_get_queryset_with_no_permsission(self):
+        setattr(self.view, "permission_classes", [])
+
+        request = factory.get(path="/", data="", content_type="application/json")
+        response = self.view.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def test_viewset_get_queryset_with_AllowAny_permission(self):
         from rest_framework.permissions import AllowAny
         setattr(self.view, "permission_classes", (AllowAny, ))

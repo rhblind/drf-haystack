@@ -39,6 +39,12 @@ MIDDLEWARE_CLASSES = (
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    )
+}
+
 ROOT_URLCONF = 'tests.urls'
 WSGI_APPLICATION = 'tests.wsgi.application'
 LANGUAGE_CODE = 'en-us'
