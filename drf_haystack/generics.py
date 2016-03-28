@@ -36,7 +36,6 @@ class HaystackGenericAPIView(GenericAPIView):
     load_all = False
 
     filter_backends = [HaystackFilter]
-    permission_classes = [AllowAny]
 
     facet_filter_backends = [HaystackFacetFilter]
     facet_serializer_class = None
