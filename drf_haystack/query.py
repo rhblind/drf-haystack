@@ -81,11 +81,11 @@ class FilterQueryBuilder(BaseQueryBuilder):
     def __init__(self, backend, view):
         super(FilterQueryBuilder, self).__init__(backend, view)
 
-        assert getattr(self.backend, "bool_operator", None) in (operator.and_, operator.or_), (
-            "%(cls)s.bool_operator must be either 'operator.and_' or 'operator.or_'." % {
+        assert getattr(self.backend, "default_operator", None) in (operator.and_, operator.or_), (
+            "%(cls)s.default_operator must be either 'operator.and_' or 'operator.or_'." % {
                 "cls": self.backend.__class__.__name__
             })
-        self.bool_operator = self.backend.bool_operator
+        self.default_operator = self.backend.default_operator
 
     def build_query(self, **filters):
         """
@@ -137,10 +137,10 @@ class FilterQueryBuilder(BaseQueryBuilder):
                 applicable_filters.append(term)
 
         applicable_filters = six.moves.reduce(
-            self.bool_operator, filter(lambda x: x, applicable_filters)) if applicable_filters else []
+            self.default_operator, filter(lambda x: x, applicable_filters)) if applicable_filters else []
 
         applicable_exclusions = six.moves.reduce(
-            self.bool_operator, filter(lambda x: x, applicable_exclusions)) if applicable_exclusions else []
+            self.default_operator, filter(lambda x: x, applicable_exclusions)) if applicable_exclusions else []
 
         return applicable_filters, applicable_exclusions
 
