@@ -2,8 +2,19 @@
 
 from __future__ import absolute_import, unicode_literals
 
+from datetime import date, timedelta
+from random import randrange
+
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
+
+
+def get_random_date(start=date(1950, 1, 1), end=date.today()):
+    """
+    :return a random date between `start` and `end`
+    """
+    delta = ((end - start).days * 24 * 60 * 60)
+    return start + timedelta(seconds=randrange(delta))
 
 
 @python_2_unicode_compatible
@@ -36,6 +47,7 @@ class MockPerson(models.Model):
 
     firstname = models.CharField(max_length=20)
     lastname = models.CharField(max_length=20)
+    birthdate = models.DateField(null=True, default=get_random_date)
 
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)

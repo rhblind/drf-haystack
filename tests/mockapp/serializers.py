@@ -14,7 +14,7 @@ class SearchSerializer(HaystackSerializer):
     class Meta:
         index_classes = [MockPersonIndex, MockLocationIndex]
         fields = [
-            "firstname", "lastname", "full_name", "text",
+            "firstname", "lastname", "birthdate", "full_name", "text",
             "address", "city", "zip_code", "highlighted"
         ]
 

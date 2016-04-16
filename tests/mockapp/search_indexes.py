@@ -38,6 +38,7 @@ class MockPersonIndex(indexes.SearchIndex, indexes.Indexable):
     text = indexes.CharField(document=True, use_template=True)
     firstname = indexes.CharField(model_attr="firstname", faceted=True)
     lastname = indexes.CharField(model_attr="lastname", faceted=True)
+    birthdate = indexes.DateField(model_attr="birthdate", faceted=True)
     full_name = indexes.CharField()
     description = indexes.CharField()
 
