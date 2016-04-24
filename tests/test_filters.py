@@ -6,7 +6,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import json
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 
 from unittest2 import skipIf
 
@@ -44,7 +44,8 @@ class HaystackFilterTestCase(TestCase):
 
             class Meta:
                 index_classes = [MockPersonIndex]
-                fields = ["text", "firstname", "lastname", "full_name", "autocomplete"]
+                fields = ["text", "firstname", "lastname",
+                          "full_name", "birthdate", "autocomplete"]
                 field_aliases = {
                     "q": "autocomplete",
                     "name": "full_name"
@@ -181,6 +182,16 @@ class HaystackFilterTestCase(TestCase):
         response = self.view1.as_view(actions={"get": "list"})(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
+
+    def test_filter_gt_date_field(self):
+        request = factory.get(path="/", data={"birthdate__gt": "1980-01-01"}, content_type="application/json")
+        response = self.view1.as_view(actions={"get": "list"})(request)
+        self.assertEqual(len(response.data), MockPerson.objects.filter(birthdate__gt=date(1980, 1, 1)).count())
+
+    def test_filter_lt_date_field(self):
+        request = factory.get(path="/", data={"birthdate__lt": "1980-01-01"}, content_type="application/json")
+        response = self.view1.as_view(actions={"get": "list"})(request)
+        self.assertEqual(len(response.data), MockPerson.objects.filter(birthdate__lt=date(1980, 1, 1)).count())
 
 
 class HaystackAutocompleteFilterTestCase(TestCase):
