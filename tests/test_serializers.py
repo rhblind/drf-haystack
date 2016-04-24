@@ -529,6 +529,7 @@ class HaystackFacetSerializerTestCase(TestCase):
         except ImproperlyConfigured as e:
             self.assertEqual(str(e), "%s must implement a Meta class or have the property _abstract" % "FacetSerializer")
 
+
 class HaystackSerializerMixinTestCase(WarningTestCaseMixin, TestCase):
 
     fixtures = ["mockperson"]
@@ -565,7 +566,7 @@ class HaystackSerializerMixinTestCase(WarningTestCaseMixin, TestCase):
                 "firstname": "Abel",
                 "lastname": "Foreman",
                 "created": "2015-05-19T10:48:08.686000Z",
-                "updated": "2015-05-19T10:48:08.686000Z"
+                "updated": "2016-04-24T16:02:59.378000Z"
             }]
         )
 
