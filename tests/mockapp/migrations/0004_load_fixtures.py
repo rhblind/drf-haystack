@@ -48,6 +48,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ("mockapp", "0001_initial"),
         ("mockapp", "0002_mockperson"),
+        ("mockapp", "0005_mockperson_birthdate"),
         ("mockapp", "0003_mockpet"),
     ]
 

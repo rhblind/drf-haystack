@@ -9,7 +9,7 @@ import tests.mockapp.models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('mockapp', '0004_load_fixtures'),
+        ('mockapp', '0002_mockperson'),
     ]
 
     operations = [
