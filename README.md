@@ -20,7 +20,7 @@ Supported versions
 ------------------
 
 - Python 2.7+ and Python 3.4+
-- [All supported versions of Django](https://www.djangoproject.com/download/#supported-versions>)
+- ~~[All supported versions of Django](https://www.djangoproject.com/download/#supported-versions>)~~ Waiting for Django 1.9 support on Haystack
 - Haystack 2.4 and above
 - Django REST Framework 3.2 and above
     
