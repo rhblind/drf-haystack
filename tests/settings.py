@@ -7,7 +7,6 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__
 
 SECRET_KEY = 'NOBODY expects the Spanish Inquisition!'
 DEBUG = True
-TEMPLATE_DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -39,6 +38,14 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
+
+TEMPLATES = [
+    {
+        'BACKEND': 'django.template.backends.django.DjangoTemplates',
+        'OPTIONS': {'debug': True},
+        'APP_DIRS': True,
+    },
+]
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
