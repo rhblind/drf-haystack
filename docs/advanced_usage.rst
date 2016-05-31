@@ -11,7 +11,7 @@ Query Field Lookups
 ===================
 
 You can also use field lookups in your field queries. See the
-Haystack `field lookups <https://django-haystack.readthedocs.org/en/latest/searchqueryset_api.html?highlight=lookups#id1>`_
+Haystack `field lookups <https://django-haystack.readthedocs.io/en/latest/searchqueryset_api.html?highlight=lookups#id1>`_
 documentation for info on what lookups are available.  A query using a lookup might look like the
 following:
 
@@ -166,7 +166,7 @@ from the location with latitude 59.744076 and longitude 10.152045.
 Highlighting
 ============
 
-Haystack supports two kinds of `Highlighting <https://django-haystack.readthedocs.org/en/latest/highlighting.html>`_,
+Haystack supports two kinds of `Highlighting <https://django-haystack.readthedocs.io/en/latest/highlighting.html>`_,
 and we support them both.
 
 #. SearchQuerySet highlighting. This kind of highlighting requires a search backend which has support for
@@ -370,7 +370,7 @@ Term Boost
     **BIG FAT WARNING**
 
     As far as I can see, the term boost functionality is implemented by the specs in the
-    `Haystack documentation <https://django-haystack.readthedocs.org/en/v2.4.0/boost.html#term-boost>`_,
+    `Haystack documentation <https://django-haystack.readthedocs.io/en/v2.4.0/boost.html#term-boost>`_,
     however it does not really work as it should!
 
     When applying term boost, results are discarded from the search result, and not re-ordered by
@@ -433,7 +433,7 @@ functionality is implemented by setting up a special ``^search/facets/$`` route 
     options suitable for the backend you're using.
 
 
-First, read the `Haystack faceting docs <http://django-haystack.readthedocs.org/en/latest/faceting.html>`_ and set up
+First, read the `Haystack faceting docs <https://django-haystack.readthedocs.io/en/latest/faceting.html>`_ and set up
 your search index for faceting.
 
 Serializing faceted counts
