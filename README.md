@@ -7,14 +7,14 @@ Build status
 [![Build Status](https://travis-ci.org/inonit/drf-haystack.svg?branch=master)](https://travis-ci.org/inonit/drf-haystack)
 [![Coverage Status](https://coveralls.io/repos/github/inonit/drf-haystack/badge.svg?branch=master)](https://coveralls.io/github/inonit/drf-haystack?branch=master)
 [![PyPI version](https://badge.fury.io/py/drf-haystack.svg)](https://badge.fury.io/py/drf-haystack)
-[![Documentation Status](http://readthedocs.org/projects/drf-haystack/badge/?version=latest)](http://drf-haystack.readthedocs.org/en/latest/?badge=latest)
+[![Documentation Status](http://readthedocs.org/projects/drf-haystack/badge/?version=latest)](https://drf-haystack.readthedocs.io/en/latest/?badge=latest)
 
 
 About
 -----
 
 Small library which tries to simplify integration of Haystack with Django REST Framework.
-Fresh [documentation available](http://drf-haystack.readthedocs.org/en/latest/>) on Read the docs!
+Fresh [documentation available](https://drf-haystack.readthedocs.io/en/latest/>) on Read the docs!
 
 Supported versions
 ------------------

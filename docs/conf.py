@@ -287,8 +287,8 @@ texinfo_documents = [
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
     'http://docs.python.org/': None,
-    'django': ('http://django.readthedocs.org/en/latest/', None),
-    'haystack': ('http://django-haystack.readthedocs.org/en/latest/', None)
+    'django': ('https://django.readthedocs.io/en/latest/', None),
+    'haystack': ('https://django-haystack.readthedocs.io/en/latest/', None)
 }
 
 # Configurations for extlinks
