@@ -9,23 +9,25 @@ cache:
   apt: true
   pip: true
   directories:
-    - $HOME/download-cache
+    - pip_download_cache
+
+addons:
+  apt_packages:
+    - default-jdk
 
 before_install:
-  - mkdir -p $HOME/download-cache
-  - sudo apt-get update
-  - sudo apt-get install default-jdk
+  - mkdir -p $PIP_DOWNLOAD_CACHE
 
 install:
   - pip install coveralls
   - pip install tox
-  - pip install -e .
+  - pip install "Django${DJANGO_VERSION}"
 
 after_success:
   coveralls
 
 script:
-  - tox -e $TOX_ENV
+  - python setup.py test
 
 env:
   global:
