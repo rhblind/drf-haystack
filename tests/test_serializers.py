@@ -399,6 +399,11 @@ class HaystackFacetSerializerTestCase(TestCase):
     def tearDown(self):
         MockPersonIndex().clear()
 
+    def build_absolute_uri(self, location):
+        """ Builds an absolute URI using the test server's domain and the specified location. """
+        location = location.lstrip("/")
+        return "http://testserver/{location}".format(location=location)
+
     @staticmethod
     def is_paginated_facet_response(response):
         """
@@ -425,13 +430,19 @@ class HaystackFacetSerializerTestCase(TestCase):
         self.assertTrue(all([k in firstname for k in ("text", "count", "narrow_url")]))
         self.assertEqual(firstname["text"], "John")
         self.assertEqual(firstname["count"], 3)
-        self.assertEqual(firstname["narrow_url"], "/search-person/facets/?selected_facets=firstname_exact%3AJohn")
+        self.assertEqual(
+            firstname["narrow_url"],
+            self.build_absolute_uri("/search-person/facets/?selected_facets=firstname_exact%3AJohn")
+        )
 
         lastname = fields["lastname"][0]
         self.assertTrue(all([k in lastname for k in ("text", "count", "narrow_url")]))
         self.assertEqual(lastname["text"], "Porter")
         self.assertEqual(lastname["count"], 2)
-        self.assertEqual(lastname["narrow_url"], "/search-person/facets/?selected_facets=lastname_exact%3APorter")
+        self.assertEqual(
+            lastname["narrow_url"],
+            self.build_absolute_uri("/search-person/facets/?selected_facets=lastname_exact%3APorter")
+        )
 
     def test_serializer_facet_date_result(self):
         dates = self.response.data["dates"]
@@ -442,7 +453,10 @@ class HaystackFacetSerializerTestCase(TestCase):
         self.assertTrue(all([k in created for k in ("text", "count", "narrow_url")]))
         self.assertEqual(created["text"], "2015-05-01T00:00:00")
         self.assertEqual(created["count"], 100)
-        self.assertEqual(created["narrow_url"], "/search-person/facets/?selected_facets=created_exact%3A2015-05-01+00%3A00%3A00")
+        self.assertEqual(
+            created["narrow_url"],
+            self.build_absolute_uri("/search-person/facets/?selected_facets=created_exact%3A2015-05-01+00%3A00%3A00")
+        )
 
     def test_serializer_facet_queries_result(self):
         # Not Implemented
@@ -461,25 +475,31 @@ class HaystackFacetSerializerTestCase(TestCase):
         self.assertEqual(len(response.data["fields"]["firstname"]), 1)
         self.assertEqual(response.data["fields"]["firstname"][0]["text"], "John")
         self.assertEqual(response.data["fields"]["firstname"][0]["count"], 1)
-        self.assertEqual(response.data["fields"]["firstname"][0]["narrow_url"], (
-            "/search-person/facets/?selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcClane"
-        ))
+        self.assertEqual(
+            response.data["fields"]["firstname"][0]["narrow_url"],
+            self.build_absolute_uri("/search-person/facets/?selected_facets=firstname_exact%3AJohn"
+                                    "&selected_facets=lastname_exact%3AMcClane")
+        )
 
         self.assertEqual(len(response.data["fields"]["lastname"]), 1)
         self.assertEqual(response.data["fields"]["lastname"][0]["text"], "McClane")
         self.assertEqual(response.data["fields"]["lastname"][0]["count"], 1)
-        self.assertEqual(response.data["fields"]["lastname"][0]["narrow_url"], (
-            "/search-person/facets/?selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcClane"
-        ))
+        self.assertEqual(
+            response.data["fields"]["lastname"][0]["narrow_url"],
+            self.build_absolute_uri("/search-person/facets/?selected_facets=firstname_exact%3AJohn"
+                                    "&selected_facets=lastname_exact%3AMcClane")
+        )
 
         self.assertTrue("created" in response.data["dates"])
         self.assertEqual(len(response.data["dates"]), 1)
         self.assertEqual(response.data["dates"]["created"][0]["text"], "2015-05-01T00:00:00")
         self.assertEqual(response.data["dates"]["created"][0]["count"], 1)
-        self.assertEqual(response.data["dates"]["created"][0]["narrow_url"], (
-            "/search-person/facets/?selected_facets=created_exact%3A2015-05-01+00%3A00%3A00"
-            "&selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcClane"
-        ))
+        self.assertEqual(
+            response.data["dates"]["created"][0]["narrow_url"],
+            self.build_absolute_uri("/search-person/facets/?selected_facets=created_exact%3A2015-05-01+00%3A00%3A00"
+                                    "&selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcClane"
+                                    )
+        )
 
     def test_serializer_facet_include_objects(self):
         self.assertContains(self.response, "objects", count=1)

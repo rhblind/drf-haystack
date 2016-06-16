@@ -337,7 +337,8 @@ class HaystackFacetSerializer(six.with_metaclass(HaystackSerializerMeta, seriali
                 we can only return relative paths.
                 """
                 text = instance[0]
-                query_params = self.context["request"].GET.copy()
+                request = self.context["request"]
+                query_params = request.GET.copy()
 
                 # Never keep the page query parameter in narrowing urls.
                 # It will raise a NotFound exception when trying to paginate
@@ -350,10 +351,9 @@ class HaystackFacetSerializer(six.with_metaclass(HaystackSerializerMeta, seriali
                 selected_facets.add("%(field)s_exact:%(text)s" % {"field": self.parent_field, "text": text})
                 query_params.setlist("selected_facets", sorted(selected_facets))
 
-                return serializers.Hyperlink("%(path)s?%(query)s" % {
-                    "path": self.context["request"].path_info,
-                    "query": query_params.urlencode()
-                }, name="narrow-url")
+                path = "%(path)s?%(query)s" % {"path": request.path_info, "query": query_params.urlencode()}
+                url = request.build_absolute_uri(path)
+                return serializers.Hyperlink(url, name="narrow-url")
 
             def to_representation(self, field, instance):
                 """

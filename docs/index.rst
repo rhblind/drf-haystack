@@ -50,7 +50,7 @@ You will also need to install python bindings for the search engine you'll use.
 Elasticsearch
 .............
 
-See haystack `Elasticsearch <https://django-haystack.readthedocs.org/en/v2.4.1/installing_search_engines.html#elasticsearch>`_
+See haystack `Elasticsearch <https://django-haystack.readthedocs.io/en/v2.4.1/installing_search_engines.html#elasticsearch>`_
 docs for details
 
 .. warning::
@@ -65,7 +65,7 @@ docs for details
 Solr
 ....
 
-See haystack `Solr <https://django-haystack.readthedocs.org/en/v2.4.1/installing_search_engines.html#solr>`_
+See haystack `Solr <https://django-haystack.readthedocs.io/en/v2.4.1/installing_search_engines.html#solr>`_
 docs for details.
 
 .. code-block:: none
@@ -75,7 +75,7 @@ docs for details.
 Whoosh
 ......
 
-See haystack `Whoosh <https://django-haystack.readthedocs.org/en/v2.4.1/installing_search_engines.html#whoosh>`_
+See haystack `Whoosh <https://django-haystack.readthedocs.io/en/v2.4.1/installing_search_engines.html#whoosh>`_
 docs for details.
 
 .. code-block:: none
@@ -85,7 +85,7 @@ docs for details.
 Xapian
 ......
 
-See haystack `Xapian <https://django-haystack.readthedocs.org/en/v2.4.1/installing_search_engines.html#xapian>`_
+See haystack `Xapian <https://django-haystack.readthedocs.io/en/v2.4.1/installing_search_engines.html#xapian>`_
 docs for details.
 
 
@@ -174,7 +174,7 @@ v1.5.0
 *Release date: 2015-06-29*
 
     - Added support for field lookups in queries, such as ``field__contains=foobar``.
-      Check out `Haystack docs <http://django-haystack.readthedocs.org/en/latest/searchqueryset_api.html?highlight=field%20lookup#field-lookups>`_
+      Check out `Haystack docs <https://django-haystack.readthedocs.io/en/latest/searchqueryset_api.html?highlight=field%20lookup#field-lookups>`_
       for details.
     - Added default ``permission_classes`` on ``HaystackGenericAPIView`` in order to avoid crash when
       using global permission classes on REST Framework. See :ref:`permission-classes-label` for details.
