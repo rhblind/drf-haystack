@@ -1,12 +1,18 @@
 language: python
-python: "2.7"
+python:
+  - 2.7
+  - 3.4
+  - 3.5
+  - pypy
 
 cache:
+  apt: true
+  pip: true
   directories:
-    - pip_download_cache
+    - $HOME/download-cache
 
 before_install:
-  - mkdir -p $PIP_DOWNLOAD_CACHE
+  - mkdir -p $HOME/download-cache
   - sudo apt-get update
   - sudo apt-get install default-jdk
 
@@ -25,13 +31,13 @@ env:
   global:
     - PIP_DOWNLOAD_CACHE="pip_download_cache"
   matrix:
-    - TOX_ENV=docs
-    - TOX_ENV=py27-django1.8
-    - TOX_ENV=py34-django1.8
-    - TOX_ENV=py35-django1.8
-    - TOX_ENV=py27-django1.9
-    - TOX_ENV=py34-django1.9
-    - TOX_ENV=py35-django1.9
+    - DJANGO_VERSION=">=1.8,<1.9"
+    - DJANGO_VERSION=">=1.9,<1.10"
+    - DJANGO_VERSION="==1.10a1"
+
+matrix:
+  allow_failures:
+    - env: DJANGO_VERSION="==1.10a1"
 
 services:
   - elasticsearch
