@@ -64,20 +64,21 @@ class HaystackGenericAPIView(GenericAPIView):
         SearchIndex.
 
         In cases where the view has multiple ``index_models``, add a ``model`` query
-        parameter containing a single model name to the request in order to override which model
-        to include in the SearchQuerySet.
+        parameter containing a single `app.label.model` name to the request in order
+        to override which model to include in the SearchQuerySet.
 
         Example:
-            /api/v1/search/42/?model=person
+            /api/v1/search/42/?model=myapp.person
         """
         queryset = self.get_queryset()
-        if "model" in self.request.GET:
+        if "model" in self.request.query_params:
             try:
-                ctype = ContentType.objects.get(model=self.request.GET["model"].lower())
+                app_label, model = map(str.lower, self.request.query_params["model"].split(".", 1))
+                ctype = ContentType.objects.get(app_label=app_label, model=model)
                 queryset = self.get_queryset(index_models=[ctype.model_class()])
-            except ContentType.DoesNotExist:
+            except (ValueError, ContentType.DoesNotExist):
                 raise Http404("Could not find any models matching '%s'. Make sure to use a valid "
-                              "model name for the 'model' query parameter." % self.request.GET["model"])
+                              "'app_label.model' name for the 'model' query parameter." % self.request.query_params["model"])
 
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
         if lookup_url_kwarg not in self.kwargs:

@@ -74,7 +74,7 @@ class HaystackViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_viewset_get_object_multiple_indices(self):
-        request = factory.get(path="/", data={"model": "mockperson"}, content_type="application/json")
+        request = factory.get(path="/", data={"model": "mockapp.mockperson"}, content_type="application/json")
         response = self.view2.as_view(actions={"get": "retrieve"})(request, pk=1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
