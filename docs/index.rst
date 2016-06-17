@@ -96,16 +96,13 @@ This library has mainly been written by `me <https://github.com/rhblind>`_ while
 at `Inonit <https://github.com/inonit>`_. I have also had some help from these amazing people!
 Thanks guys!
 
-    - `Jacob Rief <https://github.com/jrief>`_
-    - `Jannon Frank <https://github.com/jannon>`_
-    - `Michael Fladischer <https://github.com/fladi>`_ (Debian package)
-    - `Sam Peka <https://github.com/sampeka>`_
+    - See the full list of `contributors <https://github.com/inonit/drf-haystack/graphs/contributors>`_.
 
 Changelog
 =========
 
-v1.6.0
-------
+v1.6.0rc1
+---------
 *Release date: Not yet released*
 
     .. note::
@@ -123,6 +120,7 @@ v1.6.0
         - All filters follow the same logic for building and applying filters and exclusions.
         - All filter classes use a ``QueryBuilder`` class for working out validation and building queries which are to be passed to the ``SearchQuerySet``.
         - Most filters does *not* inherit from ``HaystackFilter`` anymore (except ``HaystackAutocompleteFilter`` and ``HaystackHighlightFilter``) and will no longer do basic field filtering. Filters should be properly placed in the ``filter_backends`` class attribute in their respective order to be applied. This solves issues where inherited filters responds to query parameters they should ignore.
+    - HaystackFacetSerializer ``narrow_url`` now returns an absolute url
 
 v1.5.6
 ------

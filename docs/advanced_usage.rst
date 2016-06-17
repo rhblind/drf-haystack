@@ -528,34 +528,34 @@ attribute which should be quite self explaining.
               {
                 "text": "John",
                 "count": 3,
-                "narrow_url": "/api/v1/search/facets/?selected_facets=firstname_exact%3AJohn"
+                "narrow_url": "http://example.com/api/v1/search/facets/?selected_facets=firstname_exact%3AJohn"
               },
               {
                 "text": "Randall",
                 "count": 2,
-                "narrow_url": "/api/v1/search/facets/?selected_facets=firstname_exact%3ARandall"
+                "narrow_url": "http://example.com/api/v1/search/facets/?selected_facets=firstname_exact%3ARandall"
               },
               {
                 "text": "Nehru",
                 "count": 2,
-                "narrow_url": "/api/v1/search/facets/?selected_facets=firstname_exact%3ANehru"
+                "narrow_url": "http://example.com/api/v1/search/facets/?selected_facets=firstname_exact%3ANehru"
               }
             ],
             "lastname": [
               {
                 "text": "Porter",
                 "count": 2,
-                "narrow_url": "/api/v1/search/facets/?selected_facets=lastname_exact%3APorter"
+                "narrow_url": "http://example.com/api/v1/search/facets/?selected_facets=lastname_exact%3APorter"
               },
               {
                 "text": "Odonnell",
                 "count": 2,
-                "narrow_url": "/api/v1/search/facets/?selected_facets=lastname_exact%3AOdonnell"
+                "narrow_url": "http://example.com/api/v1/search/facets/?selected_facets=lastname_exact%3AOdonnell"
               },
               {
                 "text": "Hood",
                 "count": 2,
-                "narrow_url": "/api/v1/search/facets/?selected_facets=lastname_exact%3AHood"
+                "narrow_url": "http://example.com/api/v1/search/facets/?selected_facets=lastname_exact%3AHood"
               }
             ]
           },
@@ -564,7 +564,7 @@ attribute which should be quite self explaining.
               {
                 "text": "2015-05-15T00:00:00",
                 "count": 100,
-                "narrow_url": "/api/v1/search/facets/?selected_facets=created_exact%3A2015-05-15+00%3A00%3A00"
+                "narrow_url": "http://example.com/api/v1/search/facets/?selected_facets=created_exact%3A2015-05-15+00%3A00%3A00"
               }
             ]
           }
@@ -694,14 +694,14 @@ to narrow the ``SearchQuerySet`` properly.
               {
                 "text": "John",
                 "count": 1,
-                "narrow_url": "/api/v1/search/facets/?selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcLaughlin"
+                "narrow_url": "http://example.com/api/v1/search/facets/?selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcLaughlin"
               }
             ],
             "lastname": [
               {
                 "text": "McLaughlin",
                 "count": 1,
-                "narrow_url": "/api/v1/search/facets/?selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcLaughlin"
+                "narrow_url": "http://example.com/api/v1/search/facets/?selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcLaughlin"
               }
             ]
           },
@@ -710,7 +710,7 @@ to narrow the ``SearchQuerySet`` properly.
               {
                 "text": "2015-05-15T00:00:00",
                 "count": 1,
-                "narrow_url": "/api/v1/search/facets/?selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcLaughlin&selected_facets=created_exact%3A2015-05-15+00%3A00%3A00"
+                "narrow_url": "http://example.com/api/v1/search/facets/?selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcLaughlin&selected_facets=created_exact%3A2015-05-15+00%3A00%3A00"
               }
             ]
           }
