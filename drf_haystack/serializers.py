@@ -27,7 +27,7 @@ from rest_framework.utils.field_mapping import ClassLookupDict, get_field_kwargs
 
 from .fields import (
     HaystackBooleanField, HaystackCharField, HaystackDateField, HaystackDateTimeField,
-    HaystackDecimalField, HaystackFloatField, HaystackIntegerField
+    HaystackDecimalField, HaystackFloatField, HaystackIntegerField, HaystackMultiValueField
 )
 
 
@@ -107,7 +107,7 @@ class HaystackSerializer(six.with_metaclass(HaystackSerializerMeta, serializers.
         haystack_fields.FloatField: HaystackFloatField,
         haystack_fields.IntegerField: HaystackIntegerField,
         haystack_fields.LocationField: HaystackCharField,
-        haystack_fields.MultiValueField: HaystackCharField,
+        haystack_fields.MultiValueField: HaystackMultiValueField,
         haystack_fields.NgramField: HaystackCharField,
     })
 
