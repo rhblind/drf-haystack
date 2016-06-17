@@ -121,6 +121,8 @@ v1.6.0rc1
         - All filter classes use a ``QueryBuilder`` class for working out validation and building queries which are to be passed to the ``SearchQuerySet``.
         - Most filters does *not* inherit from ``HaystackFilter`` anymore (except ``HaystackAutocompleteFilter`` and ``HaystackHighlightFilter``) and will no longer do basic field filtering. Filters should be properly placed in the ``filter_backends`` class attribute in their respective order to be applied. This solves issues where inherited filters responds to query parameters they should ignore.
     - HaystackFacetSerializer ``narrow_url`` now returns an absolute url
+    - HaystackFacetSerializer now properly serializes ``MultiValueField`` items as a JSON Array.
+    - ``HaystackGenericAPIView.get_object()`` optional ``model`` query parameter now requires a ``app_label.model`` instead of just the model.
 
 v1.5.6
 ------
