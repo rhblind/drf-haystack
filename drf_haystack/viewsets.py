@@ -14,8 +14,6 @@ class HaystackViewSet(RetrieveModelMixin, ListModelMixin, ViewSetMixin, Haystack
     """
     The HaystackViewSet class provides the default ``list()`` and
     ``retrieve()`` actions with a haystack index as it's data source.
-
-    Additionally it sets up a detail route for ``more-like-this`` results.
     """
 
     @detail_route(methods=["get"], url_path="more-like-this")
@@ -26,15 +24,15 @@ class HaystackViewSet(RetrieveModelMixin, ListModelMixin, ViewSetMixin, Haystack
 
         This will add ie. ^search/{pk}/more-like-this/$ to your existing ^search pattern.
         """
-        queryset = self.filter_queryset(self.get_queryset())
-        mlt_queryset = queryset.more_like_this(self.get_object().object)
+        obj = self.get_object().object
+        queryset = self.filter_queryset(self.get_queryset()).more_like_this(obj)
 
-        page = self.paginate_queryset(mlt_queryset)
+        page = self.paginate_queryset(queryset)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(mlt_queryset, many=True)
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
     @list_route(methods=["get"], url_path="facets")
@@ -46,7 +44,7 @@ class HaystackViewSet(RetrieveModelMixin, ListModelMixin, ViewSetMixin, Haystack
         """
         queryset = self.filter_facet_queryset(self.get_queryset())
 
-        for facet in request.GET.getlist("selected_facets"):
+        for facet in request.query_params.getlist("selected_facets"):
 
             if ":" not in facet:
                 continue
