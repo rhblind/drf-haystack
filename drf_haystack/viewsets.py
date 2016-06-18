@@ -53,10 +53,5 @@ class HaystackViewSet(RetrieveModelMixin, ListModelMixin, ViewSetMixin, Haystack
             if value:
                 queryset = queryset.narrow('%s:"%s"' % (field, queryset.query.clean(value)))
 
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_facet_serializer(queryset.facet_counts(), objects=page, many=False)
-            return Response(serializer.data)
-
         serializer = self.get_facet_serializer(queryset.facet_counts(), objects=queryset, many=False)
         return Response(serializer.data)

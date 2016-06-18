@@ -7,6 +7,7 @@ import warnings
 from itertools import chain
 from datetime import datetime
 
+from rest_framework.pagination import _get_count
 from rest_framework.serializers import SerializerMetaclass
 
 try:
@@ -103,7 +104,7 @@ class HaystackSerializer(six.with_metaclass(HaystackSerializerMeta, serializers.
         haystack_fields.FacetDecimalField: HaystackDecimalField,
         haystack_fields.FacetFloatField: HaystackFloatField,
         haystack_fields.FacetIntegerField: HaystackIntegerField,
-        haystack_fields.FacetMultiValueField: HaystackCharField,
+        haystack_fields.FacetMultiValueField: HaystackMultiValueField,
         haystack_fields.FloatField: HaystackFloatField,
         haystack_fields.IntegerField: HaystackIntegerField,
         haystack_fields.LocationField: HaystackCharField,
@@ -264,7 +265,42 @@ class FacetFieldSerializer(serializers.Serializer):
 
     def __init__(self, *args, **kwargs):
         self._parent_field = None
+        self._paginate_by_param = None
         super(FacetFieldSerializer, self).__init__(*args, **kwargs)
+
+    @property
+    def paginate_by_param(self):
+        """
+        Returns the ``paginate_by_param`` for the (root) view paginator class.
+        This is needed in order to remove the query parameter from faceted
+        narrow urls.
+
+        If using a custom pagination class, this class attribute needs to
+        be set manually.
+        """
+
+        if hasattr(self.root, "paginate_by_param") and self.root.paginate_by_param:
+            return self.root.paginate_by_param
+
+        if not self._paginate_by_param:
+            pagination_class = self.context["view"].pagination_class
+
+            # PageNumberPagination
+            if hasattr(pagination_class, "page_query_param"):
+                return pagination_class.page_query_param
+
+            # LimitOffsetPagination
+            elif hasattr(pagination_class, "offset_query_param"):
+                return pagination_class.offset_query_param
+
+            # CursorPagination
+            elif hasattr(pagination_class, "cursor_query_param"):
+                return pagination_class.cursor_query_param
+
+        else:
+            # TODO: Write a nice error message
+            raise ValueError("Could not identify `paginate_by_param` based on the pagination class. "
+                             "%(cls)s.paginate_by_param must be set." % {"cls": self.root.__class__.__name__})
 
     @property
     def parent_field(self):
@@ -306,9 +342,8 @@ class FacetFieldSerializer(serializers.Serializer):
         query_params = request.GET.copy()
 
         # Never keep the page query parameter in narrowing urls.
-        # It will raise a NotFound exception when trying to paginate
-        # a narrowed queryset.
-        page_query_param = self.root._page_query_param
+        # It will raise a NotFound exception when trying to paginate a narrowed queryset.
+        page_query_param = self.paginate_by_param
         if page_query_param in query_params:
             del query_params[page_query_param]
 
@@ -346,35 +381,6 @@ class HaystackFacetSerializer(six.with_metaclass(HaystackSerializerMeta, seriali
         self.FacetListField = FacetListField
         self.FacetFieldSerializer = FacetFieldSerializer
 
-    @property
-    def _page_query_param(self):
-        """
-        Returns the ``paginate_by_param`` for the views paginator class.
-        This is needed in order to remove the query parameter from faceted
-        narrow urls.
-
-        If using a custom pagination class, this class attribute needs to
-        be set manually.
-        """
-        if not self.paginate_by_param:
-            # Try to get the default paginate_by_param by inspecting the views
-            # pagination class.
-            pagination_class = self.context["view"].pagination_class
-
-            # PageNumberPagination
-            if hasattr(pagination_class, "page_query_param"):
-                return pagination_class.page_query_param
-
-            # LimitOffsetPagination
-            elif hasattr(pagination_class, "offset_query_param"):
-                return pagination_class.offset_query_param
-
-            # CursorPagination
-            elif hasattr(pagination_class, "cursor_query_param"):
-                return pagination_class.cursor_query_param
-
-        return self.paginate_by_param
-
     def get_fields(self):
         """
         This returns a dictionary containing the top most fields,
@@ -399,11 +405,11 @@ class HaystackFacetSerializer(six.with_metaclass(HaystackSerializerMeta, seriali
         view = self.context["view"]
         queryset = self.context["objects"]
 
-        page = getattr(view.paginator, "page", None)
+        page = view.paginate_queryset(queryset)
         if page is not None:
             serializer = view.get_serializer(page, many=True)
             return OrderedDict([
-                ("count", view.paginator.page.paginator.count),
+                ("count", _get_count(queryset)),
                 ("next", view.paginator.get_next_link()),
                 ("previous", view.paginator.get_previous_link()),
                 ("results", serializer.data)
