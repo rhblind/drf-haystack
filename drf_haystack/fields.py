@@ -2,10 +2,10 @@
 
 from __future__ import absolute_import, unicode_literals
 
-from rest_framework.fields import (
-    BooleanField, CharField, DateField, DateTimeField,
-    DecimalField, FloatField, IntegerField, ListField
-)
+from datetime import datetime
+
+from django.utils import six
+from rest_framework import fields
 
 
 class DRFHaystackFieldMixin(object):
@@ -57,33 +57,60 @@ class DRFHaystackFieldMixin(object):
         return field_name.split("__")[-1]
 
 
-class HaystackBooleanField(DRFHaystackFieldMixin, BooleanField):
+class HaystackBooleanField(DRFHaystackFieldMixin, fields.BooleanField):
     pass
 
 
-class HaystackCharField(DRFHaystackFieldMixin, CharField):
+class HaystackCharField(DRFHaystackFieldMixin, fields.CharField):
     pass
 
 
-class HaystackDateField(DRFHaystackFieldMixin, DateField):
+class HaystackDateField(DRFHaystackFieldMixin, fields.DateField):
     pass
 
 
-class HaystackDateTimeField(DRFHaystackFieldMixin, DateTimeField):
+class HaystackDateTimeField(DRFHaystackFieldMixin, fields.DateTimeField):
     pass
 
 
-class HaystackDecimalField(DRFHaystackFieldMixin, DecimalField):
+class HaystackDecimalField(DRFHaystackFieldMixin, fields.DecimalField):
     pass
 
 
-class HaystackFloatField(DRFHaystackFieldMixin, FloatField):
+class HaystackFloatField(DRFHaystackFieldMixin, fields.FloatField):
     pass
 
 
-class HaystackIntegerField(DRFHaystackFieldMixin, IntegerField):
+class HaystackIntegerField(DRFHaystackFieldMixin, fields.IntegerField):
     pass
 
 
-class HaystackMultiValueField(DRFHaystackFieldMixin, ListField):
+class HaystackMultiValueField(DRFHaystackFieldMixin, fields.ListField):
     pass
+
+
+class FacetDictField(fields.DictField):
+    """
+    A special DictField which passes the key attribute down to the children's
+    ``to_representation()`` in order to let the serializer know what field they're
+    currently processing.
+    """
+
+    def to_representation(self, value):
+        return dict(
+            [(six.text_type(key), self.child.to_representation(key, val))
+             for key, val in value.items()
+             ]
+        )
+
+
+class FacetListField(fields.ListField):
+    """
+    The ``FacetListField`` just pass along the key derived from
+    ``FacetDictField``.
+    """
+
+    def to_representation(self, key, data):
+        return [self.child.to_representation(key, item) for item in data]
+
+
