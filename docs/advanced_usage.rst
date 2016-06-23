@@ -306,6 +306,9 @@ More Like This
 ==============
 
 Some search backends supports ``More Like This`` features. In order to take advantage of this,
+we have a mixin class :class:`mixins.MoreLikeThisMixin`
+
+
 the ``HaystackViewSet`` includes a ``more-like-this`` detail route which is appended to the base name of the
 ViewSet. Lets say you have a router which looks like this:
 

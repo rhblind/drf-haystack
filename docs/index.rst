@@ -9,6 +9,7 @@ Contents:
 
    basic_usage
    advanced_usage
+   apidoc/modules
 
 =====
 About
