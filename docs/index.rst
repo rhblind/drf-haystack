@@ -104,7 +104,7 @@ Changelog
 
 v1.6.0rc1
 ---------
-*Release date: Not yet released*
+*Release date: 2016-06-24*
 
     .. note::
 
