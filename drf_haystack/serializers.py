@@ -265,42 +265,7 @@ class FacetFieldSerializer(serializers.Serializer):
 
     def __init__(self, *args, **kwargs):
         self._parent_field = None
-        self._paginate_by_param = None
         super(FacetFieldSerializer, self).__init__(*args, **kwargs)
-
-    @property
-    def paginate_by_param(self):
-        """
-        Returns the ``paginate_by_param`` for the (root) view paginator class.
-        This is needed in order to remove the query parameter from faceted
-        narrow urls.
-
-        If using a custom pagination class, this class attribute needs to
-        be set manually.
-        """
-
-        if hasattr(self.root, "paginate_by_param") and self.root.paginate_by_param:
-            return self.root.paginate_by_param
-
-        if not self._paginate_by_param:
-            pagination_class = self.context["view"].pagination_class
-
-            # PageNumberPagination
-            if hasattr(pagination_class, "page_query_param"):
-                return pagination_class.page_query_param
-
-            # LimitOffsetPagination
-            elif hasattr(pagination_class, "offset_query_param"):
-                return pagination_class.offset_query_param
-
-            # CursorPagination
-            elif hasattr(pagination_class, "cursor_query_param"):
-                return pagination_class.cursor_query_param
-
-        else:
-            # TODO: Write a nice error message
-            raise ValueError("Could not identify `paginate_by_param` based on the pagination class. "
-                             "%(cls)s.paginate_by_param must be set." % {"cls": self.root.__class__.__name__})
 
     @property
     def parent_field(self):
@@ -309,6 +274,41 @@ class FacetFieldSerializer(serializers.Serializer):
     @parent_field.setter
     def parent_field(self, value):
         self._parent_field = value
+
+    def get_paginate_by_param(self):
+        """
+        Returns the ``paginate_by_param`` for the (root) view paginator class.
+        This is needed in order to remove the query parameter from faceted
+        narrow urls.
+
+        If using a custom pagination class, this class attribute needs to
+        be set manually.
+        """
+        if hasattr(self.root, "paginate_by_param") and self.root.paginate_by_param:
+            return self.root.paginate_by_param
+
+        pagination_class = self.context["view"].pagination_class
+
+        # PageNumberPagination
+        if hasattr(pagination_class, "page_query_param"):
+            return pagination_class.page_query_param
+
+        # LimitOffsetPagination
+        elif hasattr(pagination_class, "offset_query_param"):
+            return pagination_class.offset_query_param
+
+        # CursorPagination
+        elif hasattr(pagination_class, "cursor_query_param"):
+            return pagination_class.cursor_query_param
+
+        else:
+            raise AttributeError(
+                "%(root_cls)s is missing a `paginate_by_param` attribute. "
+                "Define a %(root_cls)s.paginate_by_param or override "
+                "%(cls)s.get_paginate_by_param()." % {
+                    "root_cls": self.root.__class__.__name__,
+                    "cls": self.__class__.__name__
+                })
 
     def get_text(self, instance):
         """
@@ -343,7 +343,7 @@ class FacetFieldSerializer(serializers.Serializer):
 
         # Never keep the page query parameter in narrowing urls.
         # It will raise a NotFound exception when trying to paginate a narrowed queryset.
-        page_query_param = self.paginate_by_param
+        page_query_param = self.get_paginate_by_param()
         if page_query_param in query_params:
             del query_params[page_query_param]
 
@@ -374,13 +374,6 @@ class HaystackFacetSerializer(six.with_metaclass(HaystackSerializerMeta, seriali
     serialize_objects = False
     paginate_by_param = None
 
-    def __init__(self, *args, **kwargs):
-        super(HaystackFacetSerializer, self).__init__(*args, **kwargs)
-
-        self.FacetDictField = FacetDictField
-        self.FacetListField = FacetListField
-        self.FacetFieldSerializer = FacetFieldSerializer
-
     def get_fields(self):
         """
         This returns a dictionary containing the top most fields,
@@ -389,8 +382,8 @@ class HaystackFacetSerializer(six.with_metaclass(HaystackSerializerMeta, seriali
         field_mapping = OrderedDict()
         for field, data in self.instance.items():
             field_mapping.update(
-                {field: self.FacetDictField(
-                    child=self.FacetListField(child=self.FacetFieldSerializer(data)), required=False)}
+                {field: FacetDictField(
+                    child=FacetListField(child=FacetFieldSerializer(data)), required=False)}
             )
 
         if self.serialize_objects is True:
