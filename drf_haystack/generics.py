@@ -10,7 +10,7 @@ from haystack.backends import SQ
 from haystack.query import SearchQuerySet
 from rest_framework.generics import GenericAPIView
 
-from .filters import HaystackFilter
+from drf_haystack.filters import HaystackFilter
 
 
 class HaystackGenericAPIView(GenericAPIView):

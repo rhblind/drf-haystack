@@ -26,10 +26,11 @@ from rest_framework import serializers
 from rest_framework.fields import empty
 from rest_framework.utils.field_mapping import ClassLookupDict, get_field_kwargs
 
-from .fields import (
+from drf_haystack.fields import (
     HaystackBooleanField, HaystackCharField, HaystackDateField, HaystackDateTimeField,
     HaystackDecimalField, HaystackFloatField, HaystackIntegerField, HaystackMultiValueField,
-    FacetDictField, FacetListField)
+    FacetDictField, FacetListField
+)
 
 
 class Meta(type):

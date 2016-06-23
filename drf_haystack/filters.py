@@ -8,7 +8,7 @@ from django.utils import six
 from haystack.query import SearchQuerySet
 from rest_framework.filters import BaseFilterBackend
 
-from .query import BoostQueryBuilder, FilterQueryBuilder, FacetQueryBuilder, SpatialQueryBuilder
+from drf_haystack.query import BoostQueryBuilder, FilterQueryBuilder, FacetQueryBuilder, SpatialQueryBuilder
 
 
 class BaseHaystackFilterBackend(BaseFilterBackend):

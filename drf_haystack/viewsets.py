@@ -5,7 +5,7 @@ from __future__ import absolute_import, unicode_literals
 from rest_framework.mixins import ListModelMixin, RetrieveModelMixin
 from rest_framework.viewsets import ViewSetMixin
 
-from .generics import HaystackGenericAPIView
+from drf_haystack.generics import HaystackGenericAPIView
 
 
 class HaystackViewSet(RetrieveModelMixin, ListModelMixin, ViewSetMixin, HaystackGenericAPIView):

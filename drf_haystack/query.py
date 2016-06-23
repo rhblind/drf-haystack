@@ -10,9 +10,8 @@ from django.utils import six
 from django.utils.six.moves import zip
 from dateutil import parser
 
+from drf_haystack import constants
 from drf_haystack.utils import merge_dict
-
-from . import constants
 
 
 class BaseQueryBuilder(object):
