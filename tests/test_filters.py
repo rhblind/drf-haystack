@@ -23,6 +23,7 @@ from drf_haystack.filters import (
     HaystackFacetFilter, HaystackFilter,
     HaystackGEOSpatialFilter, HaystackHighlightFilter
 )
+from drf_haystack.mixins import FacetMixin
 
 from . import geospatial_support
 from .mixins import WarningTestCaseMixin
@@ -436,11 +437,11 @@ class HaystackFacetFilterTestCase(WarningTestCaseMixin, TestCase):
                     }
                 }
 
-        class ViewSet1(HaystackViewSet):
+        class ViewSet1(FacetMixin, HaystackViewSet):
             index_models = [MockPerson]
             facet_serializer_class = FacetSerializer1
 
-        class ViewSet2(HaystackViewSet):
+        class ViewSet2(FacetMixin, HaystackViewSet):
             index_models = [MockPerson]
             facet_serializer_class = FacetSerializer2
 

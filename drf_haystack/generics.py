@@ -10,7 +10,7 @@ from haystack.backends import SQ
 from haystack.query import SearchQuerySet
 from rest_framework.generics import GenericAPIView
 
-from .filters import HaystackFilter, HaystackFacetFilter
+from .filters import HaystackFilter
 
 
 class HaystackGenericAPIView(GenericAPIView):
@@ -36,9 +36,6 @@ class HaystackGenericAPIView(GenericAPIView):
     load_all = False
 
     filter_backends = [HaystackFilter]
-
-    facet_filter_backends = [HaystackFacetFilter]
-    facet_serializer_class = None
 
     def get_queryset(self, index_models=[]):
         """
@@ -103,43 +100,3 @@ class HaystackGenericAPIView(GenericAPIView):
             queryset = queryset.load_all()
 
         return queryset
-
-    def filter_facet_queryset(self, queryset):
-        """
-        Given a search queryset, filter it with whichever facet filter backends
-        in use.
-        """
-        for backend in list(self.facet_filter_backends):
-            queryset = backend().filter_queryset(self.request, queryset, self)
-
-        if self.load_all:
-            queryset = queryset.load_all()
-
-        return queryset
-
-    def get_facet_serializer(self, *args, **kwargs):
-        """
-        Return the facet serializer instance that should be used for
-        serializing faceted output.
-        """
-        assert "objects" in kwargs, "`objects` is a required argument to `get_facet_serializer()`"
-
-        facet_serializer_class = self.get_facet_serializer_class()
-        kwargs["context"] = self.get_serializer_context()
-        kwargs["context"].update({
-            "objects": kwargs.pop("objects")
-        })
-        return facet_serializer_class(*args, **kwargs)
-
-    def get_facet_serializer_class(self):
-        """
-        Return the class to use for serializing facets.
-        Defaults to using ``self.facet_serializer_class``.
-        """
-        if self.facet_serializer_class is None:
-            raise AttributeError(
-                "%(cls)s should either include a `facet_serializer_class` attribute, "
-                "or override %(cls)s.get_facet_serializer_class() method." %
-                {"cls": self.__class__.__name__}
-            )
-        return self.facet_serializer_class

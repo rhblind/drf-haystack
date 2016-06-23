@@ -20,6 +20,7 @@ from rest_framework.test import force_authenticate, APIRequestFactory
 
 from drf_haystack.viewsets import HaystackViewSet
 from drf_haystack.serializers import HaystackSerializer, HaystackFacetSerializer
+from drf_haystack.mixins import MoreLikeThisMixin, FacetMixin
 
 from .mockapp.models import MockPerson, MockPet
 from .mockapp.search_indexes import MockPersonIndex, MockPetIndex
@@ -42,17 +43,22 @@ class HaystackViewSetTestCase(TestCase):
             class Meta:
                 fields = ["firstname", "lastname", "created"]
 
-        class ViewSet1(HaystackViewSet):
+        class ViewSet1(FacetMixin, HaystackViewSet):
             index_models = [MockPerson]
             serializer_class = Serializer
             facet_serializer_class = FacetSerializer
 
-        class ViewSet2(HaystackViewSet):
+        class ViewSet2(MoreLikeThisMixin, HaystackViewSet):
+            index_models = [MockPerson]
+            serializer_class = Serializer
+
+        class ViewSet3(HaystackViewSet):
             index_models = [MockPerson, MockPet]
             serializer_class = Serializer
 
         self.view1 = ViewSet1
         self.view2 = ViewSet2
+        self.view3 = ViewSet3
 
     def tearDown(self):
         MockPersonIndex().clear()
@@ -75,17 +81,17 @@ class HaystackViewSetTestCase(TestCase):
 
     def test_viewset_get_object_multiple_indices(self):
         request = factory.get(path="/", data={"model": "mockapp.mockperson"}, content_type="application/json")
-        response = self.view2.as_view(actions={"get": "retrieve"})(request, pk=1)
+        response = self.view3.as_view(actions={"get": "retrieve"})(request, pk=1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_viewset_get_object_multiple_indices_no_model_query_param(self):
         request = factory.get(path="/", data="", content_type="application/json")
-        response = self.view2.as_view(actions={"get": "retrieve"})(request, pk=1)
+        response = self.view3.as_view(actions={"get": "retrieve"})(request, pk=1)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_viewset_get_object_multiple_indices_invalid_modelname(self):
         request = factory.get(path="/", data={"model": "spam"}, content_type="application/json")
-        response = self.view2.as_view(actions={"get": "retrieve"})(request, pk=1)
+        response = self.view3.as_view(actions={"get": "retrieve"})(request, pk=1)
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_viewset_get_obj_raise_404(self):
@@ -108,13 +114,13 @@ class HaystackViewSetTestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_viewset_more_like_this_decorator(self):
-        route = self.router.get_routes(self.view1)[2:].pop()
+        route = self.router.get_routes(self.view2)[2:].pop()
         self.assertEqual(route.url, "^{prefix}/{lookup}/more-like-this{trailing_slash}$")
         self.assertEqual(route.mapping, {"get": "more_like_this"})
 
     def test_viewset_more_like_this_action_route(self):
         request = factory.get(path="/", data={}, content_type="application/json")
-        response = self.view1.as_view(actions={"get": "more_like_this"})(request, pk=1)
+        response = self.view2.as_view(actions={"get": "more_like_this"})(request, pk=1)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_viewset_facets_action_route(self):
