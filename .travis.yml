@@ -35,12 +35,12 @@ env:
   matrix:
     - DJANGO_VERSION=">=1.8,<1.9"
     - DJANGO_VERSION=">=1.9,<1.10"
-    - DJANGO_VERSION="==1.10a1"
+    - DJANGO_VERSION="==1.10b1"
 
 matrix:
   allow_failures:
     - python: pypy
-    - env: DJANGO_VERSION="==1.10a1"
+    - env: DJANGO_VERSION="==1.10b1"
 
 services:
   - elasticsearch
