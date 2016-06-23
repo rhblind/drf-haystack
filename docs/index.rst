@@ -122,13 +122,13 @@ v1.6.0rc1
         - All filter classes use a ``QueryBuilder`` class for working out validation and building queries which are to be passed to the ``SearchQuerySet``.
         - Most filters does *not* inherit from ``HaystackFilter`` anymore (except ``HaystackAutocompleteFilter`` and ``HaystackHighlightFilter``) and will no longer do basic field filtering. Filters should be properly placed in the ``filter_backends`` class attribute in their respective order to be applied. This solves issues where inherited filters responds to query parameters they should ignore.
     - HaystackFacetSerializer ``narrow_url`` now returns an absolute url.
-    - HaystackFacetSerializer now properly serializes ``MultiValueField`` items as a JSON Array.
+    - HaystackFacetSerializer now properly serializes ``MultiValueField`` and ``FacetMultiValueField`` items as a JSON Array.
     - ``HaystackGenericAPIView.get_object()`` optional ``model`` query parameter now requires a ``app_label.model`` instead of just the ``model``.
     - Extracted internal fields and serializer from the ``HaystackFacetSerializer`` in order to ease customization.
     - ``HaystackFacetSerializer`` now supports all three `builtin <http://www.django-rest-framework.org/api-guide/pagination/#api-reference>`_ pagination classes, and a hook to support custom pagination classes.
     - Extracted the ``more-like-this`` detail route and ``facted`` list route from the generic HaystackViewSet.
-        - Support for ``more-like-this`` is available as a ``MoreLikeThisMixin`` class.
-        - Support for ``facets`` is available as a ``FacetMixin`` class.
+        - Support for ``more-like-this`` is available as a :class:`drf_haystack.mixins.MoreLikeThisMixin` class.
+        - Support for ``facets`` is available as a :class:`drf_haystack.mixins.FacetMixin` class.
 
 v1.5.6
 ------

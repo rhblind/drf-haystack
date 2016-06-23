@@ -306,11 +306,8 @@ More Like This
 ==============
 
 Some search backends supports ``More Like This`` features. In order to take advantage of this,
-we have a mixin class :class:`mixins.MoreLikeThisMixin`
-
-
-the ``HaystackViewSet`` includes a ``more-like-this`` detail route which is appended to the base name of the
-ViewSet. Lets say you have a router which looks like this:
+we have a mixin class :class:`drf_haystack.mixins.MoreLikeThisMixin`, which will append a ``more-like-this``
+detail route to the base name of the ViewSet. Lets say you have a router which looks like this:
 
 .. code-block:: python
 
@@ -322,7 +319,7 @@ ViewSet. Lets say you have a router which looks like this:
         url(r"^", include(router.urls))
     )
 
-The important thing here is that the ``SearchViewSet`` class inherits from the ``HaystackViewSet`` class
+The important thing here is that the ``SearchViewSet`` class inherits from the ``MoreLikeThisMixin`` class
 in order to get the ``more-like-this`` route automatically added. The view name will be
 ``{base_name}-more-like-this``, which in this case would be for example ``search-more-like-this``.
 
@@ -345,6 +342,11 @@ Something like this should work okay.
         class Meta:
             index_classes = [PersonIndex]
             fields = ["firstname", "lastname", "full_name"]
+
+
+    class SearchViewSet(MoreLikeThisMixin, HaystackViewSet):
+        index_models = [Person]
+        serializer_class = SearchSerializer
 
 
 Now, every result you render with this serializer will include a ``more_like_this`` field containing the url
@@ -427,7 +429,7 @@ Faceting
 Faceting is a way of grouping and narrowing search results by a common factor, for example we can group
 all results which are registered on a certain date. Similar to :ref:`more-like-this-label`, the faceting
 functionality is implemented by setting up a special ``^search/facets/$`` route on any view which inherits from the
-``HaystackViewSet`` class.
+:class:`drf_haystack.mixins.FacetMixin` class.
 
 
 .. note::
@@ -453,9 +455,6 @@ We have a special ``HaystackFacetSerializer`` class which is designed to seriali
     It *is* possible to perform faceting on a subset of the queryset, in which case you'd have to override the
     ``get_queryset()`` method of the view to limit the queryset before it is passed on to the
     ``filter_facet_queryset()`` method.
-
-The ``HaystackFacetSerializer`` overrides a number of methods and is customized to only serialize facets in a very
-specific format. Using this serializer for other stuff will probably not work very good. Consider yourself warned!
 
 Any serializer subclassed from the ``HaystackFacetSerializer`` is expected to have a ``field_options`` dictionary
 containing a set of default options passed to ``facet()`` and ``date_facet()``.
@@ -627,15 +626,15 @@ faceted ``SearchQuerySet``. The results will be serialized using the view's ``se
 Setting up the view
 -------------------
 
-Any view that inherits the ``HaystackViewSet`` will have a special
+Any view that inherits the :class:`drf_haystack.mixins.FacetMixin` will have a special
 `action route <http://www.django-rest-framework.org/api-guide/viewsets/#marking-extra-actions-for-routing>`_ added as
 ``^<view-url>/facets/$``. This view action will not care about regular filtering but will by default use the
 ``HaystackFacetFilter`` to perform filtering.
 
 .. note::
 
-    In order to avoid confusing the filtering mechanisms in Django Rest Framework, the ``HaystackGenericAPIView`` base
-    class has a couple of new hooks for dealing with faceting, namely:
+    In order to avoid confusing the filtering mechanisms in Django Rest Framework, the ``FacetMixin``
+    class has a couple of hooks for dealing with faceting, namely:
 
         - ``facet_filter_backends`` - A list of filter backends that will be used to apply faceting to the queryset.
           Defaults to ``HaystackFacetFilter``, which should be sufficient in most cases.
@@ -653,7 +652,7 @@ In order to set up a view which can respond to regular queries under ie ``^searc
 
 .. code-block:: python
 
-    class SearchPersonViewSet(HaystackViewSet):
+    class SearchPersonViewSet(FacetMixin, HaystackViewSet):
 
         index_models = [MockPerson]
 
