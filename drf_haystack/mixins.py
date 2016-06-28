@@ -108,13 +108,8 @@ class FacetMixin(object):
         Return the serializer instance which should be used for
         serializing faceted objects.
         """
-        assert "objects" in kwargs, "`objects` is a required argument to `get_facet_objects_serializer()`"
-
         facet_objects_serializer_class = self.get_facet_objects_serializer_class()
         kwargs["context"] = self.get_serializer_context()
-        kwargs["context"].update({
-            "objects": kwargs.pop("objects")
-        })
         return facet_objects_serializer_class(*args, **kwargs)
 
     def get_facet_objects_serializer_class(self):
