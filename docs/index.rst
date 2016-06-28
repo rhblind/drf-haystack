@@ -109,6 +109,13 @@ Thanks guys!
 Changelog
 =========
 
+v1.6.0rc2
+---------
+*Release date: 2016-06-28*
+
+    - Restructured and updated documentation
+    - Added support for using a custom serializer when serializing faceted objects.
+
 v1.6.0rc1
 ---------
 *Release date: 2016-06-24*
