@@ -25,7 +25,8 @@ Faceting is a little special in terms that it *does not* care about SearchQueryS
 by calling the ``SearchQuerySet().facet(field, **options)`` and ``SearchQuerySet().date_facet(field, **options)``
 methods, which will apply facets to the SearchQuerySet. Next we need to call the ``SearchQuerySet().facet_counts()``
 in order to retrieve a dictionary with all the *counts* for the faceted fields.
-We have a special ``HaystackFacetSerializer`` class which is designed to serialize these results.
+We have a special :class:`drf_haystack.serializers.HaystackFacetSerializer` class which is designed to serialize
+these results.
 
 .. tip::
 
@@ -156,7 +157,10 @@ Serializing faceted results
 When a ``HaystackFacetSerializer`` class determines what fields to serialize, it will check
 the ``serialize_objects`` class attribute to see if it is ``True`` or ``False``. Setting this value to ``True``
 will add an additional ``objects`` field to the serialized results, which will contain the results for the
-faceted ``SearchQuerySet``. The results will be serialized using the view's ``serializer_class``.
+faceted ``SearchQuerySet``. The results will by default be serialized using the view's ``serializer_class``.
+If you wish to use a different serializer for serializing the results, set the
+:attr:`drf_haystack.mixins.FacetMixin.facet_objects_serializer_class` class attribute to whatever serializer you want
+to use, or override the :meth:`drf_haystack.mixins.FacetMixin.get_facet_objects_serializer_class` method.
 
 **Example faceted results with paginated serialized objects**
 
@@ -213,15 +217,25 @@ Any view that inherits the :class:`drf_haystack.mixins.FacetMixin` will have a s
     In order to avoid confusing the filtering mechanisms in Django Rest Framework, the ``FacetMixin``
     class has a couple of hooks for dealing with faceting, namely:
 
-        - ``facet_filter_backends`` - A list of filter backends that will be used to apply faceting to the queryset.
-          Defaults to ``HaystackFacetFilter``, which should be sufficient in most cases.
-        - ``facet_serializer_class`` - The ``HaystackFacetSerializer`` subclass instance that will be used for
-          serializing the result.
-        - ``filter_facet_queryset()`` - Works exactly as the normal ``filter_queryset()`` method, but will only filter
-          on backends in the ``facet_filter_backends`` list.
-        - ``get_facet_serializer_class()`` - Returns the ``facet_serializer_class`` class attribute.
-        - ``get_facet_serializer()`` - Instantiates and returns the ``HaystackFacetSerializer`` class returned from
-          ``get_facet_serializer_class()``.
+        - :attr:`drf_haystack.mixins.FacetMixin.facet_filter_backends` - A list of filter backends that will be used to
+          apply faceting to the queryset. Defaults to :class:drf_haystack.filters.HaystackFacetFilter`, which should be
+          sufficient in most cases.
+        - :attr:`drf_haystack.mixins.FacetMixin.facet_serializer_class` - The :class:`drf_haystack.serializers.HaystackFacetSerializer`
+          instance that will be used for serializing the result.
+        - :attr:`drf_haystack.mixins.FacetMixin.facet_objects_serializer_class` - Optional. Set to the serializer class
+          which should be used for serializing faceted objects. If not set, defaults to ``self.serializer_class``.
+        - :attr:`drf_haystack.mixins.FacetMixin.filter_facet_queryset()` - Works exactly as the normal
+          :meth:`drf_haystack.generics.HaystackGenericAPIView.filter_queryset` method, but will only filter on
+          backends in the ``self.facet_filter_backends`` list.
+        - :meth:`drf_haystack.mixins.FacetMixin.get_facet_serializer_class` - Returns the ``self.facet_serializer_class``
+          class attribute.
+        - :meth:`drf_haystack.mixins.FacetMixin.get_facet_serializer` - Instantiates and returns the
+          :class:`drf_haystack.serializers.HaystackFacetSerializer` class returned from
+          :meth:`drf_haystack.mixins.FacetMixin.get_facet_serializer_class` method.
+        - :meth:`drf_haystack.mixins.FacetMixin.get_facet_objects_serializer` - Instantiates and returns the serializer
+          class which will be used to serialize faceted objects.
+        - :meth:`drf_haystack.mixins.FacetMixin.get_facet_objects_serializer_class` - Returns the
+          ``self.facet_objects_serializer_class``, or if not set, the ``self.serializer_class``.
 
 
 In order to set up a view which can respond to regular queries under ie ``^search/$`` and faceted queries under
@@ -256,6 +270,8 @@ The ``narrow_url`` is constructed like this:
     - Read all query parameters from the request
     - Get a list of ``selected_facets``
     - Update the query parameters by adding the current item to ``selected_facets``
+    - Pop the :attr:`drf_haystack.serializers.HaystackFacetSerializer.paginate_by_param` parameter if any in order to
+      always start at the first page if returning a paginated result.
     - Return a ``serializers.Hyperlink`` with URL encoded query parameters
 
 This means that for each drill-down performed, the original query parameters will be kept in order to make

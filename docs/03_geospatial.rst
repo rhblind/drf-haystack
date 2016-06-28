@@ -4,9 +4,7 @@ GEO spatial locations
 =====================
 
 Some search backends support geo spatial searching. In order to take advantage of this we
-have the ``HaystackGEOSpatialFilter``.
-
-.. class:: drf_haystack.filters.HaystackGEOSpatialFilter
+have the :class:`drf_haystack.filters.HaystackGEOSpatialFilter`.
 
 .. note::
 
@@ -20,9 +18,12 @@ have the ``HaystackGEOSpatialFilter``.
           or
         $ brew install geos (for homebrew on OS X)
 
+
 The geospatial filter is somewhat special, and for the time being, relies on a few assumptions.
 
-#. The index model **must** to have a ``LocationField`` named ``coordinates`` (See :ref:`search-index-example-label` for example). If your ``LocationField`` is named differently, instead of using the ``HaystackGEOSpatialFilter``, subclass the ``BaseHaystackGEOSpatialFilter`` and provide the name of your ``LocationField`` in ``point_field`` (string).
+#. The index model **must** to have a ``LocationField`` (See :ref:`search-index-example-label` for example).
+   If your ``LocationField`` is named something other than ``coordinates``, subclass the ``HaystackGEOSpatialFilter``
+   and make sure to set the :attr:`drf_haystack.filters.HaystackGEOSpatialFilter.point_field` to the name of the field.
 #. The query **must** contain a ``unit`` parameter where the unit is a valid ``UNIT`` in the ``django.contrib.gis.measure.Distance`` class.
 #. The query **must** contain a ``from`` parameter which is a comma separated longitude and latitude value.
 
@@ -42,7 +43,7 @@ The geospatial filter is somewhat special, and for the time being, relies on a f
 
         class Meta:
             index_classes = [LocationIndex]
-            fields = ["address", "city", "zip_code", "location"]
+            fields = ["address", "city", "zip_code"]
 
         def get_distance(self, obj):
             if hasattr(obj, "distance"):
@@ -56,15 +57,15 @@ The geospatial filter is somewhat special, and for the time being, relies on a f
         filter_backends = [HaystackGEOSpatialFilter]
 
 
-**Example subclassing the ``BaseHaystackGEOSpatialFilter``**
+**Example subclassing the HaystackGEOSpatialFilter**
 
 Assuming that your ``LocationField`` is named ``location``.
 
 .. code-block:: python
 
-    from drf_haystack.filters import BaseHaystackGEOSpatialFilter
+    from drf_haystack.filters import HaystackGEOSpatialFilter
 
-    class CustomHaystackGEOSpatialFilter(BaseHaystackGEOSpatialFilter):
+    class CustomHaystackGEOSpatialFilter(HaystackGEOSpatialFilter):
         point_field = 'location'
 
 

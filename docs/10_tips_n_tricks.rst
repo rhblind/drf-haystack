@@ -40,3 +40,38 @@ search index.
     It should be noted that doing this will retrieve the underlying object which means a database hit.  Thus, it will
     not be as performant as only retrieving data from the search index.  If performance is a concern, it would be
     better to recreate the desired data structure and store it in the search index.
+
+
+Regular Search View
+-------------------
+
+Sometimes you might not need all the bells and whistles of a ``ViewSet``,
+but can do with a regular view. In such scenario you could do something like this.
+
+.. code-block:: python
+
+    #
+    # views.py
+    #
+
+    from rest_framework.mixins import ListModelMixin
+    from drf_haystack.generics import HaystackGenericAPIView
+
+
+    class SearchView(ListModelMixin, HaystackGenericAPIView):
+
+        serializer_class = LocationSerializer
+
+        def get(self, request, *args, **kwargs):
+            return self.list(request, *args, **kwargs)
+
+
+    #
+    # urls.py
+    #
+
+    urlpatterns = (
+       ...
+        url(r'^search/', SearchView.as_view()),
+       ...
+    )

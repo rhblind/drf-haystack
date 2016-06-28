@@ -5,13 +5,11 @@ Autocomplete
 
 Some kind of data such as ie. cities and zip codes could be useful to autocomplete.
 We have a Django REST Framework filter for performing autocomplete queries. It works
-quite like the regular ``HaystackFilter`` but *must* be run against an ``NgramField`` or
-``EdgeNgramField`` in order to work properly. The main difference is that while the
-HaystackFilter performs a bitwise ``OR`` on terms for the same parameters, the
-``HaystackAutocompleteFilter`` reduce query parameters down to a single filter
-(using an ``SQ`` object), and performs a bitwise ``AND``.
-
-.. class:: drf_haystack.filters.HaystackAutocompleteFilter
+quite like the regular :class:`drf_haystack.filters.HaystackFilter` but *must* be run
+against an ``NgramField`` or ``EdgeNgramField`` in order to work properly. The main
+difference is that while the HaystackFilter performs a bitwise ``OR`` on terms for the
+same parameters, the :class:`drf_haystack.filters.HaystackAutocompleteFilter` reduce query
+parameters down to a single filter (using an ``SQ`` object), and performs a bitwise ``AND``.
 
 By adding a list or tuple of ``ignore_fields`` to the serializer's Meta class,
 we can tell the REST framework to ignore these fields. This is handy in cases,
@@ -22,6 +20,10 @@ An example using the autocomplete filter might look something like this.
 
 
 .. code-block:: python
+
+    from drf_haystack.filters import HaystackAutocompleteFilter
+    from drf_haystack.serializers import HaystackSerializer
+    from drf_haystack.viewsets import HaystackViewSet
 
     class AutocompleteSerializer(HaystackSerializer):
 

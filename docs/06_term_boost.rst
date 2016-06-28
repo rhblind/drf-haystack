@@ -25,9 +25,9 @@ Term Boost
 
 
 Term boost is achieved on the SearchQuerySet level by calling ``SearchQuerySet().boost()``. It is
-implemented as a filter backend, and applies boost **after** regular filtering has occurred.
-
-.. class:: drf_haystack.filters.HaystackBoostFilter
+implemented as a :class:`drf_haystack.filters.HaystackBoostFilter` filter backend.
+The ``HaystackBoostFilter`` does not perform any filtering by itself, and should therefore be combined with
+some other filter that does, for example the :class:`drf_haystack.filters.HaystackFilter`.
 
 .. code-block:: python
 
@@ -35,7 +35,7 @@ implemented as a filter backend, and applies boost **after** regular filtering h
 
     class SearchViewSet(HaystackViewSet):
         ...
-        filter_backends = [HaystackBoostFilter]
+        filter_backends = [HaystackFilter, HaystackBoostFilter]
 
 
 The filter expects the query string to contain a ``boost`` parameter, which is a comma separated string

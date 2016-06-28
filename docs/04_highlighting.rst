@@ -21,12 +21,9 @@ SearchQuerySet Highlighting
 ---------------------------
 
 In order to add support for ``SearchQuerySet().highlight()``, all you have to do is to add the
-``HaystackHighlightFilter`` to the ``filter_backends`` in your view. The ``HaystackSerializer`` will
+:class:`drf_haystack.filters.HaystackHighlightFilter` to the ``filter_backends`` in your view. The ``HaystackSerializer`` will
 check if your queryset has highlighting enabled, and render an additional ``highlighted`` field to
 your result. The highlighted words will be encapsulated in an ``<em>words go here</em>`` html tag.
-
-
-.. class:: drf_haystack.filters.HaystackHighlightFilter
 
 
 **Example view with highlighting enabled**
@@ -78,10 +75,8 @@ Pure Python Highlighting
 ------------------------
 
 This implementation make use of the haystack ``Highlighter()`` class.
-It is implemented as a mixin class, and must be applied on the ``Serializer``.
-This is somewhat slower, but more configurable than the ``HaystackHighlightFilter``.
-
-.. class:: drf_haystack.serializers.HighlighterMixin
+It is implemented as :class:`drf_haystack.serializers.HighlighterMixin` mixin class, and must be applied on the ``Serializer``.
+This is somewhat slower, but more configurable than the :class:`drf_haystack.filters.HaystackHighlightFilter` filter class.
 
 The Highlighter class will be initialized with the following default options, but can be overridden by
 changing any of the following class attributes.

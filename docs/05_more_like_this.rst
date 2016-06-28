@@ -17,9 +17,9 @@ detail route to the base name of the ViewSet. Lets say you have a router which l
         url(r"^", include(router.urls))
     )
 
-The important thing here is that the ``SearchViewSet`` class inherits from the ``MoreLikeThisMixin`` class
-in order to get the ``more-like-this`` route automatically added. The view name will be
-``{base_name}-more-like-this``, which in this case would be for example ``search-more-like-this``.
+The important thing here is that the ``SearchViewSet`` class inherits from the
+:class:`drf_haystack.mixins.MoreLikeThisMixin` class in order to get the ``more-like-this`` route automatically added.
+The view name will be ``{base_name}-more-like-this``, which in this case would be for example ``search-more-like-this``.
 
 
 Serializing the More Like This URL

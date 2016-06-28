@@ -210,37 +210,3 @@ The default keyword is ``not``, but is configurable via settings using ``DRF_HAY
     http://example.com/api/v1/location/search/?city__not__contains=Los
     http://example.com/api/v1/location/search/?city__contains=Los&city__not__contains=Angeles
 
-
-Regular Search View
-===================
-
-Sometimes you might not need all the bells and whistles of a `ViewSet`,
-but can do with a regular view. In such scenario you could do something like this.
-
-.. code-block:: python
-
-    #
-    # views.py
-    #
-
-    from rest_framework.mixins import ListModelMixin
-    from drf_haystack.generics import HaystackGenericAPIView
-
-
-    class SearchView(ListModelMixin, HaystackGenericAPIView):
-
-        serializer_class = LocationSerializer
-
-        def get(self, request, *args, **kwargs):
-            return self.list(request, *args, **kwargs)
-
-
-    #
-    # urls.py
-    #
-
-    urlpatterns = (
-       ...
-        url(r'^search/', SearchView.as_view()),
-       ...
-    )
