@@ -40,6 +40,7 @@ class FacetMixin(object):
 
     facet_filter_backends = [HaystackFacetFilter]
     facet_serializer_class = None
+    facet_objects_serializer_class = None
 
     @list_route(methods=["get"], url_path="facets")
     def facets(self, request):
@@ -101,3 +102,26 @@ class FacetMixin(object):
                 {"cls": self.__class__.__name__}
             )
         return self.facet_serializer_class
+
+    def get_facet_objects_serializer(self, *args, **kwargs):
+        """
+        Return the serializer instance which should be used for
+        serializing faceted objects.
+        """
+        assert "objects" in kwargs, "`objects` is a required argument to `get_facet_objects_serializer()`"
+
+        facet_objects_serializer_class = self.get_facet_objects_serializer_class()
+        kwargs["context"] = self.get_serializer_context()
+        kwargs["context"].update({
+            "objects": kwargs.pop("objects")
+        })
+        return facet_objects_serializer_class(*args, **kwargs)
+
+    def get_facet_objects_serializer_class(self):
+        """
+        Return the class to use for serializing faceted objects.
+        Defaults to using the views ``self.serializer_class`` if not
+        ``self.facet_objects_serializer_class`` is set.
+        """
+        return self.facet_objects_serializer_class or super(FacetMixin, self).get_serializer_class()
+

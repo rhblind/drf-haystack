@@ -401,7 +401,7 @@ class HaystackFacetSerializer(six.with_metaclass(HaystackSerializerMeta, seriali
 
         page = view.paginate_queryset(queryset)
         if page is not None:
-            serializer = view.get_serializer(page, many=True)
+            serializer = view.get_facet_objects_serializer(page, many=True)
             return OrderedDict([
                 ("count", _get_count(queryset)),
                 ("next", view.paginator.get_next_link()),
