@@ -7,11 +7,18 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   basic_usage
-   advanced_usage
+   01_intro
+   02_autocomplete
+   03_geospatial
+   04_highlighting
+   05_more_like_this
+   06_term_boost
+   07_faceting
+   08_permissions
+   09_multiple_indexes
+   10_tips_n_tricks
    apidoc/modules
 
-=====
 About
 =====
 Small library aiming to simplify using Haystack with Django REST Framework
@@ -162,7 +169,7 @@ v1.5.2
 ------
 *Release date: 2015-08-23*
 
-    - Proper support for :ref:`multiple-search-indexes-label` (Github :drf-issue:`22`).
+    - Proper support for :ref:`multiple-indexes-label` (Github :drf-issue:`22`).
     - Experimental support for :ref:`term-boost-label` (This seems to have some issues upstreams,
       so unfortunately it does not really work as expected).
     - Support for negate in filters.
@@ -183,7 +190,7 @@ v1.5.0
       Check out `Haystack docs <https://django-haystack.readthedocs.io/en/latest/searchqueryset_api.html?highlight=field%20lookup#field-lookups>`_
       for details.
     - Added default ``permission_classes`` on ``HaystackGenericAPIView`` in order to avoid crash when
-      using global permission classes on REST Framework. See :ref:`permission-classes-label` for details.
+      using global permission classes on REST Framework. See :ref:`permissions-label` for details.
 
 v1.4
 ----

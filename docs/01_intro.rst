@@ -53,7 +53,7 @@ Let's say we have an app which contains a model `Location`. It could look someth
 search_indexes.py
 -----------------
 
-We would have to make a `search_indexes.py` file for haystack to pick it up.
+We would have to make a ``search_indexes.py`` file for haystack to pick it up.
 
 .. code-block:: python
 
@@ -131,7 +131,7 @@ For a generic Django REST Framework view, you could do something like this.
         # a way to filter out those of no interest for this particular view.
         # (Translates to `SearchQuerySet().models(*index_models)` behind the scenes.
         index_models = [Location]
-            
+
         serializer_class = LocationSerializer
 
 
@@ -183,6 +183,34 @@ basic search by querying any of the field included in the `fields` attribute on 
 Would perform a query looking up all documents where the `city field` equals "Oslo".
 
 
+Field Lookups
+.............
+
+You can also use field lookups in your field queries. See the
+Haystack `field lookups <https://django-haystack.readthedocs.io/en/latest/searchqueryset_api.html?highlight=lookups#id1>`_
+documentation for info on what lookups are available.  A query using a lookup might look like the
+following:
+
+.. code-block:: none
+
+    http://example.com/api/v1/location/search/?city__startswith=Os
+
+This would perform a query looking up all documents where the `city field` started with "Os".
+You might get "Oslo", "Osaka", and "Ostrava".
+
+Term Negation
+.............
+
+You can also specify terms to exclude from the search results using the negation keyword.
+The default keyword is ``not``, but is configurable via settings using ``DRF_HAYSTACK_NEGATION_KEYWORD``.
+
+.. code-block:: none
+
+    http://example.com/api/v1/location/search/?city__not=Oslo
+    http://example.com/api/v1/location/search/?city__not__contains=Los
+    http://example.com/api/v1/location/search/?city__contains=Los&city__not__contains=Angeles
+
+
 Regular Search View
 ===================
 
@@ -216,6 +244,3 @@ but can do with a regular view. In such scenario you could do something like thi
         url(r'^search/', SearchView.as_view()),
        ...
     )
-
-
-Next, check out the :ref:`advanced-usage-label`.
