@@ -109,6 +109,13 @@ Thanks guys!
 Changelog
 =========
 
+v1.6.0rc3
+---------
+*Release date: 2016-06-29*
+
+    - Fixed :drf-issue:`61`. Introduction of custom serializers for serializing faceted objects contained a
+      breaking change.
+
 v1.6.0rc2
 ---------
 *Release date: 2016-06-28*
@@ -140,7 +147,7 @@ v1.6.0rc1
     - ``HaystackGenericAPIView.get_object()`` optional ``model`` query parameter now requires a ``app_label.model`` instead of just the ``model``.
     - Extracted internal fields and serializer from the ``HaystackFacetSerializer`` in order to ease customization.
     - ``HaystackFacetSerializer`` now supports all three `builtin <http://www.django-rest-framework.org/api-guide/pagination/#api-reference>`_ pagination classes, and a hook to support custom pagination classes.
-    - Extracted the ``more-like-this`` detail route and ``facted`` list route from the generic HaystackViewSet.
+    - Extracted the ``more-like-this`` detail route and ``facets`` list route from the generic HaystackViewSet.
         - Support for ``more-like-this`` is available as a :class:`drf_haystack.mixins.MoreLikeThisMixin` class.
         - Support for ``facets`` is available as a :class:`drf_haystack.mixins.FacetMixin` class.
 
