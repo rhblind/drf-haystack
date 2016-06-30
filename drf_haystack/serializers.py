@@ -7,9 +7,6 @@ import warnings
 from itertools import chain
 from datetime import datetime
 
-from rest_framework.pagination import _get_count
-from rest_framework.serializers import SerializerMetaclass
-
 try:
     from collections import OrderedDict
 except ImportError:
@@ -24,6 +21,7 @@ from haystack.utils import Highlighter
 
 from rest_framework import serializers
 from rest_framework.fields import empty
+from rest_framework.pagination import _get_count
 from rest_framework.utils.field_mapping import ClassLookupDict, get_field_kwargs
 
 from drf_haystack.fields import (
@@ -63,7 +61,7 @@ class Meta(type):
         raise AttributeError("Meta class is immutable.")
 
 
-class HaystackSerializerMeta(SerializerMetaclass):
+class HaystackSerializerMeta(serializers.SerializerMetaclass):
 
     """
     Metaclass for the HaystackSerializer that ensures that all declared subclasses implemented a Meta.
@@ -334,9 +332,6 @@ class FacetFieldSerializer(serializers.Serializer):
     def get_narrow_url(self, instance):
         """
         Return a link suitable for narrowing on the current item.
-
-        Since we don't have any means of getting the ``view name`` from here,
-        we can only return relative paths.
         """
         text = instance[0]
         request = self.context["request"]
