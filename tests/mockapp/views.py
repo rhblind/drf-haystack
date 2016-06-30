@@ -2,10 +2,11 @@
 
 from __future__ import absolute_import, unicode_literals
 
-from rest_framework.pagination import PageNumberPagination
+from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination
 
 from drf_haystack.filters import HaystackFilter, HaystackBoostFilter, HaystackHighlightFilter, HaystackAutocompleteFilter, HaystackGEOSpatialFilter
 from drf_haystack.viewsets import HaystackViewSet
+from drf_haystack.mixins import FacetMixin
 
 from .models import MockPerson, MockLocation
 from .serializers import (
@@ -14,19 +15,23 @@ from .serializers import (
 )
 
 
-class BasicPagination(PageNumberPagination):
+class BasicPageNumberPagination(PageNumberPagination):
     page_size = 20
     page_size_query_param = "page_size"
 
 
-class SearchViewSet1(HaystackViewSet):
+class BasicLimitOffsetPagination(LimitOffsetPagination):
+    default_limit = 20
+
+
+class SearchViewSet1(FacetMixin, HaystackViewSet):
     index_models = [MockPerson]
+    pagination_class = BasicLimitOffsetPagination
     serializer_class = SearchSerializer
-    filter_backends = [HaystackFilter, HaystackBoostFilter]
+    filter_backends = [HaystackFilter]
 
     # Faceting
     facet_serializer_class = MockPersonFacetSerializer
-    pagination_class = BasicPagination
 
 
 class SearchViewSet2(HaystackViewSet):
