@@ -62,7 +62,7 @@ class HaystackGenericAPIView(GenericAPIView):
         SearchIndex.
 
         In cases where the view has multiple ``index_models``, add a ``model`` query
-        parameter containing a single `app.label.model` name to the request in order
+        parameter containing a single `app_label.model` name to the request in order
         to override which model to include in the SearchQuerySet.
 
         Example:
