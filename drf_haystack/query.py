@@ -171,6 +171,7 @@ class FacetQueryBuilder(BaseQueryBuilder):
         fields = facet_serializer_cls.Meta.fields
         exclude = facet_serializer_cls.Meta.exclude
         field_options = facet_serializer_cls.Meta.field_options
+        query_facets = facet_serializer_cls.Meta.field_queries
 
         for field, options in filters.items():
 

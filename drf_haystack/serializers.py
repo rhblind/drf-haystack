@@ -4,8 +4,8 @@ from __future__ import absolute_import, unicode_literals
 
 import copy
 import warnings
-from itertools import chain
 from datetime import datetime
+from itertools import chain
 
 from rest_framework.pagination import _get_count
 from rest_framework.serializers import SerializerMetaclass
@@ -23,7 +23,7 @@ from haystack.query import EmptySearchQuerySet
 from haystack.utils import Highlighter
 
 from rest_framework import serializers
-from rest_framework.fields import empty
+from rest_framework.fields import empty, DictField
 from rest_framework.utils.field_mapping import ClassLookupDict, get_field_kwargs
 
 from drf_haystack.fields import (
@@ -64,7 +64,6 @@ class Meta(type):
 
 
 class HaystackSerializerMeta(SerializerMetaclass):
-
     """
     Metaclass for the HaystackSerializer that ensures that all declared subclasses implemented a Meta.
     """
@@ -255,27 +254,7 @@ class HaystackSerializer(six.with_metaclass(HaystackSerializerMeta, serializers.
         return serializer_class(context=self._context).to_representation(instance)
 
 
-class FacetFieldSerializer(serializers.Serializer):
-    """
-    Responsible for serializing a faceted result.
-    """
-
-    text = serializers.SerializerMethodField()
-    count = serializers.SerializerMethodField()
-    narrow_url = serializers.SerializerMethodField()
-
-    def __init__(self, *args, **kwargs):
-        self._parent_field = None
-        super(FacetFieldSerializer, self).__init__(*args, **kwargs)
-
-    @property
-    def parent_field(self):
-        return self._parent_field
-
-    @parent_field.setter
-    def parent_field(self, value):
-        self._parent_field = value
-
+class PaginationMixin(object):
     def get_paginate_by_param(self):
         """
         Returns the ``paginate_by_param`` for the (root) view paginator class.
@@ -310,6 +289,28 @@ class FacetFieldSerializer(serializers.Serializer):
                     "root_cls": self.root.__class__.__name__,
                     "cls": self.__class__.__name__
                 })
+
+
+class FacetFieldSerializer(PaginationMixin, serializers.Serializer):
+    """
+    Responsible for serializing a faceted result.
+    """
+
+    text = serializers.SerializerMethodField()
+    count = serializers.SerializerMethodField()
+    narrow_url = serializers.SerializerMethodField()
+
+    def __init__(self, *args, **kwargs):
+        self._parent_field = None
+        super(FacetFieldSerializer, self).__init__(*args, **kwargs)
+
+    @property
+    def parent_field(self):
+        return self._parent_field
+
+    @parent_field.setter
+    def parent_field(self, value):
+        self._parent_field = value
 
     def get_text(self, instance):
         """
@@ -365,6 +366,36 @@ class FacetFieldSerializer(serializers.Serializer):
         return super(FacetFieldSerializer, self).to_representation(instance)
 
 
+class QueryFacetFieldSerializer(PaginationMixin, serializers.Serializer):
+    count = serializers.IntegerField()
+    narrow_url = serializers.SerializerMethodField()
+
+    def get_narrow_url(self, instance):
+        """
+        Return a link suitable for narrowing on the current item.
+
+        Since we don't have any means of getting the ``view name`` from here,
+        we can only return relative paths.
+        """
+        field = instance['field']
+        request = self.context['request']
+        query_params = request.GET.copy()
+
+        # Never keep the page query parameter in narrowing urls.
+        # It will raise a NotFound exception when trying to paginate a narrowed queryset.
+        page_query_param = self.get_paginate_by_param()
+        if page_query_param in query_params:
+            del query_params[page_query_param]
+
+        selected_facets = set(query_params.pop('selected_query_facets', []))
+        selected_facets.add(field)
+        query_params.setlist('selected_query_facets', sorted(selected_facets))
+
+        path = '{path}?{query}'.format(path=request.path_info, query=query_params.urlencode())
+        url = request.build_absolute_uri(path)
+        return serializers.Hyperlink(url, name='narrow-url')
+
+
 class HaystackFacetSerializer(six.with_metaclass(HaystackSerializerMeta, serializers.Serializer)):
     """
     The ``HaystackFacetSerializer`` is used to serialize the ``facet_counts()``
@@ -375,6 +406,18 @@ class HaystackFacetSerializer(six.with_metaclass(HaystackSerializerMeta, seriali
     serialize_objects = False
     paginate_by_param = None
 
+    def format_query_facet_data(self, data):
+        formatted_data = {}
+        for field, options in self.Meta.field_queries.items():  # pylint: disable=no-member
+            count = data.get(field, 0)
+            if count:
+                formatted_data[field] = {
+                    'field': field,
+                    'options': options,
+                    'count': count,
+                }
+        return formatted_data
+
     def get_fields(self):
         """
         This returns a dictionary containing the top most fields,
@@ -382,10 +425,13 @@ class HaystackFacetSerializer(six.with_metaclass(HaystackSerializerMeta, seriali
         """
         field_mapping = OrderedDict()
         for field, data in self.instance.items():
-            field_mapping.update(
-                {field: FacetDictField(
-                    child=FacetListField(child=FacetFieldSerializer(data)), required=False)}
-            )
+            if field == 'queries':
+                data = self.format_query_facet_data(data)
+                self.instance['queries'] = data
+                mapping = DictField(data, child=QueryFacetFieldSerializer(), required=False)
+            else:
+                mapping = FacetDictField(child=FacetListField(child=FacetFieldSerializer(data)), required=False)
+            field_mapping.update({field: mapping})
 
         if self.serialize_objects is True:
             field_mapping["objects"] = serializers.SerializerMethodField()
