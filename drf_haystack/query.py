@@ -129,7 +129,7 @@ class FilterQueryBuilder(BaseQueryBuilder):
             for token in self.tokenize(value, self.view.lookup_sep):
                 field_queries.append(self.view.query_object((param, token)))
             
-            field_queries = filter(lambda x: x, field_queries)
+            field_queries = [fq for fq in field_queries if fq]
             if len(field_queries) > 0:
                 term = six.moves.reduce(operator.or_, field_queries)
                 if excluding_term:
