@@ -369,6 +369,9 @@ class HaystackFacetSerializer(six.with_metaclass(HaystackSerializerMeta, seriali
     _abstract = True
     serialize_objects = False
     paginate_by_param = None
+    facet_dict_field_class = FacetDictField
+    facet_list_field_class = FacetListField
+    facet_field_serializer_class = FacetFieldSerializer
 
     def get_fields(self):
         """
@@ -378,8 +381,8 @@ class HaystackFacetSerializer(six.with_metaclass(HaystackSerializerMeta, seriali
         field_mapping = OrderedDict()
         for field, data in self.instance.items():
             field_mapping.update(
-                {field: FacetDictField(
-                    child=FacetListField(child=FacetFieldSerializer(data)), required=False)}
+                {field: self.facet_dict_field_class(
+                    child=self.facet_list_field_class(child=self.facet_field_serializer_class(data)), required=False)}
             )
 
         if self.serialize_objects is True:
