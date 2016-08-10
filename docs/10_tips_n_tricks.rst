@@ -75,3 +75,27 @@ but can do with a regular view. In such scenario you could do something like thi
         url(r'^search/', SearchView.as_view()),
        ...
     )
+
+You can also use `FacetMixin` or `MoreLikeThisMixin` in your regular views as well.
+
+.. code-block:: python
+
+    #
+    # views.py
+    #
+
+    from rest_framework.mixins import ListModelMixin
+    from drf_haystack.mixins import FacetMixin
+    from drf_haystack.generics import HaystackGenericAPIView
+
+
+    class SearchView(ListModelMixin, FacetMixin, HaystackGenericAPIView):
+        index_models = [Project]
+        serializer_class = ProjectListSerializer
+        facet_serializer_class = ProjectListFacetSerializer
+
+        pagination_class = BasicPagination
+        permission_classes = (AllowAny,)
+
+        def get(self, request, *args, **kwargs):
+            return self.facets(request, *args, **kwargs)

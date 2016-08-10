@@ -41,17 +41,17 @@ class FacetMixin(object):
     facet_filter_backends = [HaystackFacetFilter]
     facet_serializer_class = None
     facet_objects_serializer_class = None
+    facet_query_params_text = 'selected_facets'
 
     @list_route(methods=["get"], url_path="facets")
     def facets(self, request):
         """
         Sets up a list route for ``faceted`` results.
-
         This will add ie ^search/facets/$ to your existing ^search pattern.
         """
         queryset = self.filter_facet_queryset(self.get_queryset())
 
-        for facet in request.query_params.getlist("selected_facets"):
+        for facet in request.query_params.getlist(self.facet_query_params_text):
 
             if ":" not in facet:
                 continue
@@ -86,7 +86,8 @@ class FacetMixin(object):
         facet_serializer_class = self.get_facet_serializer_class()
         kwargs["context"] = self.get_serializer_context()
         kwargs["context"].update({
-            "objects": kwargs.pop("objects")
+            "objects": kwargs.pop("objects"),
+            "facet_query_params_text": self.facet_query_params_text,
         })
         return facet_serializer_class(*args, **kwargs)
 
@@ -119,4 +120,3 @@ class FacetMixin(object):
         ``self.facet_objects_serializer_class`` is set.
         """
         return self.facet_objects_serializer_class or super(FacetMixin, self).get_serializer_class()
-

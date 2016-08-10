@@ -343,9 +343,9 @@ class FacetFieldSerializer(serializers.Serializer):
         if page_query_param in query_params:
             del query_params[page_query_param]
 
-        selected_facets = set(query_params.pop("selected_facets", []))
+        selected_facets = set(query_params.pop(self.root.facet_query_params_text, []))
         selected_facets.add("%(field)s_exact:%(text)s" % {"field": self.parent_field, "text": text})
-        query_params.setlist("selected_facets", sorted(selected_facets))
+        query_params.setlist(self.root.facet_query_params_text, sorted(selected_facets))
 
         path = "%(path)s?%(query)s" % {"path": request.path_info, "query": query_params.urlencode()}
         url = request.build_absolute_uri(path)
@@ -409,6 +409,10 @@ class HaystackFacetSerializer(six.with_metaclass(HaystackSerializerMeta, seriali
 
         serializer = view.get_serializer(queryset, many=True)
         return serializer.data
+
+    @property
+    def facet_query_params_text(self):
+        return self.context["facet_query_params_text"]
 
 
 class HaystackSerializerMixin(object):
