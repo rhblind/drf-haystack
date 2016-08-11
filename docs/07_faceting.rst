@@ -241,6 +241,9 @@ Any view that inherits the :class:`drf_haystack.mixins.FacetMixin` will have a s
 In order to set up a view which can respond to regular queries under ie ``^search/$`` and faceted queries under
 ``^search/facets/$``, we could do something like this.
 
+We can also change the query param text from ``selected_facets`` to our own choice like ``params`` or ``p``. For this 
+to make happen please provide ``facet_query_params_text`` attribute as shown in the example. 
+
 .. code-block:: python
 
     class SearchPersonViewSet(FacetMixin, HaystackViewSet):
@@ -257,6 +260,7 @@ In order to set up a view which can respond to regular queries under ie ``^searc
         facet_serializer_class = PersonFacetSerializer  # See example above!
         facet_filter_backends = [HaystackFacetFilter]   # This is the default facet filter, and
                                                         # can be left out.
+        facet_query_params_text = 'params' #Default is 'selected_facets'
 
 
 Narrowing
