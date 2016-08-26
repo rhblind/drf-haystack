@@ -128,12 +128,14 @@ class FilterQueryBuilder(BaseQueryBuilder):
             field_queries = []
             for token in self.tokenize(value, self.view.lookup_sep):
                 field_queries.append(self.view.query_object((param, token)))
-
-            term = six.moves.reduce(operator.or_, filter(lambda x: x, field_queries))
-            if excluding_term:
-                applicable_exclusions.append(term)
-            else:
-                applicable_filters.append(term)
+            
+            field_queries = [fq for fq in field_queries if fq]
+            if len(field_queries) > 0:
+                term = six.moves.reduce(operator.or_, field_queries)
+                if excluding_term:
+                    applicable_exclusions.append(term)
+                else:
+                    applicable_filters.append(term)
 
         applicable_filters = six.moves.reduce(
             self.default_operator, filter(lambda x: x, applicable_filters)) if applicable_filters else []
