@@ -207,9 +207,6 @@ class HaystackSerializer(six.with_metaclass(HaystackSerializerMeta, serializers.
         # in case of naming collision!.
         if declared_fields:
             for field_name in declared_fields:
-                if field_name in field_mapping:
-                    warnings.warn("Field '{field}' already exists in the field list. This *will* "
-                                  "overwrite existing field '{field}'".format(field=field_name))
                 field_mapping[field_name] = declared_fields[field_name]
         return field_mapping
 

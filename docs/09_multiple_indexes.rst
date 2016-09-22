@@ -138,3 +138,31 @@ for different indexes as show below:
 The ``serializers`` attribute is the important thing here, It's a dictionary with ``SearchIndex`` classes as
 keys and ``Serializer`` classes as values.  Each result in the list of results from a search that contained
 items from multiple indexes would be serialized according to the appropriate serializer.
+
+.. warning::
+
+    If a field name is shared across serializers, and one serializer overrides the field mapping, the overridden
+    mapping will be used for *all* serializers. See the example below for more details.
+
+.. code-block:: python
+
+    from rest_framework import serializers
+
+    class PersonSearchSerializer(HaystackSerializer):
+        # NOTE: This override will be used for both Person and Place objects.
+        name = serializers.SerializerMethodField()
+
+        class Meta:
+            fields = ['name']
+
+    class PlaceSearchSerializer(HaystackSerializer):
+        class Meta:
+            fields = ['name']
+
+    class AggregateSearchSerializer(HaystackSerializer):
+        class Meta:
+            serializers = {
+                PersonIndex: PersonSearchSerializer,
+                PlaceIndex: PlaceSearchSerializer,
+                ThingIndex: ThingSearchSerializer
+            }
