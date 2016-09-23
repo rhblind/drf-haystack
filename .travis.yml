@@ -18,8 +18,7 @@ before_install:
   - mkdir -p $PIP_DOWNLOAD_CACHE
 
 install:
-  - pip install coveralls
-  - pip install tox
+  - pip install coveralls geopy tox
   - pip install "Django${DJANGO_VERSION}"
 
 after_success:
