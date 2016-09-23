@@ -1,4 +1,4 @@
-Django
+Django>=1.8,<1.11
 Sphinx
 coverage
 django-haystack>=2.5.dev1
