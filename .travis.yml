@@ -13,6 +13,7 @@ cache:
 addons:
   apt_packages:
     - default-jdk
+    - libgeos
 
 before_install:
   - mkdir -p $PIP_DOWNLOAD_CACHE
