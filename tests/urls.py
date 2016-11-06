@@ -4,12 +4,11 @@ from django.conf.urls import include, url
 
 from rest_framework import routers
 
-from tests.mockapp.views import SearchViewSet1, SearchViewSet2, SearchViewSet3
+from tests.mockapp.views import SearchPersonFacetViewSet, SearchPersonMLTViewSet
 
 router = routers.DefaultRouter()
-router.register("search1", viewset=SearchViewSet1, base_name="search1")
-router.register("search2", viewset=SearchViewSet2, base_name="search2")
-router.register("search3", viewset=SearchViewSet3, base_name="search3")
+router.register("search-person-facet", viewset=SearchPersonFacetViewSet, base_name="search-person-facet")
+router.register("search-person-mlt", viewset=SearchPersonMLTViewSet, base_name="search-person-mlt")
 
 urlpatterns = [
     url(r"^", include(router.urls))

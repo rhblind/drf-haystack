@@ -6,7 +6,7 @@ from rest_framework.pagination import PageNumberPagination, LimitOffsetPaginatio
 
 from drf_haystack.filters import HaystackFilter, HaystackBoostFilter, HaystackHighlightFilter, HaystackAutocompleteFilter, HaystackGEOSpatialFilter
 from drf_haystack.viewsets import HaystackViewSet
-from drf_haystack.mixins import FacetMixin
+from drf_haystack.mixins import FacetMixin, MoreLikeThisMixin
 
 from .models import MockPerson, MockLocation
 from .serializers import (
@@ -24,7 +24,7 @@ class BasicLimitOffsetPagination(LimitOffsetPagination):
     default_limit = 20
 
 
-class SearchViewSet1(FacetMixin, HaystackViewSet):
+class SearchPersonFacetViewSet(FacetMixin, HaystackViewSet):
     index_models = [MockPerson]
     pagination_class = BasicLimitOffsetPagination
     serializer_class = SearchSerializer
@@ -34,12 +34,6 @@ class SearchViewSet1(FacetMixin, HaystackViewSet):
     facet_serializer_class = MockPersonFacetSerializer
 
 
-class SearchViewSet2(HaystackViewSet):
-    index_models = [MockLocation]
-    serializer_class = HighlighterSerializer
-    filter_backends = [HaystackBoostFilter]
-
-
-class SearchViewSet3(HaystackViewSet):
+class SearchPersonMLTViewSet(MoreLikeThisMixin, HaystackViewSet):
     index_models = [MockPerson]
     serializer_class = MoreLikeThisSerializer
