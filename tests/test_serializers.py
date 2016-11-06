@@ -403,7 +403,7 @@ class HaystackFacetSerializerTestCase(TestCase):
         self.response = self.client.get(
             path="/search-person-facet/facets/",
             data={},
-            format=json
+            format="json"
         )
 
     def tearDown(self):
