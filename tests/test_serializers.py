@@ -6,6 +6,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import json
+from collections import OrderedDict
 from datetime import datetime, timedelta
 
 import six
@@ -385,9 +386,10 @@ class HaystackSerializerMoreLikeThisTestCase(APITestCase):
         self.assertEqual(
             response.data,
             [{
+                "firstname": "Odysseus",
+                "autocomplete": "Odysseus Cooley",
                 "lastname": "Cooley",
                 "full_name": "Odysseus Cooley",
-                "firstname": "Odysseus",
                 "more_like_this": "http://testserver/search-person-mlt/18/more-like-this/"
             }]
         )
