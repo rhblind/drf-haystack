@@ -109,6 +109,14 @@ Thanks guys!
 Changelog
 =========
 
+v1.6.0
+------
+*Release date: 2016-11-08*
+
+    - Added Django 1.10 compatibility.
+    - Fixed multiple minor issues.
+    
+
 v1.6.0rc3
 ---------
 *Release date: 2016-06-29*
