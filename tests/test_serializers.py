@@ -13,7 +13,7 @@ import six
 from django.conf.urls import url, include
 from django.core.exceptions import ImproperlyConfigured
 from django.http import QueryDict
-from django.test import TestCase, SimpleTestCase
+from django.test import TestCase, SimpleTestCase, override_settings
 from haystack.query import SearchQuerySet
 
 from rest_framework import serializers
@@ -366,10 +366,10 @@ class HaystackSerializerHighlighterMixinTestCase(WarningTestCaseMixin, TestCase)
             )
 
 
+@override_settings(ROOT_URLCONF="tests.test_serializers")
 class HaystackSerializerMoreLikeThisTestCase(APITestCase):
 
     fixtures = ["mockperson"]
-    urls = "tests.test_serializers"
 
     def setUp(self):
         MockPersonIndex().reindex()
@@ -395,10 +395,10 @@ class HaystackSerializerMoreLikeThisTestCase(APITestCase):
         )
 
 
+@override_settings(ROOT_URLCONF="tests.test_serializers")
 class HaystackFacetSerializerTestCase(TestCase):
 
     fixtures = ["mockperson"]
-    urls = "tests.test_serializers"
 
     def setUp(self):
         MockPersonIndex().reindex()
