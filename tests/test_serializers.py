@@ -386,10 +386,9 @@ class HaystackSerializerMoreLikeThisTestCase(APITestCase):
         self.assertEqual(
             response.data,
             [{
-                "firstname": "Odysseus",
-                "autocomplete": "Odysseus Cooley",
                 "lastname": "Cooley",
                 "full_name": "Odysseus Cooley",
+                "firstname": "Odysseus",
                 "more_like_this": "http://testserver/search-person-mlt/18/more-like-this/"
             }]
         )
@@ -465,11 +464,11 @@ class HaystackFacetSerializerTestCase(TestCase):
 
         created = dates["created"][0]
         self.assertTrue(all([k in created for k in ("text", "count", "narrow_url")]))
-        self.assertEqual(created["text"], "2015-05-15T00:00:00")
+        self.assertEqual(created["text"], "2015-05-01T00:00:00")
         self.assertEqual(created["count"], 100)
         self.assertEqual(
             created["narrow_url"],
-            self.build_absolute_uri("/search-person-facet/facets/?selected_facets=created_exact%3A2015-05-15+00%3A00%3A00")
+            self.build_absolute_uri("/search-person-facet/facets/?selected_facets=created_exact%3A2015-05-01+00%3A00%3A00")
         )
 
     def test_serializer_facet_queries_result(self):
@@ -506,11 +505,11 @@ class HaystackFacetSerializerTestCase(TestCase):
 
         self.assertTrue("created" in response.data["dates"])
         self.assertEqual(len(response.data["dates"]), 1)
-        self.assertEqual(response.data["dates"]["created"][0]["text"], "2015-05-15T00:00:00")
+        self.assertEqual(response.data["dates"]["created"][0]["text"], "2015-05-01T00:00:00")
         self.assertEqual(response.data["dates"]["created"][0]["count"], 1)
         self.assertEqual(
             response.data["dates"]["created"][0]["narrow_url"],
-            self.build_absolute_uri("/search-person-facet/facets/?selected_facets=created_exact%3A2015-05-15+00%3A00%3A00"
+            self.build_absolute_uri("/search-person-facet/facets/?selected_facets=created_exact%3A2015-05-01+00%3A00%3A00"
                                     "&selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcClane"
                                     )
         )
