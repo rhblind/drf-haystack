@@ -7,7 +7,7 @@ Build status
 [![Build Status](https://travis-ci.org/inonit/drf-haystack.svg?branch=master)](https://travis-ci.org/inonit/drf-haystack)
 [![Coverage Status](https://coveralls.io/repos/github/inonit/drf-haystack/badge.svg?branch=master)](https://coveralls.io/github/inonit/drf-haystack?branch=master)
 [![PyPI version](https://badge.fury.io/py/drf-haystack.svg)](https://badge.fury.io/py/drf-haystack)
-[![Documentation Status](http://readthedocs.org/projects/drf-haystack/badge/?version=latest)](https://drf-haystack.readthedocs.io/en/latest/?badge=latest)
+[![Documentation Status](https://readthedocs.org/projects/drf-haystack/badge/?version=latest)](http://drf-haystack.readthedocs.io/en/latest/?badge=latest)
 
 
 About
