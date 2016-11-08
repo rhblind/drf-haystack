@@ -86,9 +86,10 @@ class HaystackGenericAPIView(GenericAPIView):
                 "attribute on the view correctly." % (self.__class__.__name__, lookup_url_kwarg)
             )
         queryset = queryset.filter(self.query_object((self.document_uid_field, self.kwargs[lookup_url_kwarg])))
-        if queryset and len(queryset) == 1:
+        count = queryset.count()
+        if count == 1:
             return queryset[0]
-        elif queryset and len(queryset) > 1:
+        elif count > 1:
             raise Http404("Multiple results matches the given query. Expected a single result.")
 
         raise Http404("No result matches the given query.")
