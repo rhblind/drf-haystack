@@ -21,7 +21,7 @@ Supported versions
 
 - Python 2.7+ and Python 3.4+
 - [All supported versions of Django](https://www.djangoproject.com/download/#supported-versions>)
-- Haystack 2.4 and above
+- Haystack 2.5 and above
 - Django REST Framework 3.2 and above
     
 
