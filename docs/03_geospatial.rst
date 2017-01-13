@@ -14,7 +14,7 @@ have the :class:`drf_haystack.filters.HaystackGEOSpatialFilter`.
     .. code-block:: none
 
         $ pip install geopy
-        $ apt-get install libgeos (for debian based linux distros)
+        $ apt-get install libgeos-c1 (for debian based linux distros)
           or
         $ brew install geos (for homebrew on OS X)
 
