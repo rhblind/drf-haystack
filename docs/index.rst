@@ -109,6 +109,16 @@ Thanks guys!
 Changelog
 =========
 
+v1.6.1
+------
+*Release date: 2017-01-13*
+
+    - Updated docs with correct name for libgeos-c1.
+    - Updated ``.travis.yml`` with correct name for libgeos-c1.
+    - Fixed an issue where queryset in the whould be evaluated if attribute is set but has no results,
+      thus triggering  the wrong clause in condition check. :drf-pr:`88` closes :drf-issue:`86`.
+
+
 v1.6.0
 ------
 *Release date: 2016-11-08*
