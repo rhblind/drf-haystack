@@ -45,7 +45,7 @@ class HaystackGenericAPIView(GenericAPIView):
 
         @:param index_models: override `self.index_models`
         """
-        if hasattr(self, "queryset") and isinstance(self.queryset, self.object_class):
+        if self.queryset is None and isinstance(self.queryset, self.object_class):
             queryset = self.queryset.all()
         else:
             queryset = self.object_class()._clone()
