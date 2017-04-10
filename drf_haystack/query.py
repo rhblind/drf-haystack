@@ -276,11 +276,11 @@ class SpatialQueryBuilder(BaseQueryBuilder):
 
         applicable_filters = None
 
-        filters = dict((k, filters[k]) for k in chain(self.D.UNITS.keys(), ["from"]) if k in filters)
+        filters = dict((k, filters[k]) for k in chain(self.D.UNITS.keys(), [constants.DRF_HAYSTACK_SPATIAL_QUERY_PARAM]) if k in filters)
         distance = dict((k, v) for k, v in filters.items() if k in self.D.UNITS.keys())
 
         try:
-            latitude, longitude = map(float, self.tokenize(filters["from"], self.view.lookup_sep))
+            latitude, longitude = map(float, self.tokenize(filters[constants.DRF_HAYSTACK_SPATIAL_QUERY_PARAM], self.view.lookup_sep))
             point = self.Point(longitude, latitude, srid=constants.GEO_SRID)
         except ValueError:
             raise ValueError("Cannot convert `from=latitude,longitude` query parameter to "

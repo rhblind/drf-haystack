@@ -27,6 +27,7 @@ The geospatial filter is somewhat special, and for the time being, relies on a f
 #. The query **must** contain a ``unit`` parameter where the unit is a valid ``UNIT`` in the ``django.contrib.gis.measure.Distance`` class.
 #. The query **must** contain a ``from`` parameter which is a comma separated longitude and latitude value.
 
+You may also change the query param ``from`` by defining ``DRF_HAYSTACK_SPATIAL_QUERY_PARAM`` on your settings.
 
 **Example Geospatial view**
 
