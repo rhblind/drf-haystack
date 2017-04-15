@@ -14,7 +14,7 @@ About
 -----
 
 Small library which tries to simplify integration of Haystack with Django REST Framework.
-Fresh [documentation available](https://drf-haystack.readthedocs.io/en/latest/>) on Read the docs!
+Fresh [documentation available](https://drf-haystack.readthedocs.io/en/latest/) on Read the docs!
 
 Supported versions
 ------------------
