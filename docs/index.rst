@@ -45,7 +45,7 @@ Requirements
 ============
     - A Supported Django install
     - Django REST Framework v3.2.0 and later
-    - Haystack v2.4.0 and later (Requires Haystack v2.4.2 or later for Django v1.9)
+    - Haystack v2.5 and later
     - A supported search engine such as Solr, Elasticsearch, Whoosh, etc.
     - Python bindings for the chosen backend (see below).
     - (geopy and libgeos if you want to use geo spatial filtering)
