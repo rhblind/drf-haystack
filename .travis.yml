@@ -40,7 +40,7 @@ install:
   - pip install --upgrade pip setuptools
   - pip install coveralls geopy requests tox
   - pip install "Django${DJANGO_VERSION}" "elasticsearch${ES_VERSION}"
-  - python setup clean build install
+  - python setup.py clean build install
 
 after_success:
   coveralls
