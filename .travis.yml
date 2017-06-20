@@ -46,8 +46,14 @@ install:
 after_success:
   coveralls
 
+before_script:
+  - python manage.py rebuild_index --noinput
+
 script:
   - python setup.py test
+
+after_script:
+  - python manage.py clear_index --noinput
 
 env:
   global:
