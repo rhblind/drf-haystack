@@ -3,6 +3,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import os
+import elasticsearch
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests"))
 
 SECRET_KEY = 'NOBODY expects the Spanish Inquisition!'
@@ -13,7 +14,7 @@ ALLOWED_HOSTS = ["*"]
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'test.db'),
+        'NAME': os.path.join(BASE_DIR, os.pardir, 'test.db'),
     }
 }
 
@@ -70,6 +71,10 @@ HAYSTACK_CONNECTIONS = {
         'TIMEOUT': 300,
     },
 }
+if (2,) <= elasticsearch.__version__ <= (3,):
+    HAYSTACK_CONNECTIONS['default'].update({
+        'ENGINE': 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine'
+    })
 
 DEFAULT_LOG_DIR = os.path.join(BASE_DIR, 'logs')
 LOGGING = {

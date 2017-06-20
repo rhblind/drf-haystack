@@ -29,7 +29,7 @@ setup(
     download_url="https://github.com/inonit/drf-haystack.git",
     license="MIT License",
     packages=[
-        "drf_haystack",
+        "drf_haystack"
     ],
     include_package_data=True,
     install_requires=[
@@ -41,8 +41,7 @@ setup(
     tests_require=[
         "nose",
         "coverage",
-        "unittest2",
-        "elasticsearch<2.0.0",
+        "unittest2"
     ],
     zip_safe=False,
     test_suite="tests.runtests.start",
