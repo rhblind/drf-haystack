@@ -35,7 +35,7 @@ class HaystackViewSetTestCase(TestCase):
 
     def setUp(self):
         MockPersonIndex().reindex()
-        MockPetIndex().reindex()
+        MockPetIndex().update()
         self.router = SimpleRouter()
 
         class FacetSerializer(HaystackFacetSerializer):
@@ -134,7 +134,7 @@ class HaystackViewSetPermissionsTestCase(TestCase):
     fixtures = ["mockperson"]
 
     def setUp(self):
-        MockPersonIndex().reindex()
+        MockPersonIndex().update()
 
         class ViewSet(HaystackViewSet):
             serializer_class = Serializer
@@ -264,7 +264,7 @@ class PaginatedHaystackViewSetTestCase(TestCase):
 
     def setUp(self):
 
-        MockPersonIndex().reindex()
+        MockPersonIndex().update()
 
         class Serializer1(HaystackSerializer):
 

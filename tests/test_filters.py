@@ -39,7 +39,7 @@ class HaystackFilterTestCase(TestCase):
     fixtures = ["mockperson"]
 
     def setUp(self):
-        MockPersonIndex().reindex()
+        MockPersonIndex().update()
 
         class Serializer1(HaystackSerializer):
 
@@ -200,7 +200,7 @@ class HaystackAutocompleteFilterTestCase(TestCase):
     fixtures = ["mockperson"]
 
     def setUp(self):
-        MockPersonIndex().reindex()
+        MockPersonIndex().update()
 
         class Serializer(HaystackSerializer):
 
@@ -251,7 +251,7 @@ class HaystackGEOSpatialFilterTestCase(TestCase):
     fixtures = ["mocklocation"]
 
     def setUp(self):
-        MockLocationIndex().reindex()
+        MockLocationIndex().update()
 
         class Serializer(HaystackSerializer):
 
@@ -299,7 +299,7 @@ class HaystackHighlightFilterTestCase(TestCase):
     fixtures = ["mockperson"]
 
     def setUp(self):
-        MockPersonIndex().reindex()
+        MockPersonIndex().update()
 
         class Serializer(HaystackSerializer):
 
@@ -334,7 +334,7 @@ class HaystackBoostFilterTestCase(TestCase):
     fixtures = ["mockperson"]
 
     def setUp(self):
-        MockPersonIndex().reindex()
+        MockPersonIndex().update()
 
         class Serializer(HaystackSerializer):
 
@@ -413,7 +413,7 @@ class HaystackFacetFilterTestCase(WarningTestCaseMixin, TestCase):
     fixtures = ["mockperson"]
 
     def setUp(self):
-        MockPersonIndex().reindex()
+        MockPersonIndex().update()
 
         class FacetSerializer1(HaystackFacetSerializer):
 

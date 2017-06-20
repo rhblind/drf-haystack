@@ -99,8 +99,8 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
     fixtures = ["mockperson", "mockpet"]
 
     def setUp(self):
-        MockPersonIndex().reindex()
-        MockPetIndex().reindex()
+        MockPersonIndex().update()
+        MockPetIndex().update()
 
         class Serializer1(HaystackSerializer):
 
@@ -213,8 +213,8 @@ class HaystackSerializerMultipleIndexTestCase(WarningTestCaseMixin, TestCase):
     fixtures = ["mockperson", "mockpet"]
 
     def setUp(self):
-        MockPersonIndex().reindex()
-        MockPetIndex().reindex()
+        MockPersonIndex().update()
+        MockPetIndex().update()
 
         class Serializer1(HaystackSerializer):
             """
@@ -313,7 +313,7 @@ class HaystackSerializerHighlighterMixinTestCase(WarningTestCaseMixin, TestCase)
     fixtures = ["mockperson"]
 
     def setUp(self):
-        MockPersonIndex().reindex()
+        MockPersonIndex().update()
 
         class Serializer2(HighlighterMixin, HaystackSerializer):
             highlighter_html_tag = "div"
@@ -372,7 +372,7 @@ class HaystackSerializerMoreLikeThisTestCase(APITestCase):
     fixtures = ["mockperson"]
 
     def setUp(self):
-        MockPersonIndex().reindex()
+        MockPersonIndex().update()
 
     def tearDown(self):
         MockPersonIndex().clear()
@@ -400,7 +400,7 @@ class HaystackFacetSerializerTestCase(TestCase):
     fixtures = ["mockperson"]
 
     def setUp(self):
-        MockPersonIndex().reindex()
+        MockPersonIndex().update()
         self.response = self.client.get(
             path="/search-person-facet/facets/",
             data={},
@@ -568,7 +568,7 @@ class HaystackSerializerMixinTestCase(WarningTestCaseMixin, TestCase):
     fixtures = ["mockperson"]
 
     def setUp(self):
-        MockPersonIndex().reindex()
+        MockPersonIndex().update()
 
         class MockPersonSerializer(serializers.ModelSerializer):
             class Meta:
@@ -609,8 +609,8 @@ class HaystackMultiSerializerTestCase(WarningTestCaseMixin, TestCase):
     fixtures = ["mockperson", "mockpet"]
 
     def setUp(self):
-        MockPersonIndex().reindex()
-        MockPetIndex().reindex()
+        MockPersonIndex().update()
+        MockPetIndex().update()
 
         class MockPersonSerializer(HaystackSerializer):
             class Meta:
