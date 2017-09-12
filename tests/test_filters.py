@@ -244,6 +244,11 @@ class HaystackAutocompleteFilterTestCase(TestCase):
         response = self.view.as_view(actions={"get": "list"})(request)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_filter_autocomplete_non_autocomplete_field_OR(self):
+        request = factory.get(path="/", data={"autocomplete": "jer", "first_name": "Hickman,Hood"}, content_type="application/json")
+        response = self.view.as_view(actions={"get": "list"})(request)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
 
 @skipIf(not geospatial_support, "Skipped due to lack of GEO spatial features")
 class HaystackGEOSpatialFilterTestCase(TestCase):
