@@ -5,6 +5,7 @@ from __future__ import absolute_import, unicode_literals
 import operator
 
 from django.utils import six
+from haystack.backends import SQ
 from haystack.query import SearchQuerySet
 from rest_framework.filters import BaseFilterBackend
 
@@ -107,13 +108,17 @@ class HaystackAutocompleteFilter(HaystackFilter):
             return filters
 
         query_bits = []
-        for field_name, query in filters.children:
-            for word in query.split(" "):
-                bit = queryset.query.clean(word.strip())
-                kwargs = {
-                    field_name: bit
-                }
-                query_bits.append(view.query_object(**kwargs))
+        for filter_child in filters.children:
+            if isinstance(filter_child, SQ):
+                query_bits.append(filter_child)
+            else:
+                field_name, query = filter_child
+                for word in query.split(" "):
+                    bit = queryset.query.clean(word.strip())
+                    kwargs = {
+                        field_name: bit
+                    }
+                    query_bits.append(view.query_object(**kwargs))
         return six.moves.reduce(operator.and_, filter(lambda x: x, query_bits))
 
 
