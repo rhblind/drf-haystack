@@ -67,6 +67,7 @@ HAYSTACK_CONNECTIONS = {
         'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
         'URL': 'http://localhost:9200/',
         'INDEX_NAME': 'drf-haystack-test',
+        'INCLUDE_SPELLING': True,
         'TIMEOUT': 300,
     },
 }
@@ -110,3 +111,12 @@ LOGGING = {
         },
     },
 }
+
+try:
+    import elasticsearch
+    if (2, ) <= elasticsearch.VERSION <= (3, ):
+        HAYSTACK_CONNECTIONS['default'].update({
+            'ENGINE': 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine'
+        })
+except ImportError as e:
+    del HAYSTACK_CONNECTIONS['default']  # This will intentionally cause everything to break!
