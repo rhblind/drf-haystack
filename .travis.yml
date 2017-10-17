@@ -20,8 +20,12 @@ jdk:
 
 addons:
   apt_packages:
+    - binutils
     - default-jdk
+    - gdal-bin
+    - libgdal1h
     - libgeos-c1
+    - libproj-dev
 
 before_install:
   - mkdir -p $HOME/$DOWNLOAD_CACHE
