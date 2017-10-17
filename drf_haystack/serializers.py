@@ -284,6 +284,8 @@ class FacetFieldSerializer(serializers.Serializer):
             return self.root.paginate_by_param
 
         pagination_class = self.context["view"].pagination_class
+        if not pagination_class:
+            return None
 
         # PageNumberPagination
         if hasattr(pagination_class, "page_query_param"):
@@ -337,7 +339,7 @@ class FacetFieldSerializer(serializers.Serializer):
         # Never keep the page query parameter in narrowing urls.
         # It will raise a NotFound exception when trying to paginate a narrowed queryset.
         page_query_param = self.get_paginate_by_param()
-        if page_query_param in query_params:
+        if page_query_param and page_query_param in query_params:
             del query_params[page_query_param]
 
         selected_facets = set(query_params.pop(self.root.facet_query_params_text, []))
