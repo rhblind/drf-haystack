@@ -25,6 +25,12 @@ def _geospatial_support():
 geospatial_support = _geospatial_support()
 
 
+def _restframework_version():
+    import rest_framework
+    return tuple(map(int, rest_framework.VERSION.split(".")))
+restframework_version = _restframework_version()
+
+
 def setup():
     global test_runner
     global old_config
