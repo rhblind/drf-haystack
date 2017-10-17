@@ -206,7 +206,7 @@ class HaystackViewSetPermissionsTestCase(TestCase):
         # POST, PUT, PATCH and DELETE requests are not supported, so they will
         # raise an error. No need to test the permission.
 
-    @skipIf(not restframework_version < (3, 7), "Skipped due to fix in django-rest-framework")
+    @skipIf(not restframework_version < (3, 7), "Skipped due to fix in django-rest-framework > 3.6")
     def test_viewset_get_queryset_with_DjangoModelPermissions_permission(self):
         from rest_framework.permissions import DjangoModelPermissions
         setattr(self.view, "permission_classes", (DjangoModelPermissions,))
@@ -243,7 +243,7 @@ class HaystackViewSetPermissionsTestCase(TestCase):
                 self.assertEqual(str(e), "Cannot apply DjangoModelPermissions on a view that does "
                                          "not have `.model` or `.queryset` property.")
 
-    @skipIf(not restframework_version < (3, 7), "Skipped due to fix in django-rest-framework")
+    @skipIf(not restframework_version < (3, 7), "Skipped due to fix in django-rest-framework > 3.6")
     def test_viewset_get_queryset_with_DjangoObjectPermissions_permission(self):
         from rest_framework.permissions import DjangoObjectPermissions
         setattr(self.view, "permission_classes", (DjangoObjectPermissions,))

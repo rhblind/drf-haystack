@@ -25,7 +25,7 @@ from drf_haystack.filters import (
 )
 from drf_haystack.mixins import FacetMixin
 
-from . import geospatial_support
+from . import geospatial_support, elasticsearch_version
 from .mixins import WarningTestCaseMixin
 from .constants import MOCKLOCATION_DATA_SET_SIZE, MOCKPERSON_DATA_SET_SIZE
 from .mockapp.models import MockLocation, MockPerson
@@ -317,6 +317,7 @@ class HaystackHighlightFilterTestCase(TestCase):
     def tearDown(self):
         MockPersonIndex().clear()
 
+    @skipIf(not elasticsearch_version < (2, ), "Highlighting is not yet supported for the Elasticsearch2 backend")
     def test_filter_highlighter_filter(self):
         request = factory.get(path="/", data={"firstname": "jeremy"}, content_type="application/json")
         response = self.view.as_view(actions={"get": "list"})(request)

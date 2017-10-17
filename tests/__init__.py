@@ -31,6 +31,12 @@ def _restframework_version():
 restframework_version = _restframework_version()
 
 
+def _elasticsearch_version():
+    import elasticsearch
+    return elasticsearch.VERSION
+elasticsearch_version = _elasticsearch_version()
+
+
 def setup():
     from django.test.runner import DiscoverRunner
     global test_runner
