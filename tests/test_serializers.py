@@ -464,7 +464,7 @@ class HaystackFacetSerializerTestCase(TestCase):
 
         created = dates["created"][0]
         self.assertTrue(all([k in created for k in ("text", "count", "narrow_url")]))
-        self.assertEqual(created["text"], "2015-05-01T00:00:00")
+        self.assertEqual(created["text"], "2015-05-01T00:00:00Z")
         self.assertEqual(created["count"], 100)
         self.assertEqual(
             created["narrow_url"],
@@ -505,7 +505,7 @@ class HaystackFacetSerializerTestCase(TestCase):
 
         self.assertTrue("created" in response.data["dates"])
         self.assertEqual(len(response.data["dates"]), 1)
-        self.assertEqual(response.data["dates"]["created"][0]["text"], "2015-05-01T00:00:00")
+        self.assertEqual(response.data["dates"]["created"][0]["text"], "2015-05-01T00:00:00Z")
         self.assertEqual(response.data["dates"]["created"][0]["count"], 1)
         self.assertEqual(
             response.data["dates"]["created"][0]["narrow_url"],
