@@ -1,14 +1,22 @@
+sudo: required
+dist: trusty
+group: edge
 language: python
 python:
   - 2.7
   - 3.4
   - 3.5
+  - 3.6
+  - pypy
 
 cache:
   apt: true
   pip: true
   directories:
-    - pip_download_cache
+    - $HOME/$DOWNLOAD_CACHE
+
+jdk:
+  - oraclejdk8
 
 addons:
   apt_packages:
@@ -16,11 +24,28 @@ addons:
     - libgeos-c1
 
 before_install:
-  - mkdir -p $PIP_DOWNLOAD_CACHE
+  - mkdir -p $HOME/$DOWNLOAD_CACHE
+  # See https://www.elastic.co/guide/en/elasticsearch/reference/current/deb.html#deb-repo
+  - wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
+  - >
+    if [[ $VERSION_ES == '>=2.0.0,<3.0.0' ]];
+    then
+      echo "deb http://packages.elastic.co/elasticsearch/2.x/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch-2.x.list
+      sudo apt-get update
+      sudo apt-get -y --allow-downgrades install elasticsearch=2.4.5
+    else
+      echo "deb http://packages.elastic.co/elasticsearch/1.7/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch-1.7.list
+      sudo apt-get update
+      sudo apt-get -y --allow-downgrades install elasticsearch=1.7.6
+    fi
+  - sudo service elasticsearch restart
+
 
 install:
-  - pip install coveralls geopy tox
-  - pip install "Django${DJANGO_VERSION}"
+  - pip install --upgrade pip setuptools
+  - pip install coveralls geopy requests tox
+  - pip install "Django${DJANGO_VERSION}" "elasticsearch${VERSION_ES}"
+  - python setup.py clean build install
 
 after_success:
   coveralls
@@ -30,14 +55,18 @@ script:
 
 env:
   global:
-    - PIP_DOWNLOAD_CACHE="pip_download_cache"
+    - DOWNLOAD_CACHE="download-cache"
   matrix:
-    - DJANGO_VERSION=">=1.8,<1.9"
-    - DJANGO_VERSION=">=1.9,<1.10"
-    - DJANGO_VERSION=">=1.10,<1.11"
+    - DJANGO_VERSION=">=1.8,<1.9" ES_VERSION=">=1.0.0,<2.0.0"
+    - DJANGO_VERSION=">=1.10,<1.11" ES_VERSION=">=1.0.0,<2.0.0"
+    - DJANGO_VERSION=">=1.11,<2.0" ES_VERSION=">=1.0.0,<2.0.0"
+    - DJANGO_VERSION=">=1.8,<1.9" ES_VERSION=">=2.0.0,<3.0.0"
+    - DJANGO_VERSION=">=1.10,<1.11" ES_VERSION=">=2.0.0,<3.0.0"
+    - DJANGO_VERSION=">=1.11,<2.0" ES_VERSION=">=2.0.0,<3.0.0"
 
-services:
-  - elasticsearch
+matrix:
+    allow_failures:
+        - python: 'pypy'
 
 notifications:
   email: false
