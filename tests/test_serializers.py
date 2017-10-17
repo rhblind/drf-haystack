@@ -410,7 +410,8 @@ class HaystackFacetSerializerTestCase(TestCase):
     def tearDown(self):
         MockPersonIndex().clear()
 
-    def build_absolute_uri(self, location):
+    @staticmethod
+    def build_absolute_uri(location):
         """
         Builds an absolute URI using the test server's domain and the specified location.
         """
@@ -436,25 +437,21 @@ class HaystackFacetSerializerTestCase(TestCase):
             self.assertTrue(field in fields)
             self.assertTrue(isinstance(fields[field], list))
 
-        self.assertEqual(len(fields["firstname"]), 88)
-        self.assertEqual(len(fields["lastname"]), 97)
-
         firstname = fields["firstname"][0]
-        self.assertTrue(all([k in firstname for k in ("text", "count", "narrow_url")]))
-        self.assertEqual(firstname["text"], "John")
-        self.assertEqual(firstname["count"], 3)
+        self.assertTrue({"text", "count", "narrow_url"} <= set(firstname))
         self.assertEqual(
             firstname["narrow_url"],
-            self.build_absolute_uri("/search-person-facet/facets/?selected_facets=firstname_exact%3AJohn")
+            self.build_absolute_uri("/search-person-facet/facets/?selected_facets=firstname_exact%3A{term}".format(
+                term=firstname["text"]))
         )
 
         lastname = fields["lastname"][0]
-        self.assertTrue(all([k in lastname for k in ("text", "count", "narrow_url")]))
-        self.assertEqual(lastname["text"], "Porter")
-        self.assertEqual(lastname["count"], 2)
+        self.assertTrue({"text", "count", "narrow_url"} <= set(lastname))
         self.assertEqual(
             lastname["narrow_url"],
-            self.build_absolute_uri("/search-person-facet/facets/?selected_facets=lastname_exact%3APorter")
+            self.build_absolute_uri("/search-person-facet/facets/?selected_facets=lastname_exact%3A{term}".format(
+                term=lastname["text"]
+            ))
         )
 
     def test_serializer_facet_date_result(self):
