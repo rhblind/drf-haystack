@@ -52,7 +52,7 @@ from drf_haystack.viewsets import HaystackViewSet
 from myapp.search_indexes import PersonIndex  # BYOI™ (Bring Your Own Index)
 
 # Serializer
-class PersonSerializer(HaystackSerializer):
+class PersonSearchSerializer(HaystackSerializer):
     class Meta:
         index_classes = [PersonIndex]
         fields = ["firstname", "lastname", "full_name"]
