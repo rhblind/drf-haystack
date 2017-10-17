@@ -45,7 +45,7 @@ setup(
         "elasticsearch<2.0.0",
     ],
     zip_safe=False,
-    test_suite="tests.runtests.start",
+    test_suite="tests.run_tests.start",
     classifiers=[
         "Operating System :: OS Independent",
         "Development Status :: 5 - Production/Stable",

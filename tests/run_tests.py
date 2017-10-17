@@ -24,5 +24,6 @@ def start(argv=None):
 
     nose.run_exit(argv=argv, defaultTest=os.path.abspath(os.path.dirname(__file__)))
 
+
 if __name__ == "__main__":
     start(sys.argv)
