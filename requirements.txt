@@ -3,7 +3,10 @@ Sphinx
 coverage
 django-haystack>=2.5.dev1
 djangorestframework>=3.2.0
-elasticsearch<2.0.0
+
+# elasticsearch>=1.0.0,<2.0.0
+elasticsearch>=2.0.0,<3.0.0
+
 nose
 sphinx-rtd-theme
 urllib3
