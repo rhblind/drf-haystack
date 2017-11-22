@@ -128,8 +128,8 @@ class HaystackSerializer(six.with_metaclass(HaystackSerializerMeta, serializers.
         to instantiate a REST Framework serializer field.
         """
         kwargs = {}
-        if field.model_attr in model._meta.get_fields():
-            model_field = model._meta.get_field(field.model_attr)[0]
+        if field.model_attr in [d.name for d in model._meta.get_fields()]:
+            model_field = model._meta.get_field(field.model_attr)
             kwargs = get_field_kwargs(field.model_attr, model_field)
 
             # Remove stuff we don't care about!
