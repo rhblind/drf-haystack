@@ -300,10 +300,13 @@ class HaystackSerializerMultipleIndexTestCase(WarningTestCaseMixin, TestCase):
         for result in data:
             if "name" in result:
                 assert "extra" in result, self.fail("'extra' should be present in Pet results")
+                self.assertEqual(result['extra'], 1, "The value of 'extra' should be 1")
                 assert "hair_color" not in result, self.fail("'hair_color' should not be present in Pet results")
             elif "lastname" in result:
                 assert "extra" in result, self.fail("'extra' should be present in Person results")
+                self.assertEqual(result['extra'], 1, "The value of 'extra' should be 1")
                 assert "hair_color" in result, self.fail("'hair_color' should be present in Person results")
+                self.assertEqual(result['hair_color'], 'black', "The value of 'hair_color' should be 'black'")
             else:
                 self.fail("Result should contain either Pet or Person fields")
 
