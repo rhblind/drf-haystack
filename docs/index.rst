@@ -109,6 +109,14 @@ Thanks guys!
 Changelog
 =========
 
+v1.7.0
+------
+*Release date: Not released*
+
+    - Bumping minimum support for Django to v1.10.
+    - Bumping minimum support for Django REST Framework to v1.6.0
+    - Adding support for Elasticsearch 2.x Haystack backend
+
 v1.6.1
 ------
 *Release date: 2017-01-13*
