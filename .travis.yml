@@ -70,7 +70,12 @@ env:
 
 matrix:
     allow_failures:
-        - python: 'pypy'
+      - python: 'pypy'
+    exclude:
+    - python: '2.7'
+      env: DJANGO_VERSION=">=2.0,<2.1"
+    - python: 'pypy'
+      env: DJANGO_VERSION=">=2.0,<2.1"
 
 notifications:
   email: false
