@@ -63,19 +63,14 @@ env:
   matrix:
     - DJANGO_VERSION=">=1.10,<1.11" ES_VERSION=">=1.0.0,<2.0.0"
     - DJANGO_VERSION=">=1.11,<2.0" ES_VERSION=">=1.0.0,<2.0.0"
-    - DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=1.0.0,<2.0.0"
+#    - DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=1.0.0,<2.0.0"
     - DJANGO_VERSION=">=1.10,<1.11" ES_VERSION=">=2.0.0,<3.0.0"
     - DJANGO_VERSION=">=1.11,<2.0" ES_VERSION=">=2.0.0,<3.0.0"
-    - DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=2.0.0,<3.0.0"
+#    - DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=2.0.0,<3.0.0"  # Haystack does not support django2.x yet
 
 matrix:
     allow_failures:
       - python: 'pypy'
-    exclude:
-    - python: '2.7'
-      env: "DJANGO_VERSION=>=2.0,<2.1"
-    - python: 'pypy'
-      env: "DJANGO_VERSION=>=2.0,<2.1"
 
 notifications:
   email: false
