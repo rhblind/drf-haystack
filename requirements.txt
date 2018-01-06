@@ -1,5 +1,5 @@
 coverage
-django>=1.10,<2.1
+django>=1.10,<2.0
 django-haystack>=2.5
 djangorestframework>=3.6.0
 

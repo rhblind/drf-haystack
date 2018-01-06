@@ -109,9 +109,15 @@ Thanks guys!
 Changelog
 =========
 
+v1.7.1
+------
+*Release date: 2018-01-06*
+
+    - Locked Django versions in order to comply with Haystack requirements.
+
 v1.7.0
 ------
-*Release date: Not released*
+*Release date: 2018-01-06*
 
     - Bumping minimum support for Django to v1.10.
     - Bumping minimum support for Django REST Framework to v1.6.0
