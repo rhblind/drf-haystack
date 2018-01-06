@@ -42,7 +42,7 @@ setup(
         "nose",
         "coverage",
         "unittest2",
-        "elasticsearch>=2.0.0,<3.0.0",
+        "elasticsearch<2.0.0",
     ],
     zip_safe=False,
     test_suite="tests.run_tests.start",
