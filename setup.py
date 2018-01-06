@@ -35,14 +35,14 @@ setup(
     install_requires=[
         "Django>=1.10,<2.0",
         "djangorestframework>=3.6.0",
-        "django-haystack>=2.5.0",
+        "django-haystack>=2.7.dev0",
         "python-dateutil"
     ],
     tests_require=[
         "nose",
         "coverage",
         "unittest2",
-        "elasticsearch<2.0.0",
+        "elasticsearch>=2.0.0,<3.0.0",
     ],
     zip_safe=False,
     test_suite="tests.run_tests.start",

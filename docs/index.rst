@@ -109,11 +109,12 @@ Thanks guys!
 Changelog
 =========
 
-v1.7.1
+v1.7.1rc1
 ------
 *Release date: 2018-01-06*
 
     - Locked Django versions in order to comply with Haystack requirements.
+    - Requires development release of Haystack (v1.7.1dev0).
 
 v1.7.0
 ------
