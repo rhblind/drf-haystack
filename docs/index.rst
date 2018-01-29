@@ -118,7 +118,7 @@ v1.7.1rc1
 
 v1.7.0
 ------
-*Release date: 2018-01-06*
+*Release date: 2018-01-06 (Removed from pypi due to critical bugs)*
 
     - Bumping minimum support for Django to v1.10.
     - Bumping minimum support for Django REST Framework to v1.6.0
