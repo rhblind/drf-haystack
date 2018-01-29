@@ -107,7 +107,7 @@ Changelog
 
 v1.7.1rc2
 ---------
-*Release date: 2018-01-06*
+*Release date: 2018-01-30*
 
     - Fixes issues with building documentation.
     - Fixed some minor typos in documentation.
