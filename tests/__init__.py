@@ -3,6 +3,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import os
+from django.core.exceptions import ImproperlyConfigured
 
 test_runner = None
 old_config = None
@@ -18,7 +19,7 @@ def _geospatial_support():
     try:
         import geopy
         from haystack.utils.geo import Point
-    except ImportError:
+    except (ImportError, ImproperlyConfigured):
         return False
     else:
         return True

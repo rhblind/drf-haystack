@@ -9,6 +9,5 @@ sphinx-rtd-theme
 urllib3
 geopy
 tox
-unittest2
 python-dateutil
 wheel
