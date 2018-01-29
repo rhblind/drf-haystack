@@ -8,7 +8,7 @@ from __future__ import absolute_import, unicode_literals
 import json
 from datetime import date, datetime, timedelta
 
-from unittest2 import skipIf
+from unittest import skipIf
 
 from django.test import TestCase
 

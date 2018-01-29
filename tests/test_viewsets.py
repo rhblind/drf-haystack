@@ -6,7 +6,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import json
-from unittest2 import skipIf
+from unittest import skipIf
 
 from django.test import TestCase
 from django.contrib.auth.models import User

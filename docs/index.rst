@@ -61,14 +61,10 @@ Elasticsearch
 See haystack `Elasticsearch <https://django-haystack.readthedocs.io/en/v2.4.1/installing_search_engines.html#elasticsearch>`_
 docs for details
 
-.. warning::
-
-    ``django-haystack`` does not yet support Elasticsearch v2 yet, so we need to use the latest
-    1.x branch.
-
 .. code-block:: none
 
-    $ pip install elasticsearch<2.0.0
+    $ pip install elasticsearch<2.0.0           # For Elasticsearch 1.x
+    $ pip install elasticsearch>=2.0.0,<3.0.0   # For Elasticsearch 2.x
 
 Solr
 ....
@@ -109,12 +105,20 @@ Thanks guys!
 Changelog
 =========
 
+v1.7.1rc2
+---------
+*Release date: 2018-01-06*
+
+    - Fixes issues with building documentation.
+    - Fixed some minor typos in documentation.
+    - Dropped unittest2 in favor of standard lib unittest
+
 v1.7.1rc1
 ---------
 *Release date: 2018-01-06*
 
     - Locked Django versions in order to comply with Haystack requirements.
-    - Requires development release of Haystack (v1.7.1dev0).
+    - Requires development release of Haystack (v2.7.1dev0).
 
 v1.7.0
 ------
