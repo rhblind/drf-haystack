@@ -40,8 +40,7 @@ setup(
     ],
     tests_require=[
         "nose",
-        "coverage",
-        "elasticsearch<2.0.0",
+        "coverage"
     ],
     zip_safe=False,
     test_suite="tests.run_tests.start",
