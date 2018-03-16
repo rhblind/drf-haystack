@@ -105,6 +105,14 @@ Thanks guys!
 Changelog
 =========
 
+v1.8.0
+------
+*Release date: 2018-04-16*
+
+    - Added support for Django v2.0
+    - Updated minimum Django REST Framework requirement to v3.7
+    - Updated minimum Haystack requirements to v2.8
+
 v1.7.1rc2
 ---------
 *Release date: 2018-01-30*
@@ -144,7 +152,7 @@ v1.6.0
 
     - Added Django 1.10 compatibility.
     - Fixed multiple minor issues.
-    
+
 
 v1.6.0rc3
 ---------

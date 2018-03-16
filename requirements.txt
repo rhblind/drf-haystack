@@ -1,6 +1,6 @@
 coverage
-django>=1.10,<2.0
-django-haystack>=2.7.dev0
+django>=1.10,<2.1
+django-haystack>=2.8
 djangorestframework>=3.6.0
 elasticsearch>=2.0.0,<3.0.0
 nose
