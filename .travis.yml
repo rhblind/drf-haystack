@@ -61,10 +61,8 @@ env:
   global:
     - DOWNLOAD_CACHE="download-cache"
   matrix:
-    - DJANGO_VERSION=">=1.10,<1.11" ES_VERSION=">=1.0.0,<2.0.0"
     - DJANGO_VERSION=">=1.11,<2.0" ES_VERSION=">=1.0.0,<2.0.0"
     - DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=1.0.0,<2.0.0"
-    - DJANGO_VERSION=">=1.10,<1.11" ES_VERSION=">=2.0.0,<3.0.0"
     - DJANGO_VERSION=">=1.11,<2.0" ES_VERSION=">=2.0.0,<3.0.0"
     - DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=2.0.0,<3.0.0"
 

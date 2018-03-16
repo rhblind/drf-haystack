@@ -109,7 +109,7 @@ v1.8.0
 ------
 *Release date: 2018-04-16*
 
-    - Added support for Django v2.0
+    - Dropped support for Django v1.10.x and added support for Django v2.0.x
     - Updated minimum Django REST Framework requirement to v3.7
     - Updated minimum Haystack requirements to v2.8
 
