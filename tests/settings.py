@@ -3,7 +3,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import os
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests"))
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'tests'))
 
 SECRET_KEY = 'NOBODY expects the Spanish Inquisition!'
 DEBUG = True
@@ -65,7 +65,7 @@ STATIC_URL = '/static/'
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.elasticsearch_backend.ElasticsearchSearchEngine',
-        'URL': 'http://localhost:9200/',
+        'URL': os.environ.get('ELASTICSEARCH_URL', 'http://localhost:9200/'),
         'INDEX_NAME': 'drf-haystack-test',
         'INCLUDE_SPELLING': True,
         'TIMEOUT': 300,
@@ -101,12 +101,12 @@ LOGGING = {
         },
         'elasticsearch': {
             'handlers': ['file_handler'],
-            'level': 'WARNING',
+            'level': 'ERROR',
             'propagate': True,
         },
         'elasticsearch.trace': {
             'handlers': ['file_handler'],
-            'level': 'WARNING',
+            'level': 'ERROR',
             'propagate': True,
         },
     },
