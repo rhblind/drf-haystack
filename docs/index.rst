@@ -105,9 +105,17 @@ Thanks guys!
 Changelog
 =========
 
+v1.8.1
+------
+*Release date: 2018-04-20*
+
+    - Fixed errors in test suite which caused all tests to run on Elasticsearch 1.x
+
 v1.8.0
 ------
 *Release date: 2018-04-16*
+
+**This release was pulled because of critical errors in the test suite.**
 
     - Dropped support for Django v1.10.x and added support for Django v2.0.x
     - Updated minimum Django REST Framework requirement to v3.7

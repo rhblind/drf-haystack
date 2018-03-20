@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 __title__ = "drf-haystack"
-__version__ = "1.8.0"
+__version__ = "1.8.1"
 __author__ = "Rolf Haavard Blindheim"
 __license__ = "MIT License"
 
