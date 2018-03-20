@@ -20,10 +20,10 @@ Supported versions
 ------------------
 
 - Python 2.7, 3.4 and above
-- Django 1.10 and 1.11 (2.x not supported by django-haystack)
-- Haystack 2.5 and above
-- Django REST Framework 3.6 and above
-    
+- Django 1.11 and 2.0
+- Haystack 2.8 and above
+- Django REST Framework 3.7 and above
+
 
 Installation
 ------------
@@ -41,7 +41,7 @@ Currently we support:
 - Geo Spatial Search
 - Highlighting
 - More Like This
-    
+
 Show me more!
 -------------
 
