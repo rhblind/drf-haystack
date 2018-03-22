@@ -100,13 +100,13 @@ class MockPetIndex(indexes.SearchIndex, indexes.Indexable):
 class MockAllFieldIndex(indexes.SearchIndex, indexes.Indexable):
 
     text = indexes.CharField(document=True, use_template=False)
-    charfield = indexes.CharField()
-    integerfield = indexes.IntegerField()
-    floatfield = indexes.FloatField()
-    decimalfield = indexes.DecimalField()
-    boolfield = indexes.BooleanField()
-    datefield = indexes.DateField()
-    datetimefield = indexes.DateTimeField()
+    charfield = indexes.CharField(model_attr="charfield")
+    integerfield = indexes.IntegerField(model_attr="integerfield")
+    floatfield = indexes.FloatField(model_attr="floatfield")
+    decimalfield = indexes.DecimalField(model_attr="decimalfield")
+    boolfield = indexes.BooleanField(model_attr="boolfield")
+    datefield = indexes.DateField(model_attr="datefield")
+    datetimefield = indexes.DateTimeField(model_attr="datetimefield")
     multivaluefield = indexes.MultiValueField()
 
     @staticmethod

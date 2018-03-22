@@ -105,6 +105,12 @@ Thanks guys!
 Changelog
 =========
 
+v1.8.2
+------
+*Release date: not yet released*
+
+    - Fixed issues with picking kwargs for initializing fields. Fixes :drf-issue:`116`
+
 v1.8.1
 ------
 *Release date: 2018-04-20*

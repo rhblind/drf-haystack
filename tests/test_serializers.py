@@ -28,8 +28,8 @@ from drf_haystack.viewsets import HaystackViewSet
 from drf_haystack.mixins import MoreLikeThisMixin, FacetMixin
 
 from .mixins import WarningTestCaseMixin
-from .mockapp.models import MockPerson, MockPet
-from .mockapp.search_indexes import MockPersonIndex, MockPetIndex
+from .mockapp.models import MockPerson, MockAllField
+from .mockapp.search_indexes import MockPersonIndex, MockPetIndex, MockAllFieldIndex
 
 factory = APIRequestFactory()
 
@@ -197,11 +197,40 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
         self.assertFalse("autocomplete" in fields)
 
     def test_serializer_boolean_field(self):
-        # https://github.com/inonit/drf-haystack/issues/39
         dog = self.serializer7(instance=SearchQuerySet().filter(species="Dog")[0])
         iguana = self.serializer7(instance=SearchQuerySet().filter(species="Iguana")[0])
         self.assertTrue(dog.data["has_rabies"])
         self.assertFalse(iguana.data["has_rabies"])
+
+
+class HaystackSerializerAllFieldsTestCase(TestCase):
+
+    fixtures = ["mockallfield"]
+
+    def setUp(self):
+        MockAllFieldIndex().reindex()
+
+        class Serializer(HaystackSerializer):
+            class Meta:
+                index_classes = [MockAllFieldIndex]
+                fields = ["charfield", "integerfield", "floatfield",
+                          "decimalfield", "boolfield", "datefield",
+                          "datetimefield", "multivaluefield"]
+
+        self.serializer = Serializer
+
+    def test_serialize_object(self):
+        obj = SearchQuerySet().models(MockAllField).latest('datetimefield')
+        serializer = self.serializer(instance=obj, many=False)
+
+        self.assertIsInstance(serializer.data['charfield'], str)
+        self.assertIsInstance(serializer.data['integerfield'], int)
+        self.assertIsInstance(serializer.data['floatfield'], float)
+        self.assertIsInstance(serializer.data['decimalfield'], str)
+        self.assertIsInstance(serializer.data['boolfield'], bool)
+        self.assertIsInstance(serializer.data['datefield'], str)
+        self.assertIsInstance(serializer.data['datetimefield'], str)
+        self.assertIsInstance(serializer.data['multivaluefield'], list)
 
 
 class HaystackSerializerMultipleIndexTestCase(WarningTestCaseMixin, TestCase):
@@ -508,46 +537,6 @@ class HaystackFacetSerializerTestCase(TestCase):
                                     "&selected_facets=firstname_exact%3AJohn&selected_facets=lastname_exact%3AMcClane"
                                     )
         )
-
-    def test_serializer_facet_include_objects(self):
-        self.assertContains(self.response, "objects", count=1)
-
-    # def test_serializer_facet_include_paginated_objects(self):
-    #     self.assertTrue(self.is_paginated_facet_response(self.response))
-    #     self.assertEqual(self.response.data["objects"]["next"], "http://testserver/search-person-facet/facets/?page=2")
-    #     self.assertEqual(self.response.data["objects"]["previous"], None)
-    #     self.assertEqual(len(self.response.data["objects"]["results"]), 2)  # `page_size`
-    #
-    # def test_serializer_faceted_and_paginated_response(self):
-    #     response = self.client.get(
-    #         path="/search-person-facet/facets/",
-    #         data=QueryDict("selected_facets=firstname_exact:John"),
-    #         format="json"
-    #     )
-    #     self.assertTrue(self.is_paginated_facet_response(response))
-    #     self.assertEqual(len(response.data["objects"]["results"]), 2)
-    #     self.assertEqual(response.data["objects"]["count"], 3)
-    #     self.assertEqual(response.data["objects"]["previous"], None)
-    #     self.assertEqual(response.data["objects"]["next"],
-    #                      "http://testserver/search-person-facet/facets/?page=2&selected_facets=firstname_exact%3AJohn")
-    #
-    #     response = self.client.get(
-    #         path="/search-person-facet/facets/",
-    #         data=QueryDict("page=2&selected_facets=firstname_exact:John")
-    #     )
-    #     self.assertTrue(self.is_paginated_facet_response(response))
-    #     self.assertEqual(len(response.data["objects"]["results"]), 1)
-    #     self.assertEqual(response.data["objects"]["count"], 3)
-    #     self.assertEqual(response.data["objects"]["previous"],
-    #                      "http://testserver/search-person-facet/facets/?selected_facets=firstname_exact%3AJohn")
-    #     self.assertEqual(response.data["objects"]["next"], None)
-    #
-    #     # Make sure that `page_query_param` is not included in the `narrow_url`.
-    #     # It will make the pagination fail because when we narrow the queryset, the
-    #     # pagination will have to be re-calculated.
-    #     fields = response.data["fields"]
-    #     firstname = fields["firstname"][0]
-    #     self.assertFalse("page=2" in firstname["narrow_url"])
 
     def test_serializer_raise_without_meta_class(self):
         try:

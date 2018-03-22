@@ -12,7 +12,7 @@ try:
 except ImportError:
     from django.utils.datastructures import SortedDict as OrderedDict
 
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, FieldDoesNotExist
 from django.utils import six
 
 from haystack import fields as haystack_fields
@@ -128,9 +128,10 @@ class HaystackSerializer(six.with_metaclass(HaystackSerializerMeta, serializers.
         to instantiate a REST Framework serializer field.
         """
         kwargs = {}
-        if field.model_attr in model._meta.get_fields():
-            model_field = model._meta.get_field(field.model_attr)[0]
-            kwargs = get_field_kwargs(field.model_attr, model_field)
+        try:
+            field_name = field.model_attr or field.index_fieldname
+            model_field = model._meta.get_field(field_name)
+            kwargs.update(get_field_kwargs(field_name, model_field))
 
             # Remove stuff we don't care about!
             delete_attrs = [
@@ -141,6 +142,8 @@ class HaystackSerializer(six.with_metaclass(HaystackSerializerMeta, serializers.
             for attr in delete_attrs:
                 if attr in kwargs:
                     del kwargs[attr]
+        except FieldDoesNotExist:
+            pass
 
         return kwargs
 
