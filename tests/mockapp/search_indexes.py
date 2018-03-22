@@ -5,7 +5,7 @@ from __future__ import absolute_import, unicode_literals
 from django.utils import timezone
 from haystack import indexes
 
-from .models import MockLocation, MockPerson, MockPet
+from .models import MockLocation, MockPerson, MockPet, MockAllField
 
 
 class MockLocationIndex(indexes.SearchIndex, indexes.Indexable):
@@ -95,3 +95,23 @@ class MockPetIndex(indexes.SearchIndex, indexes.Indexable):
 
     def get_model(self):
         return MockPet
+
+
+class MockAllFieldIndex(indexes.SearchIndex, indexes.Indexable):
+
+    text = indexes.CharField(document=True, use_template=False)
+    charfield = indexes.CharField()
+    integerfield = indexes.IntegerField()
+    floatfield = indexes.FloatField()
+    decimalfield = indexes.DecimalField()
+    boolfield = indexes.BooleanField()
+    datefield = indexes.DateField()
+    datetimefield = indexes.DateTimeField()
+    multivaluefield = indexes.MultiValueField()
+
+    @staticmethod
+    def prepare_multivaluefield(obj):
+        return obj.charfield.split(' ', 1)
+
+    def get_model(self):
+        return MockAllField

@@ -1,0 +1,101 @@
+[
+  {
+    "model": "mockapp.mockallfield",
+    "fields": {
+      "charfield": "Shauna Robinson",
+      "integerfield": 674,
+      "floatfield": 756.1749,
+      "decimalfield": "21.69",
+      "boolfield": true
+    },
+    "pk": 1
+  },
+  {
+    "model": "mockapp.mockallfield",
+    "fields": {
+      "charfield": "Zimmerman Warren",
+      "integerfield": 379,
+      "floatfield": -386.574,
+      "decimalfield": "44.87",
+      "boolfield": true
+    },
+    "pk": 2
+  },
+  {
+    "model": "mockapp.mockallfield",
+    "fields": {
+      "charfield": "Juliana Cooper",
+      "integerfield": 357,
+      "floatfield": 666.5266,
+      "decimalfield": "-57.46",
+      "boolfield": false
+    },
+    "pk": 3
+  },
+  {
+    "model": "mockapp.mockallfield",
+    "fields": {
+      "charfield": "Wiggins Mccormick",
+      "integerfield": 441,
+      "floatfield": 216.1145,
+      "decimalfield": "192.59",
+      "boolfield": false
+    },
+    "pk": 4
+  },
+  {
+    "model": "mockapp.mockallfield",
+    "fields": {
+      "charfield": "Rebekah Mclaughlin",
+      "integerfield": 480,
+      "floatfield": -976.415,
+      "decimalfield": "21.86",
+      "boolfield": true
+    },
+    "pk": 5
+  },
+  {
+    "model": "mockapp.mockallfield",
+    "fields": {
+      "charfield": "Karla Hawkins",
+      "integerfield": 153,
+      "floatfield": -506.917,
+      "decimalfield": "199.86",
+      "boolfield": false
+    },
+    "pk": 6
+  },
+  {
+    "model": "mockapp.mockallfield",
+    "fields": {
+      "charfield": "Shelly Calhoun",
+      "integerfield": 528,
+      "floatfield": 88.5078,
+      "decimalfield": "-21.48",
+      "boolfield": false
+    },
+    "pk": 7
+  },
+  {
+    "model": "mockapp.mockallfield",
+    "fields": {
+      "charfield": "Miranda Collins",
+      "integerfield": 57,
+      "floatfield": 236.1656,
+      "decimalfield": "-74.10",
+      "boolfield": false
+    },
+    "pk": 8
+  },
+  {
+    "model": "mockapp.mockallfield",
+    "fields": {
+      "charfield": "Kathryn Oliver",
+      "integerfield": 48,
+      "floatfield": 551.5019,
+      "decimalfield": "-49.64",
+      "boolfield": true
+    },
+    "pk": 9
+  }
+]
