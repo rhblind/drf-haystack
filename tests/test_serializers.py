@@ -6,7 +6,6 @@
 from __future__ import absolute_import, unicode_literals
 
 import json
-from collections import OrderedDict
 from datetime import datetime, timedelta
 
 import six
@@ -17,7 +16,7 @@ from django.test import TestCase, SimpleTestCase, override_settings
 from haystack.query import SearchQuerySet
 
 from rest_framework import serializers
-from rest_framework.pagination import PageNumberPagination, LimitOffsetPagination, CursorPagination
+from rest_framework.fields import CharField, IntegerField
 from rest_framework.routers import DefaultRouter
 from rest_framework.test import APIRequestFactory, APITestCase
 
@@ -160,45 +159,42 @@ class HaystackSerializerTestCase(WarningTestCaseMixin, TestCase):
 
     def test_serializer_gets_default_instance(self):
         serializer = self.serializer1(instance=None)
-        assert isinstance(serializer.instance, SearchQuerySet), self.fail("Did not get default instance "
-                                                                          "of type SearchQuerySet")
+        self.assertIsInstance(serializer.instance, SearchQuerySet,
+                              "Did not get default instance of type SearchQuerySet")
 
     def test_serializer_get_fields(self):
-        from rest_framework.fields import CharField, IntegerField
-
         obj = SearchQuerySet().filter(lastname="Foreman")[0]
         serializer = self.serializer1(instance=obj)
         fields = serializer.get_fields()
-        assert isinstance(fields, dict), self.fail("serializer.data is not a dict")
-        assert isinstance(fields["integer_field"], IntegerField), self.fail("serializer 'integer_field' field is not a IntegerField instance")
-        assert isinstance(fields["text"], CharField), self.fail("serializer 'text' field is not a CharField instance")
-        assert isinstance(fields["firstname"], CharField), self.fail("serializer 'firstname' field is not a CharField instance")
-        assert isinstance(fields["lastname"], CharField), self.fail("serializer 'lastname' field is not a CharField instance")
-        assert isinstance(fields["autocomplete"], CharField), self.fail("serializer 'autocomplete' field is not a CharField instance")
+
+        self.assertIsInstance(fields, dict)
+        self.assertIsInstance(fields["integer_field"], IntegerField)
+        self.assertIsInstance(fields["text"], CharField)
+        self.assertIsInstance(fields["firstname"], CharField)
+        self.assertIsInstance(fields["lastname"], CharField)
+        self.assertIsInstance(fields["autocomplete"], CharField)
 
     def test_serializer_get_fields_with_exclude(self):
-        from rest_framework.fields import CharField
-
         obj = SearchQuerySet().filter(lastname="Foreman")[0]
         serializer = self.serializer2(instance=obj)
         fields = serializer.get_fields()
-        assert isinstance(fields, dict), self.fail("serializer.data is not a dict")
-        assert isinstance(fields["text"], CharField), self.fail("serializer 'text' field is not a CharField instance")
-        assert "firstname" not in fields, self.fail("serializer 'firstname' should not be present")
-        assert isinstance(fields["lastname"], CharField), self.fail("serializer 'lastname' field is not a CharField instance")
-        assert isinstance(fields["autocomplete"], CharField), self.fail("serializer 'autocomplete' field is not a CharField instance")
+
+        self.assertIsInstance(fields, dict)
+        self.assertIsInstance(fields["text"], CharField)
+        self.assertIsInstance(fields["lastname"], CharField)
+        self.assertIsInstance(fields["autocomplete"], CharField)
+        self.assertFalse("firstname" in fields)
 
     def test_serializer_get_fields_with_ignore_fields(self):
-        from rest_framework.fields import CharField
-
         obj = SearchQuerySet().filter(lastname="Foreman")[0]
         serializer = self.serializer3(instance=obj)
         fields = serializer.get_fields()
-        assert isinstance(fields, dict), self.fail("serializer.data is not a dict")
-        assert isinstance(fields["text"], CharField), self.fail("serializer 'text' field is not a CharField instance")
-        assert isinstance(fields["firstname"], CharField), self.fail("serializer 'firtname' field is not a CharField instance")
-        assert isinstance(fields["lastname"], CharField), self.fail("serializer 'lastname' field is not a CharField instance")
-        assert "autocomplete" not in fields, self.fail("serializer 'autocomplete' should not be present")
+
+        self.assertIsInstance(fields, dict)
+        self.assertIsInstance(fields["text"], CharField)
+        self.assertIsInstance(fields["firstname"], CharField)
+        self.assertIsInstance(fields["lastname"], CharField)
+        self.assertFalse("autocomplete" in fields)
 
     def test_serializer_boolean_field(self):
         # https://github.com/inonit/drf-haystack/issues/39
@@ -279,16 +275,17 @@ class HaystackSerializerMultipleIndexTestCase(WarningTestCaseMixin, TestCase):
         objs = SearchQuerySet().filter(text="John")
         serializer = self.serializer1(instance=objs, many=True)
         data = serializer.data
-        assert len(data) == 4, self.fail("all objects are not present")
+
+        self.assertEqual(len(data), 4)
         for result in data:
             if "name" in result:
-                assert "species" in result, self.fail("Pet results should have 'species' and 'name' fields")
-                assert "firstname" not in result, self.fail("Pet results should have 'species' and 'name' fields")
-                assert "lastname" not in result, self.fail("Pet results should have 'species' and 'name' fields")
+                self.assertTrue("species" in result, "Pet results should have 'species' and 'name' fields")
+                self.assertTrue("firstname" not in result, "Pet results should have 'species' and 'name' fields")
+                self.assertTrue("lastname" not in result, "Pet results should have 'species' and 'name' fields")
             elif "firstname" in result:
-                assert "lastname" in result, self.fail("Person results should have 'firstname' and 'lastname' fields")
-                assert "name" not in result, self.fail("Person results should have 'firstname' and 'lastname' fields")
-                assert "species" not in result, self.fail("Person results should have 'firstname' and 'lastname' fields")
+                self.assertTrue("lastname" in result, "Person results should have 'firstname' and 'lastname' fields")
+                self.assertTrue("name" not in result, "Person results should have 'firstname' and 'lastname' fields")
+                self.assertTrue("species" not in result, "Person results should have 'firstname' and 'lastname' fields")
             else:
                 self.fail("Result should contain either Pet or Person fields")
 
@@ -296,14 +293,15 @@ class HaystackSerializerMultipleIndexTestCase(WarningTestCaseMixin, TestCase):
         objs = SearchQuerySet().filter(text="John")
         serializer = self.serializer2(instance=objs, many=True)
         data = serializer.data
-        assert len(data) == 4, self.fail("all objects are not present")
+
+        self.assertEqual(len(data), 4)
         for result in data:
             if "name" in result:
-                assert "extra" in result, self.fail("'extra' should be present in Pet results")
-                assert "hair_color" not in result, self.fail("'hair_color' should not be present in Pet results")
+                self.assertTrue("extra" in result, "'extra' should be present in Pet results")
+                self.assertTrue("hair_color" not in result, "'hair_color' should not be present in Pet results")
             elif "lastname" in result:
-                assert "extra" in result, self.fail("'extra' should be present in Person results")
-                assert "hair_color" in result, self.fail("'hair_color' should be present in Person results")
+                self.assertTrue("extra" in result, "'extra' should be present in Person results")
+                self.assertTrue("hair_color" in result, "'hair_color' should be present in Person results")
             else:
                 self.fail("Result should contain either Pet or Person fields")
 
