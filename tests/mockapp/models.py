@@ -88,3 +88,6 @@ class MockAllField(models.Model):
     boolfield = models.BooleanField(default=False)
     datefield = models.DateField(default=get_random_date)
     datetimefield = models.DateTimeField(default=get_random_datetime)
+
+    def __str__(self):
+        return self.charfield
