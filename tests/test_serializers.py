@@ -12,6 +12,7 @@ import six
 from django.conf.urls import url, include
 from django.core.exceptions import ImproperlyConfigured
 from django.http import QueryDict
+from django.utils import six
 from django.test import TestCase, SimpleTestCase, override_settings
 from haystack.query import SearchQuerySet
 
@@ -20,6 +21,7 @@ from rest_framework.fields import CharField, IntegerField
 from rest_framework.routers import DefaultRouter
 from rest_framework.test import APIRequestFactory, APITestCase
 
+from drf_haystack import fields
 from drf_haystack.serializers import (
     HighlighterMixin, HaystackSerializer,
     HaystackSerializerMixin, HaystackFacetSerializer,
@@ -219,18 +221,18 @@ class HaystackSerializerAllFieldsTestCase(TestCase):
 
         self.serializer = Serializer
 
-    def test_serialize_object(self):
+    def test_serialize_object_data(self):
         obj = SearchQuerySet().models(MockAllField).latest('datetimefield')
         serializer = self.serializer(instance=obj, many=False)
 
-        self.assertIsInstance(serializer.data['charfield'], str)
-        self.assertIsInstance(serializer.data['integerfield'], int)
-        self.assertIsInstance(serializer.data['floatfield'], float)
-        self.assertIsInstance(serializer.data['decimalfield'], str)
-        self.assertIsInstance(serializer.data['boolfield'], bool)
-        self.assertIsInstance(serializer.data['datefield'], str)
-        self.assertIsInstance(serializer.data['datetimefield'], str)
-        self.assertIsInstance(serializer.data['multivaluefield'], list)
+        self.assertIsInstance(serializer.fields['charfield'], fields.HaystackCharField)
+        self.assertIsInstance(serializer.fields['integerfield'], fields.HaystackIntegerField)
+        self.assertIsInstance(serializer.fields['floatfield'], fields.HaystackFloatField)
+        self.assertIsInstance(serializer.fields['decimalfield'], fields.HaystackDecimalField)
+        self.assertIsInstance(serializer.fields['boolfield'], fields.HaystackBooleanField)
+        self.assertIsInstance(serializer.fields['datefield'], fields.HaystackDateField)
+        self.assertIsInstance(serializer.fields['datetimefield'], fields.HaystackDateTimeField)
+        self.assertIsInstance(serializer.fields['multivaluefield'], fields.HaystackMultiValueField)
 
 
 class HaystackSerializerMultipleIndexTestCase(WarningTestCaseMixin, TestCase):
