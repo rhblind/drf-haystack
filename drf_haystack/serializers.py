@@ -21,7 +21,6 @@ from haystack.utils import Highlighter
 
 from rest_framework import serializers
 from rest_framework.fields import empty
-from rest_framework.pagination import _get_count
 from rest_framework.utils.field_mapping import ClassLookupDict, get_field_kwargs
 
 from drf_haystack.fields import (
@@ -403,7 +402,7 @@ class HaystackFacetSerializer(six.with_metaclass(HaystackSerializerMeta, seriali
         if page is not None:
             serializer = view.get_facet_objects_serializer(page, many=True)
             return OrderedDict([
-                ("count", _get_count(queryset)),
+                ("count", self.get_count(queryset)),
                 ("next", view.paginator.get_next_link()),
                 ("previous", view.paginator.get_previous_link()),
                 ("results", serializer.data)
@@ -411,6 +410,15 @@ class HaystackFacetSerializer(six.with_metaclass(HaystackSerializerMeta, seriali
 
         serializer = view.get_serializer(queryset, many=True)
         return serializer.data
+
+    def get_count(self, queryset):
+        """
+        Determine an object count, supporting either querysets or regular lists.
+        """
+        try:
+            return queryset.count()
+        except (AttributeError, TypeError):
+            return len(queryset)
 
     @property
     def facet_query_params_text(self):

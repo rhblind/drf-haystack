@@ -107,9 +107,9 @@ Changelog
 
 v1.8.2
 ------
-*Release date: not yet released*
+*Release date: 2018-05-22*
 
-    - Fixed issues with picking kwargs for initializing fields. Fixes :drf-issue:`116`
+    - Fixed issue with `_get_count` for DRF v3.8
 
 v1.8.1
 ------
