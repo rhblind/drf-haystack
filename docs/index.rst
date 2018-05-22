@@ -105,6 +105,12 @@ Thanks guys!
 Changelog
 =========
 
+v1.8.2
+------
+*Release date: 2018-05-22*
+
+    - Fixed issue with `_get_count` for DRF v3.8
+
 v1.8.1
 ------
 *Release date: 2018-04-20*
