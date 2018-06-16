@@ -105,6 +105,12 @@ Thanks guys!
 Changelog
 =========
 
+v1.8.3
+------
+*Release date: 2018-06-16*
+
+    - Fixed issues with `__in=[...]` and `__range=[...]` filters. Closes :drf-issue:`128`.
+
 v1.8.2
 ------
 *Release date: 2018-05-22*

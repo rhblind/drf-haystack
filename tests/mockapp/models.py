@@ -2,8 +2,9 @@
 
 from __future__ import absolute_import, unicode_literals
 
-from datetime import date, timedelta
-from random import randrange
+import pytz
+from datetime import date, datetime, timedelta
+from random import randrange, randint
 
 from django.db import models
 from django.utils.encoding import python_2_unicode_compatible
@@ -15,6 +16,14 @@ def get_random_date(start=date(1950, 1, 1), end=date.today()):
     """
     delta = ((end - start).days * 24 * 60 * 60)
     return start + timedelta(seconds=randrange(delta))
+
+
+def get_random_datetime(start=datetime(1950, 1, 1, 0, 0), end=datetime.today()):
+    """
+    :return a random datetime
+    """
+    delta = ((end - start).total_seconds())
+    return (start + timedelta(seconds=randint(0, int(delta)))).replace(tzinfo=pytz.UTC)
 
 
 @python_2_unicode_compatible
@@ -67,3 +76,18 @@ class MockPet(models.Model):
 
     def __str__(self):
         return self.name
+
+
+@python_2_unicode_compatible
+class MockAllField(models.Model):
+
+    charfield = models.CharField(max_length=100)
+    integerfield = models.IntegerField()
+    floatfield = models.FloatField()
+    decimalfield = models.DecimalField(max_digits=5, decimal_places=2)
+    boolfield = models.BooleanField(default=False)
+    datefield = models.DateField(default=get_random_date)
+    datetimefield = models.DateTimeField(default=get_random_datetime)
+
+    def __str__(self):
+        return self.charfield

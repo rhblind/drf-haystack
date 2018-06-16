@@ -102,8 +102,6 @@ class FilterQueryBuilder(BaseQueryBuilder):
         applicable_exclusions = []
 
         for param, value in filters.items():
-            # Skip if the parameter is not listed in the serializer's `fields`
-            # or if it's in the `exclude` list.
             excluding_term = False
             param_parts = param.split("__")
             base_param = param_parts[0]  # only test against field without lookup
@@ -122,12 +120,19 @@ class FilterQueryBuilder(BaseQueryBuilder):
                 exclude = getattr(self.view.serializer_class.Meta, 'exclude', [])
                 search_fields = getattr(self.view.serializer_class.Meta, 'search_fields', [])
 
-                if ((fields or search_fields) and base_param not in chain(fields, search_fields)) or base_param in exclude or not value:
+                # Skip if the parameter is not listed in the serializer's `fields`
+                # or if it's in the `exclude` list.
+                if ((fields or search_fields) and base_param not in
+                        chain(fields, search_fields)) or base_param in exclude or not value:
                     continue
 
             field_queries = []
-            for token in self.tokenize(value, self.view.lookup_sep):
-                field_queries.append(self.view.query_object((param, token)))
+            if param_parts[-1] in ('in', 'range'):
+                # `in` and `range` filters expects a list of values
+                field_queries.append(self.view.query_object((param, list(self.tokenize(value, self.view.lookup_sep)))))
+            else:
+                for token in self.tokenize(value, self.view.lookup_sep):
+                    field_queries.append(self.view.query_object((param, token)))
 
             field_queries = [fq for fq in field_queries if fq]
             if len(field_queries) > 0:
@@ -276,11 +281,13 @@ class SpatialQueryBuilder(BaseQueryBuilder):
 
         applicable_filters = None
 
-        filters = dict((k, filters[k]) for k in chain(self.D.UNITS.keys(), [constants.DRF_HAYSTACK_SPATIAL_QUERY_PARAM]) if k in filters)
+        filters = dict((k, filters[k]) for k in chain(self.D.UNITS.keys(),
+                                                      [constants.DRF_HAYSTACK_SPATIAL_QUERY_PARAM]) if k in filters)
         distance = dict((k, v) for k, v in filters.items() if k in self.D.UNITS.keys())
 
         try:
-            latitude, longitude = map(float, self.tokenize(filters[constants.DRF_HAYSTACK_SPATIAL_QUERY_PARAM], self.view.lookup_sep))
+            latitude, longitude = map(float, self.tokenize(filters[constants.DRF_HAYSTACK_SPATIAL_QUERY_PARAM],
+                                                           self.view.lookup_sep))
             point = self.Point(longitude, latitude, srid=constants.GEO_SRID)
         except ValueError:
             raise ValueError("Cannot convert `from=latitude,longitude` query parameter to "
