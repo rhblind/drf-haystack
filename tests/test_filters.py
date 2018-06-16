@@ -28,21 +28,21 @@ from drf_haystack.mixins import FacetMixin
 from . import geospatial_support, elasticsearch_version
 from .mixins import WarningTestCaseMixin
 from .constants import MOCKLOCATION_DATA_SET_SIZE, MOCKPERSON_DATA_SET_SIZE
-from .mockapp.models import MockLocation, MockPerson
-from .mockapp.search_indexes import MockLocationIndex, MockPersonIndex
+from .mockapp.models import MockLocation, MockPerson, MockAllField
+from .mockapp.search_indexes import MockLocationIndex, MockPersonIndex, MockAllFieldIndex
 
 factory = APIRequestFactory()
 
 
 class HaystackFilterTestCase(TestCase):
 
-    fixtures = ["mockperson"]
+    fixtures = ["mockperson", "mockallfield"]
 
     def setUp(self):
+        MockAllFieldIndex().reindex()
         MockPersonIndex().reindex()
 
         class Serializer1(HaystackSerializer):
-
             class Meta:
                 index_classes = [MockPersonIndex]
                 fields = ["text", "firstname", "lastname",
@@ -53,7 +53,6 @@ class HaystackFilterTestCase(TestCase):
                 }
 
         class Serializer2(HaystackSerializer):
-
             class Meta:
                 index_classes = [MockLocationIndex]
                 exclude = ["lastname"]
@@ -61,6 +60,11 @@ class HaystackFilterTestCase(TestCase):
         class Serializer4(serializers.Serializer):
             # This is not allowed. Must implement a `Meta` class.
             pass
+
+        class Serializer5(HaystackSerializer):
+            class Meta:
+                index_classes = [MockAllFieldIndex]
+                fields = ["integerfield"]
 
         class ViewSet1(HaystackViewSet):
             index_models = [MockPerson]
@@ -73,9 +77,13 @@ class HaystackFilterTestCase(TestCase):
         class ViewSet3(ViewSet1):
             serializer_class = Serializer4
 
+        class ViewSet4(HaystackViewSet):
+            serializer_class = Serializer5
+
         self.view1 = ViewSet1
         self.view2 = ViewSet2
         self.view3 = ViewSet3
+        self.view4 = ViewSet4
 
     def tearDown(self):
         MockPersonIndex().clear()
@@ -193,6 +201,16 @@ class HaystackFilterTestCase(TestCase):
         request = factory.get(path="/", data={"birthdate__lt": "1980-01-01"}, content_type="application/json")
         response = self.view1.as_view(actions={"get": "list"})(request)
         self.assertEqual(len(response.data), MockPerson.objects.filter(birthdate__lt=date(1980, 1, 1)).count())
+
+    def test_filter_in_integerfield(self):
+        request = factory.get(path="/", data={"integerfield__in": "48,57"}, content_type="application/json")
+        response = self.view4.as_view(actions={"get": "list"})(request)
+        self.assertEqual(len(response.data), MockAllField.objects.filter(integerfield__in=[48, 57]).count())
+
+    def test_filter_range_integerfield(self):
+        request = factory.get(path="/", data={"integerfield__range": "300,500"}, content_type="application/json")
+        response = self.view4.as_view(actions={"get": "list"})(request)
+        self.assertEqual(len(response.data), MockAllField.objects.filter(integerfield__range=[300, 500]).count())
 
 
 class HaystackAutocompleteFilterTestCase(TestCase):
