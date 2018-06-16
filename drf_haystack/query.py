@@ -127,7 +127,7 @@ class FilterQueryBuilder(BaseQueryBuilder):
                     continue
 
             field_queries = []
-            if param_parts[-1] in ('in', 'range'):
+            if len(param_parts) > 1 and param_parts[-1] in ('in', 'range'):
                 # `in` and `range` filters expects a list of values
                 field_queries.append(self.view.query_object((param, list(self.tokenize(value, self.view.lookup_sep)))))
             else:
