@@ -21,15 +21,17 @@ from drf_haystack.serializers import HaystackSerializer, HaystackFacetSerializer
 from drf_haystack.filters import (
     HaystackAutocompleteFilter, HaystackBoostFilter,
     HaystackFacetFilter, HaystackFilter,
-    HaystackGEOSpatialFilter, HaystackHighlightFilter
+    HaystackGEOSpatialFilter, HaystackHighlightFilter,
+    HaystackOrderingFilter
 )
 from drf_haystack.mixins import FacetMixin
 
 from . import geospatial_support, elasticsearch_version
-from .mixins import WarningTestCaseMixin
 from .constants import MOCKLOCATION_DATA_SET_SIZE, MOCKPERSON_DATA_SET_SIZE
-from .mockapp.models import MockLocation, MockPerson
-from .mockapp.search_indexes import MockLocationIndex, MockPersonIndex
+from .mixins import WarningTestCaseMixin
+from .mockapp.models import MockLocation, MockPerson, MockPet
+from .mockapp.search_indexes import MockLocationIndex, MockPersonIndex, MockPetIndex
+from .test_utils import is_sorted
 
 factory = APIRequestFactory()
 
@@ -491,3 +493,87 @@ class HaystackFacetFilterTestCase(WarningTestCaseMixin, TestCase):
     def test_filter_facet_warn_on_inproperly_formatted_token(self):
         request = factory.get("/", data={"firstname": "token"}, content_type="application/json")
         self.assertWarning(UserWarning, self.view2.as_view(actions={"get": "facets"}), request)
+
+
+class OrderedHaystackViewSetTestCase(TestCase):
+
+    fixtures = ["mockpet"]
+
+    def setUp(self):
+        MockPetIndex().reindex()
+
+        class Serializer(HaystackSerializer):
+            class Meta:
+                fields = ("name", "species", "has_rabies")
+                index_classes = [MockPetIndex]
+
+        class ViewSet1(HaystackViewSet):
+            index_models = [MockPet]
+            serializer_class = Serializer
+            filter_backends = (HaystackOrderingFilter,)
+            ordering_fields = "__all__"
+            ordering = ("name",)
+
+        class ViewSet2(HaystackViewSet):
+            index_models = [MockPet]
+            serializer_class = Serializer
+            filter_backends = (HaystackOrderingFilter,)
+            ordering_fields = "__all__"
+            ordering = ("-name",)
+
+        self.view1 = ViewSet1
+        self.view2 = ViewSet2
+
+    def tearDown(self):
+        MockPetIndex().clear()
+
+    def test_viewset_default_ordering(self):
+        request = factory.get(path="/", content_type="application/json")
+        response = self.view1.as_view(actions={"get": "list"})(request)
+
+        response.render()
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(
+            [result["name"] for result in content],
+            list(MockPet.objects.values_list("name", flat=True).order_by("name"))
+        )
+
+    def test_viewset_default_reverse_ordering(self):
+        request = factory.get(path="/", content_type="application/json")
+        response = self.view2.as_view(actions={"get": "list"})(request)
+
+        response.render()
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(
+            [result["name"] for result in content],
+            list(MockPet.objects.values_list("name", flat=True).order_by("-name"))
+        )
+
+    def test_viewset_order_by_single_query_param(self):
+        request = factory.get(path="/", data={"ordering": "species"}, content_type="application/json")
+        response = self.view1.as_view(actions={"get": "list"})(request)
+
+        response.render()
+        content = json.loads(response.content.decode())
+
+        self.assertEqual(
+            [result["species"] for result in content],
+            list(MockPet.objects.values_list("species", flat=True).order_by("species"))
+        )
+
+    def test_viewset_order_by_multiple_query_params(self):
+        request = factory.get(path="/", data={"ordering": "has_rabies,name"}, content_type="application/json")
+        response = self.view1.as_view(actions={"get": "list"})(request)
+
+        response.render()
+        content = json.loads(response.content.decode())
+
+        l1 = [result["name"] for result in content]
+        l2 = list(MockPet.objects.values_list("name", flat=True).order_by("has_rabies", "name"))
+
+        self.assertEqual(
+            [result["name"] for result in content],
+            list(MockPet.objects.values_list("name", flat=True).order_by("has_rabies", "name"))
+        )

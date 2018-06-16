@@ -212,18 +212,18 @@ class HaystackSerializerAllFieldsTestCase(TestCase):
     def setUp(self):
         MockAllFieldIndex().reindex()
 
-        class Serializer(HaystackSerializer):
+        class Serializer1(HaystackSerializer):
             class Meta:
                 index_classes = [MockAllFieldIndex]
                 fields = ["charfield", "integerfield", "floatfield",
                           "decimalfield", "boolfield", "datefield",
                           "datetimefield", "multivaluefield"]
 
-        self.serializer = Serializer
+        self.serializer1 = Serializer1
 
-    def test_serialize_object_data(self):
+    def test_serialize_field_is_correct_type(self):
         obj = SearchQuerySet().models(MockAllField).latest('datetimefield')
-        serializer = self.serializer(instance=obj, many=False)
+        serializer = self.serializer1(instance=obj, many=False)
 
         self.assertIsInstance(serializer.fields['charfield'], fields.HaystackCharField)
         self.assertIsInstance(serializer.fields['integerfield'], fields.HaystackIntegerField)

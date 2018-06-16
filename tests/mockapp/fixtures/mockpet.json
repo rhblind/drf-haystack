@@ -63,9 +63,9 @@
   "pk": 7,
   "model": "mockapp.mockpet",
   "fields": {
-    "name": "Mr. Squiggles",
+    "name": "Squiggles",
     "created": "2015-05-19T10:48:08.694Z",
-    "species": "Cat",
+    "species": "Snake",
     "updated": "2015-05-19T10:48:08.694Z"
   }
 },
@@ -73,7 +73,7 @@
   "pk": 8,
   "model": "mockapp.mockpet",
   "fields": {
-    "name": "Mrs. Buttersworth",
+    "name": "Buttersworth",
     "created": "2015-05-19T10:48:08.695Z",
     "species": "Dog",
     "updated": "2015-05-19T10:48:08.695Z"

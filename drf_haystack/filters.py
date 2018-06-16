@@ -3,10 +3,12 @@
 from __future__ import absolute_import, unicode_literals
 
 import operator
+from functools import reduce
 
+from django.core.exceptions import ImproperlyConfigured
 from django.utils import six
 from haystack.query import SearchQuerySet
-from rest_framework.filters import BaseFilterBackend
+from rest_framework.filters import BaseFilterBackend, OrderingFilter
 
 from drf_haystack.query import BoostQueryBuilder, FilterQueryBuilder, FacetQueryBuilder, SpatialQueryBuilder
 
@@ -214,3 +216,46 @@ class HaystackFacetFilter(BaseHaystackFilterBackend):
 
     def filter_queryset(self, request, queryset, view):
         return self.apply_filters(queryset, self.build_filters(view, filters=self.get_request_filters(request)))
+
+
+class HaystackOrderingFilter(OrderingFilter):
+    """
+    Some docstring here!
+    """
+
+    def get_default_valid_fields(self, queryset, view, context={}):
+        valid_fields = super(HaystackOrderingFilter, self).get_default_valid_fields(queryset, view, context)
+
+        # Check if we need to support aggregate serializers
+        serializer_class = view.get_serializer_class()
+        if hasattr(serializer_class.Meta, "serializers"):
+            raise NotImplementedError("Need to implement")
+
+        return valid_fields
+
+    def get_valid_fields(self, queryset, view, context={}):
+        valid_fields = getattr(view, "ordering_fields", self.ordering_fields)
+
+        if valid_fields is None:
+            return self.get_default_valid_fields(queryset, view, context)
+
+        elif valid_fields == "__all__":
+            # View explicitly allows filtering on all model fields.
+            if not queryset.query.models:
+                raise ImproperlyConfigured(
+                    "Cannot use %s with '__all__' as 'ordering_fields' attribute on a view "
+                    "which has no 'index_models' set. Either specify some 'ordering_fields', "
+                    "set the 'index_models' attribute or override the 'get_queryset' "
+                    "method and pass some 'index_models'."
+                    % self.__class__.__name__)
+
+            model_fields = map(lambda model: [(field.name, field.verbose_name) for field in model._meta.fields],
+                               queryset.query.models)
+            valid_fields = list(set(reduce(operator.concat, model_fields)))
+        else:
+            valid_fields = [
+                (item, item) if isinstance(item, six.string_types) else item
+                for item in valid_fields
+            ]
+
+        return valid_fields
