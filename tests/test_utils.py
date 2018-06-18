@@ -53,10 +53,3 @@ class MergeDictTestCase(TestCase):
 
     def test_utils_merge_dict_invalid_input(self):
         self.assertEqual(merge_dict(self.dict_a, "I'm not a dict!"), "I'm not a dict!")
-
-
-def is_sorted(lst):
-    """
-    Returns boolean value indicating if the list is sorted or not.
-    """
-    return all(a <= b for a, b in zip(lst[:-1], lst[1:]))

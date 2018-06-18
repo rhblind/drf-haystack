@@ -229,7 +229,7 @@ class HaystackOrderingFilter(OrderingFilter):
         # Check if we need to support aggregate serializers
         serializer_class = view.get_serializer_class()
         if hasattr(serializer_class.Meta, "serializers"):
-            raise NotImplementedError("Need to implement")
+            raise NotImplementedError("Ordering on aggregate serializers is not yet implemented.")
 
         return valid_fields
 
