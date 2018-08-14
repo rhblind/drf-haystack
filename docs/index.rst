@@ -105,6 +105,13 @@ Thanks guys!
 Changelog
 =========
 
+v1.8.4
+------
+*Release date: 2018-08-15*
+
+    - Fixed Django2.1 support
+    - Replaced `requirements.txt` with `Pipfile` for development dependencies management
+
 v1.8.3
 ------
 *Release date: 2018-06-16*
