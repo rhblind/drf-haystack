@@ -1,6 +1,6 @@
 sudo: required
 dist: trusty
-group: edge
+group: xenial
 language: python
 python:
   - 2.7
