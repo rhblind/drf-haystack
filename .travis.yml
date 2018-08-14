@@ -70,10 +70,6 @@ env:
 matrix:
     allow_failures:
       - python: 'pypy'
-    include:
-      - python: 3.7
-        dist: xenial
-        sudo: true
     exclude:
       - python: 2.7
         env: DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=1.0.0,<2.0.0"
