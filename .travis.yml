@@ -1,20 +1,18 @@
 sudo: required
 dist: trusty
-group: xenial
 language: python
 python:
   - 2.7
   - 3.4
   - 3.5
   - 3.6
-  - 3.7
   - pypy
 
 cache:
   apt: true
   pip: true
   directories:
-    - $HOME/$DOWNLOAD_CACHE
+    - $HOME/download-cache
 
 jdk:
   - oraclejdk8
@@ -29,7 +27,7 @@ addons:
     - libproj-dev
 
 before_install:
-  - mkdir -p $HOME/$DOWNLOAD_CACHE
+  - mkdir -p $HOME/download-cache
   # See https://www.elastic.co/guide/en/elasticsearch/reference/current/deb.html#deb-repo
   - wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
   - >
@@ -59,12 +57,12 @@ script:
   - python setup.py test
 
 env:
-  global:
-    - DOWNLOAD_CACHE="download-cache"
   matrix:
+    # ES 1.x
     - DJANGO_VERSION=">=1.11,<2.0" ES_VERSION=">=1.0.0,<2.0.0"
     - DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=1.0.0,<2.0.0"
     - DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=1.0.0,<2.0.0"
+    # ES 2.x
     - DJANGO_VERSION=">=1.11,<2.0" ES_VERSION=">=2.0.0,<3.0.0"
     - DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=2.0.0,<3.0.0"
     - DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=2.0.0,<3.0.0"
@@ -72,6 +70,10 @@ env:
 matrix:
     allow_failures:
       - python: 'pypy'
+    include:
+      - python: 3.7
+        dist: xenial
+        sudo: true
     exclude:
       - python: 2.7
         env: DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=1.0.0,<2.0.0"
