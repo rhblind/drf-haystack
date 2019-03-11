@@ -137,6 +137,7 @@ class HaystackSerializer(six.with_metaclass(HaystackSerializerMeta, serializers.
                 "allow_blank",
                 "choices",
                 "model_field",
+                "allow_unicode",
             ]
             for attr in delete_attrs:
                 if attr in kwargs:
