@@ -114,9 +114,13 @@ LOGGING = {
 
 try:
     import elasticsearch
-    if (2, ) <= elasticsearch.VERSION <= (3, ):
+    if (2,) <= elasticsearch.__version__ <= (3,):
         HAYSTACK_CONNECTIONS['default'].update({
             'ENGINE': 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine'
         })
+    elif (5,) <= elasticsearch.__version__ <= (6,):
+        HAYSTACK_CONNECTIONS['default'].update({
+            'ENGINE': 'haystack.backends.elasticsearch5_backend.Elasticsearch5SearchEngine'
+            })
 except ImportError as e:
     del HAYSTACK_CONNECTIONS['default']  # This will intentionally cause everything to break!

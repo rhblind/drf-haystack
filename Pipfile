@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 django = ">=1.11,<2.2"
-django-haystack = ">=2.8"
+django-haystack = {editable = true, ref = "master", git = "https://github.com/django-haystack/django-haystack.git"}
 djangorestframework = ">=3.7.0"
 python-dateutil = "*"
 
@@ -18,7 +18,7 @@ sphinx-rtd-theme = "*"
 geopy = "*"
 tox = "*"
 wheel = "*"
-elasticsearch = "<3.0.0,>=2.0.0"
+elasticsearch = "<6.0.0,>=5.0.0"
 
 [requires]
 python_version = "3.7"
