@@ -1,12 +1,13 @@
 sudo: required
-dist: trusty
+dist: xenial
 language: python
 python:
   - 2.7
   - 3.4
   - 3.5
   - 3.6
-  - pypy
+  - pypy2.7-6.0
+  - pypy3.5-6.0
 
 cache:
   apt: true
@@ -22,9 +23,10 @@ addons:
     - binutils
     - default-jdk
     - gdal-bin
-    - libgdal1h
-    - libgeos-c1
+    - libgdal1i
+    - libgeos-c1v5
     - libproj-dev
+    - sqlite3
 
 before_install:
   - mkdir -p $HOME/download-cache
@@ -42,7 +44,6 @@ before_install:
       sudo apt-get -y --allow-downgrades install elasticsearch=1.7.6
     fi
   - sudo service elasticsearch restart
-
 
 install:
   - pip install --upgrade pip setuptools
@@ -62,28 +63,50 @@ env:
     - DJANGO_VERSION=">=1.11,<2.0" ES_VERSION=">=1.0.0,<2.0.0"
     - DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=1.0.0,<2.0.0"
     - DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=1.0.0,<2.0.0"
+    - DJANGO_VERSION=">=2.2,<2.3" ES_VERSION=">=1.0.0,<2.0.0"
     # ES 2.x
     - DJANGO_VERSION=">=1.11,<2.0" ES_VERSION=">=2.0.0,<3.0.0"
     - DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=2.0.0,<3.0.0"
     - DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=2.0.0,<3.0.0"
+    - DJANGO_VERSION=">=2.2,<2.3" ES_VERSION=">=2.0.0,<3.0.0"
 
 matrix:
-    allow_failures:
-      - python: 'pypy'
-    exclude:
-      - python: 2.7
-        env: DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=1.0.0,<2.0.0"
-      - python: 2.7
-        env: DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=2.0.0,<3.0.0"
-      - python: 2.7
-        env: DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=1.0.0,<2.0.0"
-      - python: 2.7
-        env: DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=2.0.0,<3.0.0"
-      - python: 3.4
-        env: DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=1.0.0,<2.0.0"
-      - python: 3.4
-        env: DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=2.0.0,<3.0.0"
-
+  allow_failures:
+    - python: pypy2.7-6.0
+    - python: pypy3.5-6.0
+  exclude:
+    - python: pypy2.7-6.0
+      env: DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=1.0.0,<2.0.0"
+    - python: pypy2.7-6.0
+      env: DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=2.0.0,<3.0.0"
+    - python: pypy2.7-6.0
+      env: DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=1.0.0,<2.0.0"
+    - python: pypy2.7-6.0
+      env: DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=2.0.0,<3.0.0"
+    - python: pypy2.7-6.0
+      env: DJANGO_VERSION=">=2.2,<2.3" ES_VERSION=">=1.0.0,<2.0.0"
+    - python: pypy2.7-6.0
+      env: DJANGO_VERSION=">=2.2,<2.3" ES_VERSION=">=2.0.0,<3.0.0"
+    - python: 2.7
+      env: DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=1.0.0,<2.0.0"
+    - python: 2.7
+      env: DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=2.0.0,<3.0.0"
+    - python: 2.7
+      env: DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=1.0.0,<2.0.0"
+    - python: 2.7
+      env: DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=2.0.0,<3.0.0"
+    - python: 2.7
+      env: DJANGO_VERSION=">=2.2,<2.3" ES_VERSION=">=1.0.0,<2.0.0"
+    - python: 2.7
+      env: DJANGO_VERSION=">=2.2,<2.3" ES_VERSION=">=2.0.0,<3.0.0"
+    - python: 3.4
+      env: DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=1.0.0,<2.0.0"
+    - python: 3.4
+      env: DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=2.0.0,<3.0.0"
+    - python: 3.4
+      env: DJANGO_VERSION=">=2.2,<2.3" ES_VERSION=">=1.0.0,<2.0.0"
+    - python: 3.4
+      env: DJANGO_VERSION=">=2.2,<2.3" ES_VERSION=">=2.0.0,<3.0.0"
 
 notifications:
   email: false
