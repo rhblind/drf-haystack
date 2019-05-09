@@ -45,7 +45,7 @@ Currently we support:
 Show me more!
 -------------
 
-```
+```python
 from drf_haystack.serializers import HaystackSerializer
 from drf_haystack.viewsets import HaystackViewSet
 
