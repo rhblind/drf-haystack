@@ -227,6 +227,12 @@ class HaystackSerializer(six.with_metaclass(HaystackSerializerMeta, serializers.
             prefix_field_names = len(getattr(self.Meta, "index_classes")) > 1
             current_index = self._get_index_class_name(type(instance.searchindex))
             for field in self.fields.keys():
+                # handle declared field value methods on serializer
+                value_method = getattr(self, "get_{}".format(field), None)
+                if value_method and callable(value_method):
+                    ret[field] = value_method()
+
+                # now convert namespaced field names
                 orig_field = field
                 if prefix_field_names:
                     parts = field.split("__")
