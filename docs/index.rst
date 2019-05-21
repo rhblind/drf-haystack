@@ -105,6 +105,13 @@ Thanks guys!
 Changelog
 =========
 
+v1.8.5
+------
+*Release date: 2019-05-21*
+
+    - Django2.2 support
+    - Django REST Framework 3.9.x support
+
 v1.8.4
 ------
 *Release date: 2018-08-15*
