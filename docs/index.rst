@@ -100,10 +100,17 @@ This library has mainly been written by `me <https://github.com/rhblind>`_ while
 at `Inonit <https://github.com/inonit>`_. I have also had some help from these amazing people!
 Thanks guys!
 
-    - See the full list of `contributors <https://github.com/inonit/drf-haystack/graphs/contributors>`_.
+    - See the full list of `contributors <https://github.com/rhblind/drf-haystack/graphs/contributors>`_.
 
 Changelog
 =========
+
+v1.8.6
+------
+*Release date: Not released*
+
+    - Fixed :drf-issue:`139`. Overriding declared fields must now use ``serializers.SerializerMethodField()`` and are
+      handled by stock DRF. We don't need any custom functionality for this.
 
 v1.8.5
 ------
@@ -123,13 +130,13 @@ v1.8.3
 ------
 *Release date: 2018-06-16*
 
-    - Fixed issues with `__in=[...]` and `__range=[...]` filters. Closes :drf-issue:`128`.
+    - Fixed issues with ``__in=[...]`` and ``__range=[...]`` filters. Closes :drf-issue:`128`.
 
 v1.8.2
 ------
 *Release date: 2018-05-22*
 
-    - Fixed issue with `_get_count` for DRF v3.8
+    - Fixed issue with ``_get_count`` for DRF v3.8
 
 v1.8.1
 ------
