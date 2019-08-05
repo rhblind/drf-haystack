@@ -61,7 +61,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'drf_haystack'
-copyright = '%d, Inonit AS' % date.today().year
+copyright = '%d, Rolf Håvard Blindheim' % date.today().year
 author = 'Rolf Håvard Blindheim'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -172,7 +172,7 @@ intersphinx_mapping = {
 
 # Configurations for extlinks
 extlinks = {
-    'drf-pr': ('https://github.com/inonit/drf-haystack/pull/%s', 'PR#'),
-    'drf-issue': ('https://github.com/inonit/drf-haystack/issues/%s', '#'),
+    'drf-pr': ('https://github.com/rhblind/drf-haystack/pull/%s', 'PR#'),
+    'drf-issue': ('https://github.com/rhblind/drf-haystack/issues/%s', '#'),
     'haystack-issue': ('https://github.com/django-haystack/django-haystack/issues/%s', '#')
 }
