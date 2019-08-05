@@ -1,0 +1,13 @@
+coverage
+django>=1.11,<2.3
+django-haystack>=2.8,<2.9
+djangorestframework>=3.7.0,<3.10
+elasticsearch>=2.0.0,<3.0.0
+nose
+sphinx
+sphinx-rtd-theme
+urllib3
+geopy
+tox
+python-dateutil
+wheel
