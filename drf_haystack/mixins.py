@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import, unicode_literals
 
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from drf_haystack.filters import HaystackFacetFilter
@@ -13,7 +13,7 @@ class MoreLikeThisMixin(object):
     Mixin class for supporting "more like this" on an API View.
     """
 
-    @detail_route(methods=["get"], url_path="more-like-this")
+    @action(detail=True, methods=["get"], url_path="more-like-this")
     def more_like_this(self, request, pk=None):
         """
         Sets up a detail route for ``more-like-this`` results.
@@ -43,7 +43,7 @@ class FacetMixin(object):
     facet_objects_serializer_class = None
     facet_query_params_text = 'selected_facets'
 
-    @list_route(methods=["get"], url_path="facets")
+    @action(detail=False, methods=["get"], url_path="facets")
     def facets(self, request):
         """
         Sets up a list route for ``faceted`` results.
