@@ -13,7 +13,7 @@ except ImportError:
     from django.utils.datastructures import SortedDict as OrderedDict
 
 from django.core.exceptions import ImproperlyConfigured, FieldDoesNotExist
-from django.utils import six
+import six
 
 from haystack import fields as haystack_fields
 from haystack.query import EmptySearchQuerySet

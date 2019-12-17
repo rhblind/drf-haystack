@@ -36,7 +36,8 @@ setup(
         "Django>=1.11,<2.3",
         "djangorestframework>=3.7,<3.11",
         "django-haystack>=2.8,<2.9",
-        "python-dateutil"
+        "python-dateutil",
+        "six"
     ],
     tests_require=[
         "nose",

@@ -6,7 +6,7 @@ import operator
 from functools import reduce
 
 from django.core.exceptions import ImproperlyConfigured
-from django.utils import six
+import six
 from haystack.query import SearchQuerySet
 from rest_framework.filters import BaseFilterBackend, OrderingFilter
 

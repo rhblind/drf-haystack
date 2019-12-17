@@ -6,7 +6,7 @@ import operator
 import warnings
 from itertools import chain
 
-from django.utils import six
+import six
 from django.utils.six.moves import zip
 from dateutil import parser
 
