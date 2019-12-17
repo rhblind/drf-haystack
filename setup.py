@@ -34,8 +34,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "Django>=1.11",
-        "djangorestframework>=3.7,<3.11",
-        "django-haystack",
+        "djangorestframework>=3.7",
         "python-dateutil",
         "six"
     ],
