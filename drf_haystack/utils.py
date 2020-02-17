@@ -2,8 +2,8 @@
 
 from __future__ import absolute_import, unicode_literals
 
+import six
 from copy import deepcopy
-from django.utils import six
 
 
 def merge_dict(a, b):

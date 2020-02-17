@@ -3,10 +3,10 @@
 from __future__ import absolute_import, unicode_literals
 
 import operator
+import six
 from functools import reduce
 
 from django.core.exceptions import ImproperlyConfigured
-from django.utils import six
 from haystack.query import SearchQuerySet
 from rest_framework.filters import BaseFilterBackend, OrderingFilter
 

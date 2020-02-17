@@ -12,7 +12,6 @@ import six
 from django.conf.urls import url, include
 from django.core.exceptions import ImproperlyConfigured
 from django.http import QueryDict
-from django.utils import six
 from django.test import TestCase, SimpleTestCase, override_settings
 from haystack.query import SearchQuerySet
 

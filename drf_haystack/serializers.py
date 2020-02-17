@@ -3,6 +3,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import copy
+import six
 import warnings
 from itertools import chain
 from datetime import datetime
@@ -13,7 +14,6 @@ except ImportError:
     from django.utils.datastructures import SortedDict as OrderedDict
 
 from django.core.exceptions import ImproperlyConfigured, FieldDoesNotExist
-from django.utils import six
 
 from haystack import fields as haystack_fields
 from haystack.query import EmptySearchQuerySet

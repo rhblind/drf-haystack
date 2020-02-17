@@ -2,9 +2,10 @@
 
 from __future__ import absolute_import, unicode_literals
 
+import six
+
 from django.contrib.contenttypes.models import ContentType
 from django.http import Http404
-from django.utils import six
 
 from haystack.backends import SQ
 from haystack.query import SearchQuerySet
