@@ -3,11 +3,12 @@
 from __future__ import absolute_import, unicode_literals
 
 import operator
+import six
 import warnings
 from itertools import chain
 
-from django.utils import six
-from django.utils.six.moves import zip
+
+from six.moves import zip
 from dateutil import parser
 
 from drf_haystack import constants
