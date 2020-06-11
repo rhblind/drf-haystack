@@ -20,7 +20,7 @@ Supported versions
 ------------------
 
 - Python 3.4 and above
-- Django 1.11 and 2.0-2.2
+- Django 2.2 and 3.0
 - Haystack 2.8 and above
 - Django REST Framework 3.7 and above
 

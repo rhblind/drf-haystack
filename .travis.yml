@@ -31,6 +31,11 @@ before_install:
   # See https://www.elastic.co/guide/en/elasticsearch/reference/current/deb.html#deb-repo
   - wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
   - >
+    if [[ $ES_VERSION == '>=5.0.0,<6.0.0' ]];
+    then
+      echo "deb http://packages.elastic.co/elasticsearch/5.x/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch-5.x.list
+      sudo apt-get update
+      sudo apt-get -y --allow-downgrades install elasticsearch=5.6.16
     if [[ $ES_VERSION == '>=2.0.0,<3.0.0' ]];
     then
       echo "deb http://packages.elastic.co/elasticsearch/2.x/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch-2.x.list
@@ -59,30 +64,23 @@ script:
 env:
   matrix:
     # ES 1.x
-    - DJANGO_VERSION=">=1.11,<2.0" ES_VERSION=">=1.0.0,<2.0.0"
-    - DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=1.0.0,<2.0.0"
-    - DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=1.0.0,<2.0.0"
     - DJANGO_VERSION=">=2.2,<2.3" ES_VERSION=">=1.0.0,<2.0.0"
     - DJANGO_VERSION=">=3.0,<3.1" ES_VERSION=">=1.0.0,<2.0.0"
     # ES 2.x
-    - DJANGO_VERSION=">=1.11,<2.0" ES_VERSION=">=2.0.0,<3.0.0"
-    - DJANGO_VERSION=">=2.0,<2.1" ES_VERSION=">=2.0.0,<3.0.0"
-    - DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=2.0.0,<3.0.0"
     - DJANGO_VERSION=">=2.2,<2.3" ES_VERSION=">=2.0.0,<3.0.0"
-    - DJANGO_VERSION=">=3.0,<3.1" ES_VERSION=">=1.0.0,<2.0.0"
-
+    - DJANGO_VERSION=">=3.0,<3.1" ES_VERSION=">=2.0.0,<3.0.0"
+    - # ES 5.x
+    - DJANGO_VERSION=">=2.2,<2.3" ES_VERSION=">=5.0.0,<6.0.0"
+    - DJANGO_VERSION=">=3.0,<3.1" ES_VERSION=">=5.0.0,<6.0.0"
 matrix:
   allow_failures:
     - python: pypy3.5-6.0
   exclude:
     - python: 3.4
-      env: DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=1.0.0,<2.0.0"
-    - python: 3.4
-      env: DJANGO_VERSION=">=2.1,<2.2" ES_VERSION=">=2.0.0,<3.0.0"
-    - python: 3.4
       env: DJANGO_VERSION=">=2.2,<2.3" ES_VERSION=">=1.0.0,<2.0.0"
     - python: 3.4
       env: DJANGO_VERSION=">=2.2,<2.3" ES_VERSION=">=2.0.0,<3.0.0"
-
+    - python: 3.4
+      env: DJANGO_VERSION=">=2.2,<2.3" ES_VERSION=">=5.0.0,<6.0.0"
 notifications:
   email: false
