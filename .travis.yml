@@ -28,13 +28,14 @@ addons:
 before_install:
   - mkdir -p $HOME/download-cache
   # See https://www.elastic.co/guide/en/elasticsearch/reference/current/deb.html#deb-repo
+  # See https://www.elastic.co/guide/en/elasticsearch/reference/current/deb.html#deb-repo
   - wget -qO - https://packages.elastic.co/GPG-KEY-elasticsearch | sudo apt-key add -
   - >
     if [[ $ES_VERSION == '>=5.0.0,<6.0.0' ]];
     then
-      echo "deb http://packages.elastic.co/elasticsearch/5.x/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch-5.x.list
       sudo apt-get update
-      sudo apt-get -y --allow-downgrades install elasticsearch=5.6.10
+      wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-5.6.16.deb -P /tmp/
+      sudo dpkg -i /tmp/elasticsearch-5.6.16.deb
     elif [[ $ES_VERSION == '>=2.0.0,<3.0.0' ]];
     then
       echo "deb http://packages.elastic.co/elasticsearch/2.x/debian stable main" | sudo tee -a /etc/apt/sources.list.d/elasticsearch-2.x.list
@@ -74,5 +75,12 @@ env:
 matrix:
   allow_failures:
     - python: pypy3.5-6.0
+  exclude:
+    - python: 3.5
+      env: DJANGO_VERSION=">=3.0,<3.1" ES_VERSION=">=1.0.0,<2.0.0"
+    - python: 3.5
+      env: DJANGO_VERSION=">=3.0,<3.1" ES_VERSION=">=2.0.0,<3.0.0"
+    - python: 3.5
+      env: DJANGO_VERSION=">=3.0,<3.1" ES_VERSION=">=5.0.0,<6.0.0"
 notifications:
   email: false
