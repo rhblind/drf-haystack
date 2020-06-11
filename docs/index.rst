@@ -28,7 +28,7 @@ Features
 
 Supported Python and Django versions:
 
-    - Python 3.4+
+    - Python 3.5+
     - `All supported versions of Django <https://www.djangoproject.com/download/#supported-versions>`_
 
 
