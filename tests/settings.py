@@ -114,10 +114,6 @@ LOGGING = {
 
 try:
     import elasticsearch
-    if (5, ) <= elasticsearch.VERSION <= (6, ):
-        HAYSTACK_CONNECTIONS['default'].update({
-            'ENGINE': 'haystack.backends.elasticsearch5_backend.Elasticsearch5SearchEngine'
-        })
     if (2, ) <= elasticsearch.VERSION <= (3, ):
         HAYSTACK_CONNECTIONS['default'].update({
             'ENGINE': 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine'
