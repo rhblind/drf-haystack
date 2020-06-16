@@ -7,7 +7,6 @@ from datetime import date, datetime, timedelta
 from random import randrange, randint
 
 from django.db import models
-from django.utils.encoding import python_2_unicode_compatible
 
 
 def get_random_date(start=date(1950, 1, 1), end=date.today()):
@@ -26,7 +25,6 @@ def get_random_datetime(start=datetime(1950, 1, 1, 0, 0), end=datetime.today()):
     return (start + timedelta(seconds=randint(0, int(delta)))).replace(tzinfo=pytz.UTC)
 
 
-@python_2_unicode_compatible
 class MockLocation(models.Model):
 
     latitude = models.FloatField()
@@ -51,7 +49,6 @@ class MockLocation(models.Model):
             return Point(self.longitude, self.latitude, srid=4326)
 
 
-@python_2_unicode_compatible
 class MockPerson(models.Model):
 
     firstname = models.CharField(max_length=20)
@@ -65,7 +62,6 @@ class MockPerson(models.Model):
         return "%s %s" % (self.firstname, self.lastname)
 
 
-@python_2_unicode_compatible
 class MockPet(models.Model):
 
     name = models.CharField(max_length=20)
@@ -78,7 +74,6 @@ class MockPet(models.Model):
         return self.name
 
 
-@python_2_unicode_compatible
 class MockAllField(models.Model):
 
     charfield = models.CharField(max_length=100)

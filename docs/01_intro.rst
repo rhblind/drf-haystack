@@ -142,7 +142,7 @@ Finally, hook up the views in your `urls.py` file.
 
 .. note::
 
-    Make sure you specify the `base_name` attribute when wiring up the view in the router.
+    Make sure you specify the `basename` attribute when wiring up the view in the router.
     Since we don't have any single `model` for the view, it is impossible for the router to
     automatically figure out the base name for the view.
 
@@ -158,7 +158,7 @@ Finally, hook up the views in your `urls.py` file.
     from .views import LocationSearchView
 
     router = routers.DefaultRouter()
-    router.register("location/search", LocationSearchView, base_name="location-search")
+    router.register("location/search", LocationSearchView, basename="location-search")
 
 
     urlpatterns = patterns(

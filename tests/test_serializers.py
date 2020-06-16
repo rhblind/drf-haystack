@@ -86,8 +86,8 @@ class SearchPersonFacetViewSet(FacetMixin, HaystackViewSet):
 
 
 router = DefaultRouter()
-router.register("search-person-mlt", viewset=SearchPersonMLTViewSet, base_name="search-person-mlt")
-router.register("search-person-facet", viewset=SearchPersonFacetViewSet, base_name="search-person-facet")
+router.register("search-person-mlt", viewset=SearchPersonMLTViewSet, basename="search-person-mlt")
+router.register("search-person-facet", viewset=SearchPersonFacetViewSet, basename="search-person-facet")
 
 urlpatterns = [
     url(r"^", include(router.urls))
