@@ -105,13 +105,20 @@ Thanks guys!
 Changelog
 =========
 
+v1.8.7
+------
+*Release date: 2020-08-01*
+
+    - Updated supported Python, Haystack and DRF versions
+
+
 v1.8.6
 ------
 *Release date: 2019-10-13*
 
     - Fixed :drf-issue:`139`. Overriding declared fields must now use ``serializers.SerializerMethodField()`` and are
       handled by stock DRF. We don't need any custom functionality for this.
-    - Added support for Django REST Framework v3.10.x  
+    - Added support for Django REST Framework v3.10.x
     - Dropped Python 2.x support
 
 v1.8.5
@@ -341,4 +348,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
