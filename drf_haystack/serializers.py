@@ -481,5 +481,7 @@ class HighlighterMixin(object):
             })
             document_field = self.get_document_field(instance)
             if highlighter and document_field:
-                ret["highlighted"] = highlighter.highlight(getattr(instance, self.highlighter_field or document_field))
+                # Handle case where this data is None, but highlight expects it to be a string
+                data_to_highlight = getattr(instance, self.highlighter_field or document_field) or ''
+                ret["highlighted"] = highlighter.highlight(data_to_highlight)
         return ret
