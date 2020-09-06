@@ -470,9 +470,16 @@ class HighlighterMixin(object):
             if field.document is True:
                 return name
 
+    def get_terms(self, data):
+        """
+        Returns the terms to be highlighted
+        """
+        terms = " ".join(six.itervalues(self.context["request"].GET))
+        return terms
+
     def to_representation(self, instance):
         ret = super(HighlighterMixin, self).to_representation(instance)
-        terms = " ".join(six.itervalues(self.context["request"].GET))
+        terms = self.get_terms(ret)
         if terms:
             highlighter = self.get_highlighter()(terms, **{
                 "html_tag": self.highlighter_html_tag,
