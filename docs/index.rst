@@ -105,6 +105,13 @@ Thanks guys!
 Changelog
 =========
 
+v1.8.8
+------
+*Release date: 2020-09-28*
+
+    - Updated supported DRF versions
+
+
 v1.8.7
 ------
 *Release date: 2020-08-01*
