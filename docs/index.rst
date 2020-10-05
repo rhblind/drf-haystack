@@ -105,7 +105,7 @@ Thanks guys!
 Changelog
 =========
 
-v1.8.8
+v1.8.9
 ------
 *Release date: 2020-09-28*
 
