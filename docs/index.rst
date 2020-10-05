@@ -107,6 +107,13 @@ Changelog
 
 v1.8.9
 ------
+*Release date: 2020-10-05*
+
+    - Updated supported Django versions
+
+
+v1.8.8
+------
 *Release date: 2020-09-28*
 
     - Updated supported DRF versions
