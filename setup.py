@@ -33,7 +33,7 @@ setup(
     ],
     include_package_data=True,
     install_requires=[
-        "Django>=2.2,<3.2",
+        "Django>=2.2,<3.3",
         "djangorestframework>=3.7,<3.13",
         "django-haystack>=2.8,<3.1",
         "python-dateutil"

@@ -28,7 +28,7 @@ Features
 
 Supported Python and Django versions:
 
-    - Python 3.5+
+    - Python 3.6+
     - `All supported versions of Django <https://www.djangoproject.com/download/#supported-versions>`_
 
 
@@ -104,6 +104,14 @@ Thanks guys!
 
 Changelog
 =========
+
+v1.8.10
+------
+*Release date: 2021-04-12*
+
+    - Updated supported Django versions
+    - Updated supported Python versions
+
 
 v1.8.9
 ------
