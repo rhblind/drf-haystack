@@ -94,6 +94,7 @@ class HaystackFilter(BaseHaystackFilterBackend):
 
     query_builder_class = FilterQueryBuilder
     default_operator = operator.and_
+    default_same_param_operator = operator.or_
 
 
 class HaystackAutocompleteFilter(HaystackFilter):
