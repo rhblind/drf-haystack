@@ -5,7 +5,7 @@ name = "pypi"
 
 [packages]
 django = ">=2.2,<3.3"
-django-haystack = ">=2.8,<=3.1"
+django-haystack = ">=2.8,<=3.2"
 djangorestframework = ">=3.7.0,<3.13"
 python-dateutil = "*"
 
