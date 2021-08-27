@@ -111,6 +111,7 @@ v1.8.11
 
     - Updated supported Django-Haystack versions
 
+
 v1.8.10
 ------
 *Release date: 2021-04-12*

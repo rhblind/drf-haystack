@@ -86,6 +86,17 @@ class FilterQueryBuilder(BaseQueryBuilder):
                 "cls": self.backend.__class__.__name__
             })
         self.default_operator = self.backend.default_operator
+        self.default_same_param_operator = getattr(self.backend, "default_same_param_operator", self.default_operator)
+
+    def get_same_param_operator(self, param):
+        """
+        Helper method to allow per param configuration of which operator should be used when multiple filters for the
+        same param are found.
+
+        :param str param: is the param for which you want to get the operator
+        :return: Either operator.or_ or operator.and_
+        """
+        return self.default_same_param_operator
 
     def build_query(self, **filters):
         """
@@ -127,17 +138,17 @@ class FilterQueryBuilder(BaseQueryBuilder):
                         chain(fields, search_fields)) or base_param in exclude or not value:
                     continue
 
-            field_queries = []
+            param_queries = []
             if len(param_parts) > 1 and param_parts[-1] in ('in', 'range'):
                 # `in` and `range` filters expects a list of values
-                field_queries.append(self.view.query_object((param, list(self.tokenize(value, self.view.lookup_sep)))))
+                param_queries.append(self.view.query_object((param, list(self.tokenize(value, self.view.lookup_sep)))))
             else:
                 for token in self.tokenize(value, self.view.lookup_sep):
-                    field_queries.append(self.view.query_object((param, token)))
+                    param_queries.append(self.view.query_object((param, token)))
 
-            field_queries = [fq for fq in field_queries if fq]
-            if len(field_queries) > 0:
-                term = six.moves.reduce(operator.or_, field_queries)
+            param_queries = [pq for pq in param_queries if pq]
+            if len(param_queries) > 0:
+                term = six.moves.reduce(self.get_same_param_operator(param), param_queries)
                 if excluding_term:
                     applicable_exclusions.append(term)
                 else:
