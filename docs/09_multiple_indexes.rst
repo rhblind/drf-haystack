@@ -82,17 +82,17 @@ The following example illustrates this usage:
 .. code-block:: python
 
     class AggregateSerializer(HaystackSerializer):
-        extra = serializers.CharField()
-        _ThingIndex__number = serializers.IntegerField()
+        extra = serializers.SerializerMethodField()
+        _ThingIndex__number = serializers.SerializerMethodField()
 
         class Meta:
             index_classes = [PersonIndex, PlaceIndex, ThingIndex]
             fields = ["firstname", "lastname", "address", "name"]
 
-        def get_extra(self):
+        def get_extra(self,instance):
             return "whatever"
 
-        def get__ThingIndex__number(self):
+        def get__ThingIndex__number(self,instance):
             return 42
 
 The results of a search might then look like the following:
