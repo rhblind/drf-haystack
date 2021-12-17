@@ -58,5 +58,5 @@ docs/_build/
 target/
 
 # Pipenv
-Pipfile.lock
+.tool-versions
 .idea
