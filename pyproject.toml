@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "drf-haystack"
+version = "1.8.11"
+description = "Haystack for Django REST Framework"
+authors = ["Rolf Håvard Blindheim <rhblind@gmail.com>"]
+license = "MIT License"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+django = ">=2.2,<3.3"
+django-haystack = ">=2.8,<=3.2"
+djangorestframework = ">=3.7.0,<3.13"
+python-dateutil = "*"
+
+[tool.poetry.dev-dependencies]
+coverage = "*"
+nose = "*"
+sphinx = "*"
+sphinx-rtd-theme = "*"
+urllib3 = "*"
+geopy = "*"
+tox = "*"
+wheel = "*"
+elasticsearch = "<3.0.0,>=2.0.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
