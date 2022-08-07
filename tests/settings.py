@@ -3,6 +3,7 @@
 from __future__ import absolute_import, unicode_literals
 
 import os
+import sys
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.dirname(__file__)), 'tests'))
 
 SECRET_KEY = 'NOBODY expects the Spanish Inquisition!'
@@ -120,3 +121,7 @@ try:
         })
 except ImportError as e:
     del HAYSTACK_CONNECTIONS['default']  # This will intentionally cause everything to break!
+
+if sys.version_info.major == 3 and sys.version_info.minor > 9:
+    import collections
+    collections.Callable = collections.abc.Callable
