@@ -1,6 +1,6 @@
 coverage
 django>=2.2,<3.3
-django-haystack>=2.8,<3.2
+django-haystack>=2.8,<=3.2
 djangorestframework>=3.7.0,<3.13
 elasticsearch>=2.0.0,<3.0.0
 nose
