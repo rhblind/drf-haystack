@@ -63,10 +63,12 @@ env:
     - DJANGO_VERSION=">=3.0,<3.1" ES_VERSION=">=1.0.0,<2.0.0"
     - DJANGO_VERSION=">=3.1,<3.2" ES_VERSION=">=1.0.0,<2.0.0"
     - DJANGO_VERSION=">=3.2,<3.3" ES_VERSION=">=1.0.0,<2.0.0"
+    - DJANGO_VERSION=">=4.0,<=4.1" ES_VERSION=">=1.0.0,<2.0.0"
     # ES 2.x
     - DJANGO_VERSION=">=2.2,<2.3" ES_VERSION=">=2.0.0,<3.0.0"
     - DJANGO_VERSION=">=3.0,<3.1" ES_VERSION=">=2.0.0,<3.0.0"
     - DJANGO_VERSION=">=3.1,<3.2" ES_VERSION=">=2.0.0,<3.0.0"
     - DJANGO_VERSION=">=3.2,<3.3" ES_VERSION=">=2.0.0,<3.0.0"
+    - DJANGO_VERSION=">=4.0,<=4.1" ES_VERSION=">=2.0.0,<3.0.0"
 notifications:
   email: false
