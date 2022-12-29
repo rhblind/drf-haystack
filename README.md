@@ -19,7 +19,7 @@ Fresh [documentation available](https://drf-haystack.readthedocs.io/en/latest/) 
 Supported versions
 ------------------
 
-- Python 3.6 and above
+- Python 3.7 and above
 - Django >=2.2,<=4.1
 - Haystack 2.8, 3.2
 - Django REST Framework >=3.7.0,<=3.13
@@ -34,7 +34,7 @@ Installation
 Supported features
 ------------------
 We aim to support most features Haystack does (or at least those which can be used in a REST API).
-Currently we support:
+Currently, we support:
 
 - Autocomplete
 - Boost (Experimental)
