@@ -18,7 +18,7 @@ sphinx-rtd-theme = "*"
 geopy = "*"
 tox = "*"
 wheel = "*"
-elasticsearch = "<=8.3.3,>=2.0.0"
+elasticsearch = ">=2.0.0,<=8.3.3"
 
 [requires]
 python_version = "3.7"

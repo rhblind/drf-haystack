@@ -20,9 +20,10 @@ Supported versions
 ------------------
 
 - Python 3.6 and above
-- Django 2.2 and 3.0
-- Haystack 2.8 and above
-- Django REST Framework 3.7 and above
+- Django >=2.2,<=4.1
+- Haystack 2.8, 3.2
+- Django REST Framework >=3.7.0,<=3.13
+- elasticsearch >=2.0.0,<=8.3.3,
 
 
 Installation
@@ -49,7 +50,7 @@ Show me more!
 from drf_haystack.serializers import HaystackSerializer
 from drf_haystack.viewsets import HaystackViewSet
 
-from myapp.search_indexes import PersonIndex  # BYOI™ (Bring Your Own Index)
+from myapp.search_indexes import PersonIndex  # You would define this Index normally as per Haystack's documentation
 
 # Serializer
 class PersonSearchSerializer(HaystackSerializer):
