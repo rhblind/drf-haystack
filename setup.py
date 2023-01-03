@@ -33,9 +33,9 @@ setup(
     ],
     tests_require=[
         "coverage",
-        "geopy"
+        "geopy",
         "nose",
-        "requests",
+        "requests"
     ],
     zip_safe=False,
     test_suite="tests.run_tests.start",
