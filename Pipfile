@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = ">=2.2,<=4.1"
+django = ">=2.2,<=4.1.2"
 django-haystack = ">=2.8,<=3.2"
 djangorestframework = ">=3.7.0,<=3.13"
 python-dateutil = "*"
@@ -18,7 +18,7 @@ sphinx-rtd-theme = "*"
 geopy = "*"
 tox = "*"
 wheel = "*"
-elasticsearch = "<=8.3.3,>=2.0.0"
+elasticsearch = ">=2.0.0,<=8.3.3"
 
 [requires]
 python_version = "3.7"
