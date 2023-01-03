@@ -1,23 +1,18 @@
-Haystack for Django REST Framework
-==================================
+# Haystack for Django REST Framework
 
-Build status
-------------
+## Build status
 
-[![Build Status](https://travis-ci.org/rhblind/drf-haystack.svg?branch=master)](https://travis-ci.org/rhblind/drf-haystack)
+[![Build status](https://github.com/rhblind/drf-haystack/actions/workflows/test.yml/badge.svg)](https://github.com/rhblind/drf-haystack/actions/workflows/test.yml)
 [![Coverage Status](https://coveralls.io/repos/github/rhblind/drf-haystack/badge.svg?branch=master)](https://coveralls.io/github/rhblind/drf-haystack?branch=master)
 [![PyPI version](https://badge.fury.io/py/drf-haystack.svg)](https://badge.fury.io/py/drf-haystack)
 [![Documentation Status](https://readthedocs.org/projects/drf-haystack/badge/?version=latest)](http://drf-haystack.readthedocs.io/en/latest/?badge=latest)
 
-
-About
------
+## About
 
 Small library which tries to simplify integration of Haystack with Django REST Framework.
 Fresh [documentation available](https://drf-haystack.readthedocs.io/en/latest/) on Read the docs!
 
-Supported versions
-------------------
+## Supported versions
 
 - Python 3.7 and above
 - Django >=2.2,<=4.1
@@ -25,14 +20,12 @@ Supported versions
 - Django REST Framework >=3.7.0,<=3.13
 - elasticsearch >=2.0.0,<=8.3.3,
 
-
-Installation
-------------
+## Installation
 
     $ pip install drf-haystack
 
-Supported features
-------------------
+## Supported features
+
 We aim to support most features Haystack does (or at least those which can be used in a REST API).
 Currently, we support:
 
@@ -43,8 +36,7 @@ Currently, we support:
 - Highlighting
 - More Like This
 
-Show me more!
--------------
+## Show me more!
 
 ```python
 from drf_haystack.serializers import HaystackSerializer
