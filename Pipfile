@@ -21,4 +21,4 @@ wheel = "*"
 elasticsearch = ">=2.0.0,<=8.3.3"
 
 [requires]
-python_version = "3.7"
+python_version = "3"
