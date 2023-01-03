@@ -2,14 +2,7 @@
 
 import re
 import os
-
-try:
-    from setuptools import setup
-except ImportError:
-    from ez_setup import use_setuptools
-    use_setuptools()
-    from setuptools import setup
-
+from setuptools import setup
 
 def get_version(package):
     """
@@ -39,8 +32,10 @@ setup(
         "python-dateutil"
     ],
     tests_require=[
+        "coverage",
+        "geopy"
         "nose",
-        "coverage"
+        "requests",
     ],
     zip_safe=False,
     test_suite="tests.run_tests.start",
