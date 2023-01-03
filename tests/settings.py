@@ -119,15 +119,15 @@ try:
             'ENGINE': 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine'
         })
     elif (5,) <= elasticsearch.__version__ <= (6,):
-        HAYSTACK_CONNECTIONS["elasticsearch"].update(
+        HAYSTACK_CONNECTIONS['default'].update(
             {
-                "ENGINE": "haystack.backends.elasticsearch5_backend.Elasticsearch5SearchEngine"
+                'ENGINE': 'haystack.backends.elasticsearch5_backend.Elasticsearch5SearchEngine'
             }
         )
     elif (7,) <= elasticsearch.__version__ <= (8,):
-        HAYSTACK_CONNECTIONS["elasticsearch"].update(
+        HAYSTACK_CONNECTIONS["default"].update(
             {
-                "ENGINE": "haystack.backends.elasticsearch7_backend.Elasticsearch7SearchEngine"
+                'ENGINE': 'haystack.backends.elasticsearch7_backend.Elasticsearch7SearchEngine'
             }
         )
 
