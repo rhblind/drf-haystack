@@ -19,6 +19,7 @@ geopy = "*"
 tox = "*"
 wheel = "*"
 elasticsearch = ">=2.0.0,<=8.3.3"
+black = "*"
 
 [requires]
 python_version = "3"
