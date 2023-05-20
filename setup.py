@@ -7,6 +7,7 @@ try:
     from setuptools import setup
 except ImportError:
     from ez_setup import use_setuptools
+
     use_setuptools()
     from setuptools import setup
 
@@ -17,6 +18,7 @@ def get_version(package):
     """
     init_py = open(os.path.join(package, "__init__.py")).read()
     return re.search("__version__ = ['\"]([^'\"]+)['\"]", init_py).group(1)
+
 
 setup(
     name="drf-haystack",
@@ -36,12 +38,9 @@ setup(
         "Django>=2.2,<=4.2",
         "djangorestframework>=3.7,<=3.14",
         "django-haystack>=2.8,<=3.2.1",
-        "python-dateutil"
+        "python-dateutil",
     ],
-    tests_require=[
-        "nose",
-        "coverage"
-    ],
+    tests_require=["coverage", "geopy", "requests"],
     zip_safe=False,
     test_suite="tests.run_tests.start",
     classifiers=[
@@ -54,5 +53,5 @@ setup(
         "Programming Language :: Python :: 3",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
-    python_requires=">=3.7"
+    python_requires=">=3.7",
 )

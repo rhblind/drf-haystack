@@ -1,28 +1,19 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import, print_function, unicode_literals
-
-
 import os
 import sys
-import nose
+
+import django
+from django.core.management import call_command
 
 
 def start(argv=None):
-    sys.exitfunc = lambda: sys.stderr.write("Shutting down...\n")
+    sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+    os.environ["DJANGO_SETTINGS_MODULE"] = "tests.settings"
+    django.setup()
 
-    if argv is None:
-        argv = [
-            "nosetests",
-            "--verbose",
-            "--with-coverage",
-            "--cover-erase",
-            "--cover-branches",
-            "--cover-package=drf_haystack",
-        ]
-
-    nose.run_exit(argv=argv, defaultTest=os.path.abspath(os.path.dirname(__file__)))
+    call_command("test", sys.argv[1:])
 
 
 if __name__ == "__main__":
