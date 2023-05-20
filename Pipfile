@@ -11,7 +11,6 @@ python-dateutil = "*"
 
 [dev-packages]
 coverage = "*"
-nose = "*"
 sphinx = "*"
 sphinx-rtd-theme = "*"
 "urllib3" = "*"
@@ -19,6 +18,7 @@ geopy = "*"
 tox = "*"
 wheel = "*"
 elasticsearch = ">=2.0.0,<=8.3.3"
+black = "*"
 
 [requires]
 python_version = "3"
