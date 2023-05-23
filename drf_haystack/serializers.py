@@ -211,6 +211,10 @@ class HaystackSerializer(six.with_metaclass(HaystackSerializerMeta, serializers.
         if declared_fields:
             for field_name in declared_fields:
                 field_mapping[field_name] = declared_fields[field_name]
+
+        if "id" in fields:
+            field_mapping['id'] = HaystackCharField()
+
         return field_mapping
 
     def to_representation(self, instance):
@@ -236,7 +240,7 @@ class HaystackSerializer(six.with_metaclass(HaystackSerializerMeta, serializers.
                         if index == current_index:
                             ret[field] = ret[orig_field]
                         del ret[orig_field]
-                elif field not in chain(instance.searchindex.fields.keys(), self._declared_fields.keys()):
+                elif field not in chain(instance.searchindex.fields.keys(), self._declared_fields.keys(), ["id"]):
                     del ret[orig_field]
 
         # include the highlighted field in either case
