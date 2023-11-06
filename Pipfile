@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-django = ">=2.2,<=4.2.3"
+django = ">=2.2,<=4.2.7"
 django-haystack = ">=2.8,<=3.2.1"
 djangorestframework = ">=3.7.0,<=3.14"
 python-dateutil = "*"
