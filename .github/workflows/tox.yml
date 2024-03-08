@@ -15,7 +15,6 @@ jobs:
           # cache: 'pip'  # Only use if there are requirements.txt files
       - run: pip install --upgrade pip
       - run: pip install tox
-      - run: pip install --editable .
       - run: tox -e ${{ matrix.job }}
 
   tox:
