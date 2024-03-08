@@ -14,7 +14,7 @@ jobs:
           python-version: 3.x
           # cache: 'pip'  # Only use if there are requirements.txt files
       - run: pip install --upgrade pip
-      - run: pip install tox
+      - run: pip install setuptools tox
       - run: tox -e ${{ matrix.job }}
 
   tox:
