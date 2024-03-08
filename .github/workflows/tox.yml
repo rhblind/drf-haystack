@@ -1,0 +1,45 @@
+name: tox
+on: [push, pull_request]
+jobs:
+  tox-jobs:
+    strategy:
+      fail-fast: false
+      matrix:
+        job: [docs]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+          # cache: 'pip'  # Only use if there are requirements.txt files
+      - run: pip install --upgrade pip
+      - run: pip install tox
+      - run: tox -e ${{ matrix.job }}
+
+  tox:
+    strategy:
+      fail-fast: false
+      # max-parallel: 4
+      matrix:  # https://docs.djangoproject.com/en/stable/faq/install/#what-python-version-can-i-use-with-django
+        os: [ubuntu-latest]  # [macos-latest, ubuntu-latest, windows-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', 'pypy3.10']
+        django-version: ['3.2', '4.2', '5.0']
+        elasticsearch-version: ['7.17.9']  # https://pypi.org/project/elasticsearch7
+        exclude:
+          - python-version: '3.8'
+            django-version: '5.0'
+          - python-version: '3.9'
+            django-version: '5.0'
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          # cache: 'pip'  # Only use if there are requirements.txt files
+      - run: python3 --version && python --version
+      - run: pip install --upgrade pip
+      # - run: pip install django==${{ matrix.django-version }} elasticsearch==${{ matrix.elasticsearch-version }} tox
+      - run: pip install tox
+      - run: tox -e "py${{ matrix.python-version }}-django${{ matrix.django-version }}-es7.x"
