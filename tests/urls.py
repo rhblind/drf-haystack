@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from django.conf.urls import include, url
+from django.urls import include, path
 
 from rest_framework import routers
 
@@ -11,5 +11,5 @@ router.register("search-person-facet", viewset=SearchPersonFacetViewSet, basenam
 router.register("search-person-mlt", viewset=SearchPersonMLTViewSet, basename="search-person-mlt")
 
 urlpatterns = [
-    url(r"^", include(router.urls))
+    path(r"^", include(router.urls))
 ]

@@ -9,7 +9,7 @@ import json
 from datetime import datetime, timedelta
 
 import six
-from django.conf.urls import url, include
+from django.urls import path, include
 from django.core.exceptions import ImproperlyConfigured
 from django.http import QueryDict
 from django.test import TestCase, SimpleTestCase, override_settings
@@ -90,7 +90,7 @@ router.register("search-person-mlt", viewset=SearchPersonMLTViewSet, basename="s
 router.register("search-person-facet", viewset=SearchPersonFacetViewSet, basename="search-person-facet")
 
 urlpatterns = [
-    url(r"^", include(router.urls))
+    path(r"^", include(router.urls))
 ]
 
 
