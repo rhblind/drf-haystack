@@ -22,7 +22,7 @@ Supported versions
 - Python 3.7 and above
 - Django >=2.2,<4.3
 - Haystack 2.8, 3.2
-- Django REST Framework >=3.7.0,<=3.13
+- Django REST Framework >=3.7.0,<3.16
 - elasticsearch >=2.0.0,<=8.3.3,
 
 
