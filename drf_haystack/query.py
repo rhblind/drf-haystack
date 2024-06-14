@@ -155,10 +155,10 @@ class FilterQueryBuilder(BaseQueryBuilder):
                     applicable_filters.append(term)
 
         applicable_filters = six.moves.reduce(
-            self.default_operator, filter(lambda x: x, applicable_filters)) if applicable_filters else []
+            self.default_operator, filter(lambda x: x, applicable_filters)) if applicable_filters else self.view.query_object()
 
         applicable_exclusions = six.moves.reduce(
-            self.default_operator, filter(lambda x: x, applicable_exclusions)) if applicable_exclusions else []
+            self.default_operator, filter(lambda x: x, applicable_exclusions)) if applicable_exclusions else self.view.query_object()
 
         return applicable_filters, applicable_exclusions
 
