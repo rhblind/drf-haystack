@@ -218,7 +218,7 @@ Any view that inherits the :class:`drf_haystack.mixins.FacetMixin` will have a s
     class has a couple of hooks for dealing with faceting, namely:
 
         - :attr:`drf_haystack.mixins.FacetMixin.facet_filter_backends` - A list of filter backends that will be used to
-          apply faceting to the queryset. Defaults to :class:drf_haystack.filters.HaystackFacetFilter`, which should be
+          apply faceting to the queryset. Defaults to :class:`drf_haystack.filters.HaystackFacetFilter`, which should be
           sufficient in most cases.
         - :attr:`drf_haystack.mixins.FacetMixin.facet_serializer_class` - The :class:`drf_haystack.serializers.HaystackFacetSerializer`
           instance that will be used for serializing the result.
@@ -241,8 +241,8 @@ Any view that inherits the :class:`drf_haystack.mixins.FacetMixin` will have a s
 In order to set up a view which can respond to regular queries under ie ``^search/$`` and faceted queries under
 ``^search/facets/$``, we could do something like this.
 
-We can also change the query param text from ``selected_facets`` to our own choice like ``params`` or ``p``. For this 
-to make happen please provide ``facet_query_params_text`` attribute as shown in the example. 
+We can also change the query param text from ``selected_facets`` to our own choice like ``params`` or ``p``. For this
+to make happen please provide ``facet_query_params_text`` attribute as shown in the example.
 
 .. code-block:: python
 
