@@ -105,6 +105,21 @@ Thanks guys!
 Changelog
 =========
 
+v1.9
+------
+*Release date: 2023-10-04*
+
+    - Return an empty query object instead of an empty list when no filter is passed (:drf-issue:`202`).
+    - add "id" as an optional value of the serializer fields returning the haystack internal id (:drf-issue:`193`).
+    - Update supported versions of main dependencies (Django >=2.2,<5.2; djangorestframework >=3.12.0,<3.16; django-haystack >=2.8,<3.4).
+
+v1.8.13
+------
+*Release date: 2023-10-04*
+
+    - Support patch versions of Django 4.2.x.
+    - Upgrade a few dependencies.
+
 v1.8.12
 ------
 *Release date: 2023-01-03*
