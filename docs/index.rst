@@ -105,9 +105,15 @@ Thanks guys!
 Changelog
 =========
 
+v1.9.1
+------
+*Release date: 2024-11-05*
+
+    - Add deprecation warning about potential future sunsetting of the project, due to lack of active maintainers.
+
 v1.9
 ------
-*Release date: 2023-10-04*
+*Release date: 2024-11-04*
 
     - Return an empty query object instead of an empty list when no filter is passed (:drf-issue:`202`).
     - add "id" as an optional value of the serializer fields returning the haystack internal id (:drf-issue:`193`).

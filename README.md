@@ -1,3 +1,24 @@
+🚨 Maintainers wanted 🚨
+========================
+
+**This project urgently needs new maintainers!**
+
+The current maintainers are no longer actively using `drf-haystack` and would
+like to [hand over the project to other developers](https://github.com/rhblind/drf-haystack/issues/146) who are using the package.
+
+We will still do the bare minimum maintenance of keeping dependency references 
+up to date with new releases of related packages **until January 1st 2026**.
+
+If by that time no new maintainers have joined to take over the project, we
+will archive the project and make the repository read-only, with a final
+release with whatever versions the dependencies have at that time.
+
+This gives everyone more than a year to either consider joining as maintainers
+or switch to other packages for handling their search in DRF.
+
+_The `drf-haystack` maintainers, November 2024_
+
+
 Haystack for Django REST Framework
 ==================================
 
